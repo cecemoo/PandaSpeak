@@ -1,0 +1,66 @@
+{% extends "account/base.html" %}
+
+ {% load static %}
+ {% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Subscription Plans</h1>
+        <p>Welcome, {{ user.first_name }}!</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Subscription Plans</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Subscription Plans - Standard Access</h2>
+        <!-- <p>Choose the plan that best suits your needs.</p> -->
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
+          <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
+          <div id="paypal-button-container-P-6WU49349628878712NITRXWQ" style="max-width:500px; margin:0 auto;"></div>
+<script src="https://www.paypal.com/sdk/js?client-id=AQs_LXRH5Kasvlg8iQsRvPdR0uI2MFmBghOF5q6wTgXhIvALN7TFMSadlxQQb1ibW6XxZNcytXdsBRfR&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+  paypal.Buttons({
+      style: {
+          shape: 'pill',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          /* Creates the subscription */
+          plan_id: 'P-6WU49349628878712NITRXWQ'
+        });
+      },
+      onApprove: function(data, actions) {
+        alert(data.subscriptionID); // You can add optional success message for the subscriber here
+      }
+  }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ'); // Renders the PayPal button
+</script>
+
+         
+      </div>
+
+    </section><!-- /Register Section Section -->
+
+  </main>
+
+
+{% endblock %}
+ 

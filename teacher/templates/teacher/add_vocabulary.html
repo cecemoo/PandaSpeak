@@ -1,0 +1,45 @@
+{% extends "account/base.html" %}
+
+ {% load static %}
+ {% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Add Vocabulary</h1>
+        <p>Hello, {{ user.first_name }}!</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Add Vocabulary</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Add Vocabulary</h2>
+        <!-- <p>Manage your vocabulary entries, track student progress, and update your profile.</p> -->
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button type="submit" class="btn btn-primary">Add Vocabulary</button>
+        </form>
+        
+      </div>
+
+    </section><!-- /Teacher Dashboard Section -->
+
+  </main>
+{% endblock %}
+ 

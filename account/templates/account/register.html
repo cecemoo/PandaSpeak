@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+
+ {% load static %}
+ {% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Register</h1>
+        <p>Esse dolorum voluptatum ullam est sint nemo et est ipsa porro placeat quibusdam quia assumenda numquam molestias.</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Register</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Register Section</h2>
+        <p>Register a new account to access all features.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <p>Fill out the form below to create a new account.</p>
+        <div>
+          <form action="" method="POST" autocomplete="off">
+            {% csrf_token %}
+            {{ RegisterForm|crispy }}
+            <button type="submit" value="submit">Register</button>
+          </form>
+        </div>
+      </div>
+
+    </section><!-- /Register Section Section -->
+
+  </main>
+{% endblock %}
+ 

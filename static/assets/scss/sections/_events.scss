@@ -1,0 +1,224 @@
+// main: ../main.scss
+/*--------------------------------------------------------------
+# Events Section
+--------------------------------------------------------------*/
+.events {
+  .section-title {
+    margin-bottom: 3rem;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: color-mix(in srgb, var(--default-color), transparent 30%);
+    }
+  }
+
+  .event-filters {
+    .form-select {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid color-mix(in srgb, var(--default-color), transparent 80%);
+
+      &:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--accent-color), transparent 80%);
+      }
+    }
+  }
+
+  .event-card {
+    display: flex;
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+
+    &:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+    }
+
+    .event-date {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      background-color: var(--accent-color);
+      color: var(--contrast-color);
+      text-align: center;
+      min-width: 100px;
+
+      .month {
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .day {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0.5rem 0;
+      }
+
+      .year {
+        font-size: 0.9rem;
+      }
+    }
+
+    .event-content {
+      padding: 1.5rem;
+      flex: 1;
+
+      h3 {
+        font-size: 1.3rem;
+        margin: 0.5rem 0;
+        font-weight: 600;
+      }
+
+      p {
+        color: color-mix(in srgb, var(--default-color), transparent 25%);
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+    }
+
+    .event-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+
+      &.academic {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+      }
+
+      &.sports {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      &.arts {
+        background-color: #ffebee;
+        color: #c62828;
+      }
+
+      &.community {
+        background-color: #fff3e0;
+        color: #e65100;
+      }
+    }
+
+    .event-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        color: color-mix(in srgb, var(--default-color), transparent 40%);
+        font-size: 0.9rem;
+
+        i {
+          margin-right: 0.5rem;
+          font-size: 1rem;
+          color: color-mix(in srgb, var(--accent-color), transparent 25%);
+        }
+      }
+    }
+
+    .event-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+
+      .btn-learn-more {
+        padding: 0.5rem 1.25rem;
+        background-color: var(--accent-color);
+        color: var(--contrast-color);
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s;
+
+        &:hover {
+          background-color: color-mix(in srgb, var(--accent-color), transparent 20%);
+        }
+      }
+
+      .btn-calendar {
+        padding: 0.5rem 1rem;
+        background-color: transparent;
+        color: var(--accent-color);
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: 1px solid color-mix(in srgb, var(--accent-color), transparent 50%);
+
+        i {
+          margin-right: 0.3rem;
+        }
+
+        &:hover {
+          background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
+        }
+      }
+    }
+  }
+
+  .btn-view-all {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background-color: var(--accent-color);
+    color: var(--contrast-color);
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+      transform: translateY(-3px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .event-card {
+      flex-direction: column;
+
+      .event-date {
+        flex-direction: row;
+        padding: 1rem;
+        gap: 0.5rem;
+        min-width: auto;
+
+        .month,
+        .day,
+        .year {
+          margin: 0;
+        }
+
+        .day {
+          font-size: 1.5rem;
+          margin: 0 0.3rem;
+        }
+      }
+    }
+
+    .event-actions {
+      flex-direction: column;
+    }
+  }
+}

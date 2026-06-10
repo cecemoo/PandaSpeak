@@ -1,0 +1,131 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+
+<style>
+  .category-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    max-width: 1200px;
+    margin:0 auto;
+    /* padding-left: 100px;
+    padding-right: 100px; */
+  }
+  .category-pill {
+    display: inline-block;
+    padding: 12px 25px; 
+    border-radius: 999px;
+    background-color: #fff7ed;
+    border: 2px solid #f4a261;
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .category-pill:hover {
+    background-color: #f4a261;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+</style>
+
+
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Learning Materials & Categories</h1>
+      <p>Welcome, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Learning Materials</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Vocabulary Section -->
+  <section id="vocabulary-section" class="vocabulary-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Vocabulary Categories</h2>
+
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      {% for category in vocabulary_categories %}
+      <a class="category-pill" href="{% url 'vocabulary_page' %}" class="learning-card">
+        {{ category.title }}
+      </a>
+      {% endfor %}
+    </div>
+
+  </section><!-- End Vocabulary Section -->
+
+
+  <!-- Sentences Section -->
+  <section id="sentences-section" class="sentences-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Sentence Categories</h2>
+
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      {% for category in sentence_categories %}
+      <a class="category-pill" href="{% url 'sentence_page' %}" class="learning-card">
+        {{ category.title }}
+      </a>
+      {% endfor %}
+    </div>
+
+  </section><!-- End Sentences Section -->
+
+  <!-- Pronunciation Section -->
+  <section id="pronunciation-section" class="pronunciation-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Pronunciation</h2>
+
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      {% for item in pronunciations %}
+      <p>{{ item.pronunciation }}</p>
+      {% endfor %}
+    </div>
+
+  </section><!-- End Pronunciation Section -->
+
+  <!-- Idioms Section -->
+  <section id="idioms-section" class="idioms-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Idiom Categories</h2>
+
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      {% for category in idiom_categories %}
+      <a class="category-pill" href="{% url 'idiom_page' %}" class="learning-card">
+        {{ category.title }}
+      </a>
+      {% endfor %}
+    </div>
+
+  </section><!-- End Idioms Section -->
+
+</main>
+{% endblock %}

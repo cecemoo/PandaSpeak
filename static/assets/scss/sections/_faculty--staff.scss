@@ -1,0 +1,224 @@
+// main: ../main.scss
+/*--------------------------------------------------------------
+# Faculty  Staff Section
+--------------------------------------------------------------*/
+.faculty--staff {
+  .search-container {
+    background-color: var(--surface-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+
+    input[type=text],
+    input[type=email],
+    textarea {
+      color: var(--default-color);
+      background-color: color-mix(in srgb, var(--background-color), transparent 50%);
+      border-color: color-mix(in srgb, var(--default-color), transparent 80%);
+      box-shadow: none;
+
+      &:focus {
+        border-color: var(--accent-color);
+      }
+
+      &::placeholder {
+        color: color-mix(in srgb, var(--default-color), transparent 70%);
+      }
+    }
+
+    .search-btn {
+      background-color: var(--accent-color);
+      color: var(--contrast-color);
+      border: none;
+
+      &:hover {
+        background-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+      }
+    }
+
+    .filters {
+      font-size: 0.9rem;
+
+      .form-check-input {
+        &:checked {
+          background-color: var(--accent-color);
+          border-color: var(--accent-color);
+        }
+      }
+    }
+  }
+
+  .departments-nav {
+    background-color: var(--surface-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+
+    .departments-title {
+      margin-bottom: 15px;
+      font-weight: 600;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-tabs {
+      border: none;
+
+      .nav-item {
+        margin-bottom: 5px;
+        width: 100%;
+      }
+
+      .nav-link {
+        border: none;
+        padding: 10px 15px;
+        color: var(--default-color);
+        border-radius: 5px;
+        text-align: left;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.03);
+          color: var(--accent-color);
+        }
+
+        &.active {
+          background-color: color-mix(in srgb, var(--accent-color), transparent 85%);
+          color: var(--accent-color);
+          font-weight: 500;
+        }
+      }
+    }
+
+    @media (max-width: 992px) {
+      margin-bottom: 30px;
+
+      .nav-tabs {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        .nav-item {
+          width: auto;
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+
+  .department-info {
+    background-color: var(--surface-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+
+    h3 {
+      color: var(--heading-color);
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: var(--default-color);
+      margin-bottom: 0;
+    }
+  }
+
+  .faculty-card {
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .faculty-image {
+      overflow: hidden;
+      height: 200px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    &:hover .faculty-image img {
+      transform: scale(1.05);
+    }
+
+    .faculty-info {
+      padding: 20px;
+
+      h4 {
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+        font-weight: 600;
+      }
+
+      .faculty-title {
+        color: color-mix(in srgb, var(--default-color), transparent 35%);
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+      }
+
+      .faculty-specialties {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+        gap: 5px;
+
+        span {
+          background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
+          color: var(--accent-color);
+          font-size: 0.75rem;
+          padding: 3px 8px;
+          border-radius: 20px;
+          display: inline-block;
+        }
+      }
+
+      .faculty-contact {
+        display: flex;
+        gap: 10px;
+
+        a {
+          font-size: 0.85rem;
+          color: var(--accent-color);
+          display: flex;
+          align-items: center;
+
+          i {
+            margin-right: 5px;
+          }
+
+          &:hover {
+            color: color-mix(in srgb, var(--accent-color), transparent 25%);
+          }
+        }
+      }
+    }
+  }
+
+  .tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

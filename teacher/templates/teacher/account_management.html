@@ -1,0 +1,49 @@
+{% extends "account/base.html" %}
+
+ {% load static %}
+ {% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Account Management</h1>
+        <p>Esse dolorum voluptatum ullam est sint nemo et est ipsa porro placeat quibusdam quia assumenda numquam molestias.</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Account Management</li>
+            &nbsp;&nbsp;&nbsp;<button class="btn btn-warning" onclick="history.back()" >Go back to previous page</button>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Account Management Section -->
+    <section id="account-management-section" class="account-management-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Account Management Section</h2>
+        <p>Manage your account details, update your profile, and change your password.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <p>Update your personal information and manage your account settings.</p>
+        <form method="POST">
+          {% csrf_token %}
+          {{ UpdateUserForm|crispy }}
+          <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+        <div class="container">
+          <a href="{% url 'delete_account' %}" class="btn btn-danger float-end">Delete Account</a>
+        </div>
+      </div>
+
+    </section><!-- /Account Management Section -->
+
+  </main>
+{% endblock %}
+ 
