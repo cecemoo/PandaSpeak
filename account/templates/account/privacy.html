@@ -1,0 +1,53 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+  .terms-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+</style>
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Privacy Policy</h1>
+        <!-- <p>Login to your account to access all features.</p> -->
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Privacy Policy</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Privacy Policy Section -->
+    <section id="privacy-section" class="privacy-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Last Updated: {{ content.last_updated }}</h2>
+        <div class="terms-content text-start mx-auto">
+          {% if content %}
+          <p>{{ content.content | linebreaks }}</p>
+          {% endif %}
+        </div>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+       
+        <div>
+          
+        </div>
+      </div>
+
+    </section><!-- /Privacy Policy Section -->
+
+  </main>
+{% endblock %}

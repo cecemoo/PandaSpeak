@@ -12,5 +12,6 @@ urlpatterns = [
     path('add_sentence/', views.add_sentence, name='add_sentence'),
     path('add_idiom/', views.add_idiom, name='add_idiom'),
     path('add_pronunciation/', views.add_pronunciation, name='add_pronunciation'),
+    path('add_tone/', views.add_tone, name='add_tone'),
     
 ]

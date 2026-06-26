@@ -1,0 +1,286 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+  .vocab-pill {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .vocab-pill:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .tone-learning-section {
+    margin: 40px auto;
+    padding: 30px;
+    max-width: 1000px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .tone-learning-section h3,
+  .tone-learning-section p {
+    text-align: center;
+  }
+
+  .tone-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    /* margin-top: 30px; */
+  }
+
+  .tone-card {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .tone-card audio {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tone-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .tone-symbol {
+    font-size: 42px;
+    font-weight: bold;
+  }
+
+  .tone-card button,
+  .quiz-play-btn,
+  .quiz-option button {
+    margin-top: 12px;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 18px;
+    background: #22c55e;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  .tone-detail-box,
+  .tone-quiz-box {
+    margin-top: 30px;
+    padding: 25px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  .quiz-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+</style>
+
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Pronunciation Page</h1>
+      Bopomofo (Zhuyin 注音) is a phonetic system used in Taiwan to help learners pronounce Mandarin Chinese
+      accurately. Each symbol represents a specific sound, similar to letters in the English alphabet. Learning
+      Bopomofo helps students build a strong foundation in listening, pronunciation, and reading Chinese.
+
+      <br><br>
+
+      Mandarin Chinese has four main tones. The meaning of a word can change completely depending
+      on its tone. Mastering the four tones is essential for clear communication and understanding spoken Chinese. In
+      this section, you will learn Bopomofo symbols, their corresponding Pinyin, example words, and correct
+      pronunciation through audio practice.
+      </p>
+
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <!-- <li class="current">Pronunciation Page</li> -->
+          <li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li>
+
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Pronunciation Section Section -->
+  <section id="pronunciation-section" class="pronunciation-section section">
+
+    <!-- Section Title -->
+    <div id="four-tones" class="container section-title" data-aos="fade-up">
+      <h2>Chinese Four Tones Practice</h2>
+      <p class="section-description">
+
+      <div class="tone-learning-section">
+        <p class="tone-intro">
+          Click each tone to hear the sound and learn its shape. Then test yourself with a short listening quiz.
+        </p>
+
+        <div class="tone-grid">
+
+          {% for tone in tones %}
+          <div class="tone-card" onclick="selectTone('{{ forloop.counter }}')">
+            <h4>{{ tone.name }}</h4>
+            <div class="tone-symbol">
+              {{ tone.symbol }}
+            </div>
+            <p>{{ tone.example }}</p>
+            <small>{{ tone.description }}</small>
+
+            {% if tone.audio_file %}
+            <audio onclick="event.stopPropagation()" controls>
+              <source src="{{ tone.audio_file.url }}">
+            </audio>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="tone-detail-box" id="toneDetail">
+          <h4>Select a tone to practice</h4>
+          <p>The tone explanation will appear here.</p>
+        </div>
+
+        <div class="tone-quiz-box">
+          <h3>Tone Listening Challenge</h3>
+          <p>Listen to the audio and choose the tone you hear.</p>
+
+          <button class="quiz-play-btn" onclick="playQuizTone()">🔊 Play Quiz Sound</button>
+
+          <div class="quiz-options">
+            {% for tone in tones %}
+            <button onclick="checkAnswer('{{ forloop.counter }}')">{{ tone.tone_name }}</button>
+            {% endfor %}
+          </div>
+
+          <p id="quizResult"></p>
+          <p id="scoreText">Score: 0 / 0</p>
+        </div>
+
+      </div>
+
+      {% for tone in tones %}
+      <audio id="tone{{ forloop.counter }}" src="{{ tone.audio_file.url }}"></audio>
+      {% endfor %}
+
+    </div><!-- End Section Title -->
+
+
+    <!-- BoPoMoFo Section Title -->
+    <div id="bopomofo" class="container section-title" data-aos="fade-up">
+      <h2>BoPoMoFo</h2>
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <div class="word-container">
+        {% for item in pronunciations %}
+        <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+          {{ item.symbol }}
+        </button>
+
+        <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content text-dark">
+              <div class="modal-header">
+                <h5 class="modal-title">Symbol: {{ item.symbol }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
+                <p><strong>Chinese Example:</strong> {{ item.chinese_example }}</p>
+                <p><strong>Pinyin Example:</strong> {{ item.pinyin_example }}</p>
+                <p><strong>English Example:</strong> {{ item.english_example }}</p>
+
+                {% if item.audio_file %}
+                <audio id="tone{{ forloop.counter }}" onclick="event.stopPropagation()" controls>
+                  <source src="{{ item.audio_file.url }}" type="audio/mpeg">
+                </audio>
+
+                <!-- <button type="button" class="btn btn-secondary" onclick="selectTone('{{ forloop.counter }}')">
+                  ▶ Play Audio
+                </button> -->
+
+                {% else %}
+                <p>No audio available.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p>No vocabulary added yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section><!-- End Pronunciation Section Section -->
+
+</main>
+
+<script>
+  let currentQuizTone = null;
+  let score = 0;
+  let total = 0;
+
+  const toneInfo = {
+    {% for tone in tones %}
+  "{{ forloop.counter }}": {
+    title: "{{ tone.tone_name|escapejs }}: {{ tone.example|escapejs }}",
+      text: "{{ tone.description|escapejs }}"
+  } {% if not forloop.last %}, {% endif %}
+  {% endfor %}
+  };
+
+  function selectTone(toneNumber) {
+    const detail = document.getElementById("toneDetail");
+
+    detail.innerHTML = `
+<h4>${toneInfo[toneNumber].title}</h4>
+<p>${toneInfo[toneNumber].text}</p>
+`;
+  }
+
+  function playQuizTone() {
+    currentQuizTone = Math.floor(Math.random() * {{ tones| length }}) + 1;
+
+  const audio = document.getElementById("tone" + currentQuizTone);
+  audio.currentTime = 0;
+  audio.play();
+
+  document.getElementById("quizResult").innerText = "";
+  }
+
+  function checkAnswer(answer) {
+    answer = Number(answer);
+
+    if (!currentQuizTone) {
+      document.getElementById("quizResult").innerText = "Please play the quiz sound first.";
+      return;
+    }
+
+    total++;
+
+    if (answer === currentQuizTone) {
+      score++;
+      document.getElementById("quizResult").innerText = "Correct!";
+    } else {
+      document.getElementById("quizResult").innerText =
+        "Try again. The correct answer was tone " + currentQuizTone;
+    }
+
+    document.getElementById("scoreText").innerText = `Score: ${score} / ${total}`;
+    currentQuizTone = null;
+  }
+</script>
+{% endblock %}

@@ -14,6 +14,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=timezone.now)
 
     is_teacher = models.BooleanField(default=False, verbose_name="Are you a teacher?")
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
 
     
 
@@ -26,3 +27,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
     
 
+class TermsOfService(models.Model):
+    content = models.TextField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Terms of Service (Last Updated: {self.last_updated.strftime('%Y-%m-%d')})"
+
+
+class PrivacyPolicy(models.Model):
+    content = models.TextField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Privacy Policy (Last Updated: {self.last_updated.strftime('%Y-%m-%d')})"

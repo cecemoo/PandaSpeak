@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+
+ {% load static %}
+ {% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Subscription Locked</h1>
+        <p>Welcome, {{ user.first_name }}!</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Subscription Locked</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Subscription Locked !</h2>
+        <p>Please subscribe to access the learning materials.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
+          <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->  
+      </div>
+
+    </section><!-- /Register Section Section -->
+
+  </main>
+
+
+{% endblock %}
+ 

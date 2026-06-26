@@ -30,80 +30,89 @@
     background: gray;
     color: #111111;
   }
+  .word-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
 </style>
 
-  <main class="main">
+<main class="main">
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-      <div class="container position-relative">
-        <h1>Vocabulary Page</h1>
-        <p>Explore and learn new vocabulary words with their meanings, pronunciations, and example sentences.</p>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Vocabulary Page</li>
-          </ol>
-        </nav>
-      </div>
-    </div><!-- End Page Title -->
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Category: {{ category.category_name }}</h1>
+      <p>Explore and learn new vocabulary words with their meanings, pronunciations, and example sentences.</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Vocabulary</li>
+          <li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
 
-   <!-- Vocabulary Section -->
+  <!-- Vocabulary Section -->
   <section id="vocabulary-section" class="vocabulary-section section">
 
     <!-- Section Title -->
     <div class="container section-title" data-aos="fade-up">
-      <h2>Vocabulary</h2>
+      <h2>{{ category.category_name }}</h2>
       <p></p>
     </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
-      {% for item in vocabularies %}
+      <div class="word-container">
+        {% for item in vocabularies %}
 
-      <h4>
-        <a href="#" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
-          {{ item.word }}
-        </a>
-      </h4>
+        <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+          {{ item.word }}&nbsp;{{item.english_translation|default:""}}
+        </button>
 
-      <!-- Popup Modal -->
-      <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content text-dark">
+        <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content text-dark">
 
-            <div class="modal-header">
-              <h5 class="modal-title">{{ item.word }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+              <div class="modal-header">
+                <h5 class="modal-title">{{ item.word }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
 
-            <div class="modal-body">
-              <p><strong>Meaning:</strong> {{ item.meaning }}</p>
-              <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
-              <p><strong>Example Sentence:</strong> {{ item.example_sentence }}</p>
+              <div class="modal-body">
+                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
+                <p><strong>Meaning:</strong> {{ item.meaning }}</p>
+                <p><strong>Example Sentence:</strong> {{ item.example_sentence }}</p>
 
-              {% if item.audio_file %}
-              <audio id="audio{{ item.id }}">
-                <source src="{{ item.audio_file.url }}" type="audio/mpeg">
-              </audio>
+                {% if item.audio_file %}
+                <audio id="audio{{ item.id }}">
+                  <source src="{{ item.audio_file.url }}" type="audio/mpeg">
+                </audio>
 
-              <button type="button" class="btn btn-secondary"
-                onclick="document.getElementById('audio{{ item.id }}').play();">
-                ▶ Play Audio
-              </button>
-              {% else %}
-              <p>No audio available.</p>
-              {% endif %}
+                <button type="button" class="btn btn-secondary"
+                  onclick="document.getElementById('audio{{ item.id }}').play();">
+                  ▶ Play Audio
+                </button>
+                {% else %}
+                <p>No audio available.</p>
+                {% endif %}
+              </div>
+
             </div>
           </div>
         </div>
+
+        {% empty %}
+        <p>No vocabulary added yet.</p>
+        {% endfor %}
       </div>
-      {% empty %}
-      <p>No vocabulary added yet.</p>
-      {% endfor %}
-    </div>
     </div>
   </section><!-- End Vocabulary Section -->
 
-  </main>
+</main>
 
 {% endblock %}
+
+

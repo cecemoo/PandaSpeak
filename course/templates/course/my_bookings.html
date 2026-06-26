@@ -1,0 +1,156 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load provider_extras %}
+
+
+{% block content %}
+
+<style>
+    .booking-list {
+        display: grid;
+        gap: 18px;
+        margin-top: 25px;
+    }
+
+    .booking-card,
+    .empty-booking-card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 25px;
+        color: white;
+    }
+
+    .booking-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .empty-booking-card {
+        text-align: center;
+        max-width: 650px;
+        margin: 30px auto;
+    }
+
+    .empty-booking-card p {
+        color: #ccc;
+    }
+    .booking-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+</style>
+
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title">
+        <div class="heading">
+            <div class="container">
+                <div class="row d-flex justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="heading-title">My Classes</h1>
+                        <p class="mb-0">
+                            Welcome, {{ request.user.first_name }}!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="breadcrumbs">
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">My Classes</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <!-- customer_booking Section -->
+    <section id="starter-section" class="starter-section section">
+        <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <div class="container mt-4 pb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">My Booking History</h4>
+                    <a class="btn btn-outline-secondary" href="{% url 'course:course_list' %}">
+                        Browse Classes
+                    </a>
+                </div>
+
+
+                {% if upcoming_bookings or completed_bookings or canceled_bookings %}
+                <div class="booking-list">
+                   
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#upcoming">
+                                Upcoming
+                            </button>
+                        </li>
+
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#completed">
+                                Completed
+                            </button>
+                        </li>
+
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#canceled">
+                                Canceled
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="upcoming">
+                            {% for b in upcoming_bookings %}
+                            {% include "course/booking_card.html" %}
+                            {% empty %}
+                            <p>No upcoming classes.</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="tab-pane fade" id="completed">
+                            {% for b in completed_bookings %}
+                            {% include "course/booking_card.html" %}
+                            {% empty %}
+                            <p>No completed classes yet.</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="tab-pane fade" id="canceled">
+                            {% for b in canceled_bookings %}
+                            {% include "course/booking_card.html" %}
+                            {% empty %}
+                            <p>No canceled classes.</p>
+                            {% endfor %}
+                        </div>
+                    </div>         
+                </div>
+                {% else %}
+                <div class="empty-booking-card">
+                    <h3>No classes booked yet</h3>
+                    <p>Browse available tutoring classes and book your first lesson.</p>
+                </div>
+                {% endif %}
+            </div>
+    </section><!-- customer_booking Section -->
+
+</main>
+
+
+
+
+
+
+
+
+{% endblock %}
+

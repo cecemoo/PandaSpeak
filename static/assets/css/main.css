@@ -23,7 +23,7 @@
 :root { 
   --background-color: black; /* Background color for the entire website, including individual sections */
   --default-color: gray; /* Default color used for the majority of the text content across the entire website */
-  --heading-color: #2d465e; /* Color for headings, subheadings and title throughout the website */
+  --heading-color: gray; /* Color for headings, subheadings and title throughout the website */
   --accent-color: #08915e; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
   --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
@@ -8223,3 +8223,5 @@ section,
 .starter-section {
   /* Add your styles here */
 }
+
+

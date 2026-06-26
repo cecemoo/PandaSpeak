@@ -4,6 +4,18 @@
  {% load crispy_forms_tags %}
 
 {% block content %}
+
+<style>
+  .paypal-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  #paypal-button-container-P-0P38157063833905CNIYCD5A {
+    width:500px;
+    max-width: 100%;
+  }
+</style>
+
   <main class="main">
 
     <!-- Page Title -->
@@ -32,7 +44,7 @@
       <div class="container" data-aos="fade-up">
         <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
           <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
-          <div id="paypal-button-container-P-6WU49349628878712NITRXWQ" style="max-width:500px; margin:0 auto;"></div>
+         <div id="paypal-button-container-P-6WU49349628878712NITRXWQ" style="max-width:500px; margin:0 auto;"></div>
 <script src="https://www.paypal.com/sdk/js?client-id=AQs_LXRH5Kasvlg8iQsRvPdR0uI2MFmBghOF5q6wTgXhIvALN7TFMSadlxQQb1ibW6XxZNcytXdsBRfR&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>
   paypal.Buttons({
@@ -49,10 +61,11 @@
         });
       },
       onApprove: function(data, actions) {
-        alert(data.subscriptionID); // You can add optional success message for the subscriber here
+        window.location.href = "/subscription/success/?subscription_id=?" + data.subscriptionID;
+        // alert(data.subscriptionID); // You can add optional success message for the subscriber here
       }
   }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ'); // Renders the PayPal button
-</script>
+</script> 
 
          
       </div>
@@ -64,3 +77,28 @@
 
 {% endblock %}
  
+<!-- real account -->
+<div class="paypal-wrapper">
+            <div id="paypal-button-container-P-0P38157063833905CNIYCD5A"></div>
+          </div>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+  paypal.Buttons({
+      style: {
+          shape: 'pill',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          /* Creates the subscription */
+          plan_id: 'P-0P38157063833905CNIYCD5A'
+        });
+      },
+      onApprove: function(data, actions) {
+        window.location.href = "/subscription/success/?subscription_id=?" + data.subscriptionID;
+        alert(data.subscriptionID);
+      }
+  }).render('#paypal-button-container-P-0P38157063833905CNIYCD5A'); // Renders the PayPal button
+</script>

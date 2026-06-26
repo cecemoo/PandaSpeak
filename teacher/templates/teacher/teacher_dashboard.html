@@ -1,45 +1,115 @@
 {% extends "account/base.html" %}
 
- {% load static %}
- {% load crispy_forms_tags %}
+{% load static %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-  <main class="main">
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-      <div class="container position-relative">
-        <h1>Teacher Dashboard</h1>
-        <p>Hello, {{ user.first_name }}!</p>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Teacher Dashboard</li>
-          </ol>
-        </nav>
+<style>
+  .dashboard-card {
+    min-height: 160px;
+    border-radius: 15px;
+    transition: 0.3s;
+  }
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+  }
+
+</style>
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Teacher Dashboard</h1>
+      <p>Welcome, Teacher {{ user.last_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Teacher Dashboard</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Teacher Dashboard Section -->
+  <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Teacher Dashboard Section</h2>
+      <!-- <p>Manage your account, create new classes, and update learning materials.</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <div class="card mb-4">
+        <div class="card-body">
+          <h4>Welcome back, Teacher {{ request.user.last_name }}!</h4>
+          <p>Manage your classes, bookings, and learning materials.</p>
+        </div>
       </div>
-    </div><!-- End Page Title -->
 
-    <!-- Teacher Dashboard Section -->
-    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+      <div class="row g-4">
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Teacher Dashboard Section</h2>
-        <p>Manage your courses, track student progress, and update your profile.</p>
-      </div><!-- End Section Title -->
+        <div class="col-md-4">
+          <a href="{% url 'course:course_create' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Create New Class</h5>
+                <p>Add tutoring classes and schedules.</p>
+              </div>
+            </div>
+          </a>
+        </div>
 
-      <div class="container" data-aos="fade-up">
-        <div><a href="{% url 'account_management' %}">Manage Account</a></div>
-        <div><a href="{% url 'add_vocabulary' %}">Add Vocabulary</a></div>
-        <div><a href="{% url 'add_sentence' %}">Add Sentence</a></div>
-        <div><a href="{% url 'add_idiom' %}">Add Idiom</a></div>
-        <div><a href="{% url 'add_pronunciation' %}">Add Pronunciation</a></div>
-        
+        <div class="col-md-4">
+          <a href="{% url 'add_vocabulary' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Add Vocabulary</h5>
+                <p>Create new words for students.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{% url 'add_sentence' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Add Sentence</h5>
+                <p>Add useful sentence practice.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{% url 'add_idiom' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Add Idiom</h5>
+                <p>Add idioms and usage examples.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{% url 'add_tone' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Add Tone</h5>
+                <p>Add tones and usage examples.</p>
+              </div>
+            </div>
+          </a>
+        </div>
       </div>
+    </div>
 
-    </section><!-- /Teacher Dashboard Section -->
 
-  </main>
+  </section><!-- /Teacher Dashboard Section -->
+
+</main>
 {% endblock %}
- 

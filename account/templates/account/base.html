@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -17,7 +16,9 @@
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -28,6 +29,11 @@
 
   <!-- Main CSS File -->
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+
+  <!-- font awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <!-- =======================================================
   * Template Name: NiceSchool
@@ -43,7 +49,7 @@
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
-      <a href="index.html" class="logo d-flex align-items-center">
+      <a href="{% url 'home' %}" class="logo d-flex align-items-center">
         <!-- Uncomment the line below if you also wish to use an image logo -->
         <!-- <img src="assets/img/logo.webp" alt=""> -->
         <i class="bi bi-buildings"></i>
@@ -53,28 +59,32 @@
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="{% url 'home' %}" class="active">Home</a></li>
-          <li class="dropdown"><a href="about.html"><span>Account</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-            <ul>
-              {% if user.is_authenticated %}
-              {% if user.is_teacher %}
+          <!-- <li class="dropdown"><a href="about.html"><span>Account</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul> -->
+          {% if user.is_authenticated %}
+              {% if user.is_staff %}
+              <li><a href="{% url 'manager_dashboard' %}">Dashboard</a></li>
+              <li><a href="{% url 'course:course_list' %}">Tutoring</a></li>
+              {% elif user.is_teacher %}
               <li><a href="{% url 'teacher_dashboard' %}">Dashboard</a></li>
               {% else %}
               <li><a href="{% url 'student_dashboard' %}">Dashboard</a></li>
+              <li><a href="{% url 'course:course_list' %}">Tutoring</a></li>
               {% endif %}
               <li><a href="{% url 'user_logout' %}">Logout</a></li>
-              {% else %}
-              <li><a href="{% url 'my_login' %}">Login</a></li>
-              <li><a href="{% url 'register' %}">Register</a></li>
-              {% endif %}
-             
-            </ul>
+          {% else %}
+          <li><a href="{% url 'my_login' %}">Login</a></li>
+          <li><a href="{% url 'register' %}">Register</a></li>
+          {% endif %}
+
+          <!-- </ul> -->
           </li>
-          <li><a href="">Vocabulary</a></li>
+          <!-- <li><a href="">Vocabulary</a></li>
           <li><a href="news.html">Idiom</a></li>
           <li><a href="events.html">Sentence</a></li>
-          <li><a href="alumni.html">Pronunciation</a></li>
-          <li><a href="programs.html">Tutoring</a></li>
-          
+          <li><a href="alumni.html">Pronunciation</a></li> -->
+
+
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="#">Dropdown 1</a></li>
@@ -92,16 +102,18 @@
               <li><a href="#">Dropdown 4</a></li>
             </ul>
           </li> -->
-          <li><a href="contact.html">Contact</a></li>
+          {% if not user.is_staff %}
+          <li><a href="#footer">Contact</a></li>
+          {% endif %}
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
     </div>
   </header>
- {% block content %}
- 
- {% endblock %}
+  {% block content %}
+
+  {% endblock %}
   <footer id="footer" class="footer position-relative dark-background">
 
     <div class="container footer-top">
@@ -111,60 +123,73 @@
             <span class="sitename">PandaSpeak</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>A108 Adam Street</p>
-            <p>New York, NY 535022</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-            <p><strong>Email:</strong> <span>info@example.com</span></p>
+            <p>Houston, TX</p>
+            <!-- <p>New York, NY 535022</p> -->
+            <!-- <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p> -->
+            <p><strong>Email:</strong> <span>orangejumpjump@gmail.com</span></p>
           </div>
-          <div class="social-links d-flex mt-4">
+          <!-- <div class="social-links d-flex mt-4">
             <a href=""><i class="bi bi-twitter-x"></i></a>
             <a href=""><i class="bi bi-facebook"></i></a>
             <a href=""><i class="bi bi-instagram"></i></a>
             <a href=""><i class="bi bi-linkedin"></i></a>
-          </div>
+          </div> -->
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Useful Links</h4>
+          <h4>Learning Materials</h4>
           <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About us</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Terms of service</a></li>
-            <li><a href="#">Privacy policy</a></li>
+            {% if user.is_authenticated %}
+
+            {% if user.is_staff %}
+            <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+
+            {% elif user.is_teacher %}
+            <li><a href="{% url 'teacher_dashboard' %}">Teacher Dashboard</a></li>
+
+            {% else %}
+            <li><a href="{% url 'student_dashboard' %}">Vocabulary</a></li>
+            <li><a href="{% url 'student_dashboard' %}">Sentences</a></li>
+            <li><a href="{% url 'student_dashboard' %}">Chinese Idioms</a></li>
+            <li><a href="{% url 'student_dashboard' %}">Pronunciation</a></li>
+            {% endif %}
+
+            {% else %}
+
+            <li><a href="{% url 'my_login' %}">Vocabulary</a></li>
+            <li><a href="{% url 'my_login' %}">Sentences</a></li>
+            <li><a href="{% url 'my_login' %}">Chinese Idioms</a></li>
+            <li><a href="{% url 'my_login' %}">Pronunciation</a></li>
+
+            {% endif %}
+
           </ul>
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Our Services</h4>
+          <h4>Tutoring Services</h4>
           <ul>
-            <li><a href="#">Web Design</a></li>
-            <li><a href="#">Web Development</a></li>
-            <li><a href="#">Product Management</a></li>
-            <li><a href="#">Marketing</a></li>
-            <li><a href="#">Graphic Design</a></li>
+            <li><a href="{% url 'course:course_list' %}">Private Lessons</a></li>
+            <li><a href="{% url 'course:course_list' %}">Group Classes</a></li>
+            <li><a href="{% url 'course:course_list' %}">Adult Chinese Conversation</a></li>
           </ul>
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Hic solutasetp</h4>
+          <h4>Support</h4>
           <ul>
-            <li><a href="#">Molestiae accusamus iure</a></li>
-            <li><a href="#">Excepturi dignissimos</a></li>
-            <li><a href="#">Suscipit distinctio</a></li>
-            <li><a href="#">Dilecta</a></li>
-            <li><a href="#">Sit quas consectetur</a></li>
+            <li><a href="{% url 'faq' %}">FAQ</a></li>
+            <li><a href="{% url 'terms' %}">Terms of Service</a></li>
+            <li><a href="{% url 'privacy' %}">Privacy Policy</a></li>
           </ul>
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Nobis illum</h4>
+          <h4>PandaSpeak</h4>
           <ul>
-            <li><a href="#">Ipsam</a></li>
-            <li><a href="#">Laudantium dolorum</a></li>
-            <li><a href="#">Dinera</a></li>
-            <li><a href="#">Trodelas</a></li>
-            <li><a href="#">Flexo</a></li>
+            <li>Practical Chinese for Everyday Life</li>
+            <li>Interactive learning materials</li>
+            <li>Cultural Insights</li>
           </ul>
         </div>
 
@@ -178,7 +203,8 @@
   </footer>
 
   <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
 
   <!-- Preloader -->
   <div id="preloader"></div>

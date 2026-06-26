@@ -1,0 +1,85 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+
+<style>
+  .subscription-card {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 40px;
+    background: gray;
+    border: 2px solid #f4a261;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  }
+  .subscription-card label {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .subscription-card select {
+    width: 250px;
+    padding: 12px;
+    border-radius: 999px;
+    border: 2px solid #f4a261;
+  }
+  .subscribe-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 999px;
+    background: #f4a261;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .subscribe-btn:hover {
+    background: #e76f51;
+  }
+</style>
+
+
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Subscription Success</h1>
+      <p>Your subscription was successful! You can now access all the learning materials.</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Subscription Success</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Starter Section Section -->
+  <section id="starter-section" class="starter-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Subscription Successful</h2>
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+
+      <div class="subscription-card">
+
+        <h3>Thank you for subscribing!</h3>
+        <p>Your subscription was successful, {{ user.first_name }}! You can now access all the learning materials.</p>
+        <a href="{% url 'access_learning_materials' %}" class="subscribe-btn">Go to learning materials</a>
+      </div>
+    </div>
+
+  </section><!-- /Starter Section Section -->
+
+</main>
+
+
+
+{% endblock %}

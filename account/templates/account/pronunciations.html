@@ -1,0 +1,77 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>BOPOMOFO</h1>
+            <p>Logged in as {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">BOPOMOFO</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- BOPOMOFO Section -->
+    <section id="bopomofo-section" class="bopomofo-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <a href="{% url 'add_pronunciation' %}" class="btn btn-primary round">Add BOPOMOFO</a>
+            
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <!-- left sidebar -->
+                {% include 'account/sidebar.html' %}
+
+
+                <!-- right side content -->
+                <div class="col-md-9">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Symbol</th>
+                                <!-- <th scope="col">Category</th> -->
+                                <th scope="col">Pinyin</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pronunciations %}
+                            <tr>
+                                <th scope="row">{{ forloop.counter }}</th>
+                                <td>{{ p.symbol }}</td>
+                                <!-- <td>{{ p.category_name }}</td> -->
+                                <td>{{ p.pinyin }}</td>
+                               <td>
+                                   <a href="{% url 'edit_pronunciation' pronunciation_id=p.id %}">
+                                        <i class="fa-solid fa-pen-to-square" style="color: rgb(116, 192, 252);"></i>
+                                    </a>
+                                    <a href="{% url 'delete_pronunciation' pronunciation_id=p.id %}">
+                                        <i class="fa-solid fa-trash" style="color: rgb(210, 59, 22);"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+    </section><!-- /BOPOMOFO Section -->
+
+</main>
+{% endblock %}

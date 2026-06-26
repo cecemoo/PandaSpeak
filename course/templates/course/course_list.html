@@ -1,0 +1,123 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<main class="main">
+    <br><br>
+    <!-- Page Title -->
+    <div class="page-title">
+        <div class="heading">
+            <div class="container">
+                <div class="row d-flex justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="heading-title">All Classes</h1>
+                        <p class="mb-0">
+                            Browse and explore classes designed to help you achieve your learning goals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="breadcrumbs">
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">All Classes</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Course_list Section -->
+    <section id="starter-section" class="starter-section section">
+        <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <div class="row gy-4">
+
+                {% for course in courses %}
+                <div class="card shadow col-lg-4 px-3">
+                    <div class="course-item">
+                        <a href="{% url 'course:course_detail' course.id %}" style="color: black">
+                            {% if course.image %}
+                            <img src="{{ course.image.url }}" class="img-fluid" alt="{{ course.title }}"
+                                style="width:100%; height:200px;">
+                            {% else %}
+                            <img src="{% static 'assets/img/default.png' %}" class="img-fluid"
+                                alt="Default Course Image" style="width:100%; height:200px;">
+                            {% endif %}
+                            <div class="course-content">
+                                <h3>{{ course.title }}</h3>
+                                <p>{{ course.description|truncatewords:20 }}</p>
+                                <div class="trainer d-flex justify-content-between align-items-center">
+                                    <div class="trainer-profile d-flex align-items-center">
+                                        <span>Instructor: {{ course.teacher.first_name }} {{ course.teacher.last_name }}</span>
+                                    </div>
+                                    <div class="trainer-rank d-flex align-items-center">
+                                        <i class="bi bi-clock"></i>&nbsp; {{ course.duration_minutes }} minutes
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No courses available at the moment. Please check back later.</p>
+                {% endfor %}
+
+            </div>
+
+            <!-- Pagination Controls -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Auction pagination" class="mt-4">
+                <ul class="pagination">
+                    {# Prev #}
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+
+                    {# Page numbers #}
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {# Next #}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+    </section><!-- Course_list Section -->
+
+</main>
+
+
+
+
+
+
+
+
+{% endblock %}

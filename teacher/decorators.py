@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from functools import wraps
-from student.models import Subscription
+from subscription.models import Subscription
 
 
 def subscription_required(view_func):

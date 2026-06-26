@@ -13,13 +13,14 @@
     gap: 15px;
     justify-content: center;
     max-width: 1200px;
-    margin:0 auto;
+    margin: 0 auto;
     /* padding-left: 100px;
     padding-right: 100px; */
   }
+
   .category-pill {
     display: inline-block;
-    padding: 12px 25px; 
+    padding: 12px 25px;
     border-radius: 999px;
     background-color: #fff7ed;
     border: 2px solid #f4a261;
@@ -28,10 +29,24 @@
     font-weight: 600;
     transition: all 0.3s ease;
   }
+
   .category-pill:hover {
     background-color: #f4a261;
     color: #fff;
     transform: translateY(-2px);
+  }
+  .pronunciation-links {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .learning-card {
+    width: 300px;
+    padding: 20px;
+    text-align: center;
+    border-radius: 12px;
+    background: #222;
   }
 </style>
 
@@ -63,8 +78,8 @@
 
     <div class="container" data-aos="fade-up">
       {% for category in vocabulary_categories %}
-      <a class="category-pill" href="{% url 'vocabulary_page' %}" class="learning-card">
-        {{ category.title }}
+      <a class="category-pill" href="{% url 'vocabulary_category_page' category.id %}" class="learning-card">
+        {{ category.category_name }}
       </a>
       {% endfor %}
     </div>
@@ -83,8 +98,8 @@
 
     <div class="container" data-aos="fade-up">
       {% for category in sentence_categories %}
-      <a class="category-pill" href="{% url 'sentence_page' %}" class="learning-card">
-        {{ category.title }}
+      <a class="category-pill" href="{% url 'sentence_category_page' category.id %}" class="learning-card">
+        {{ category.category_name }}
       </a>
       {% endfor %}
     </div>
@@ -101,9 +116,23 @@
     </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
-      {% for item in pronunciations %}
-      <p>{{ item.pronunciation }}</p>
-      {% endfor %}
+      <div class="pronunciation-links">
+
+        <div class="learning-card">
+          <h4>Chinese Four Tones</h4>
+          <a href="{% url 'pronunciation_page' %}#four-tones">
+            Four Tones Chart
+          </a>
+        </div>
+
+        <div class="learning-card">
+          <h4>Enter the World of BoPoMoFo</h4>
+          <a href="{% url 'pronunciation_page' %}#bopomofo">
+            BoPoMoFo Chart
+          </a>
+        </div>
+
+      </div>
     </div>
 
   </section><!-- End Pronunciation Section -->
@@ -119,8 +148,8 @@
 
     <div class="container" data-aos="fade-up">
       {% for category in idiom_categories %}
-      <a class="category-pill" href="{% url 'idiom_page' %}" class="learning-card">
-        {{ category.title }}
+      <a class="category-pill" href="{% url 'idiom_category_page' category.id %}" class="learning-card">
+        {{ category.category_name }}
       </a>
       {% endfor %}
     </div>

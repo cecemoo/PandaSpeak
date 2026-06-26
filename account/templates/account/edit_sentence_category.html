@@ -1,0 +1,45 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+      <div class="container position-relative">
+        <h1>Edit Sentence Category</h1>
+        <!-- <p>Login to your account to access all features.</p> -->
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="current">Edit Sentence Category</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Edit Category Section -->
+    <section id="edit-category-section" class="edit-category-section section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Edit Sentence Category Section</h2>
+       
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+       
+        <div>
+          <form action="{% url 'edit_sentence_category' category_id=sentence_category.id %}" method="POST" autocomplete="off">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" value="submit" class="btn btn-success round">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+    </section><!-- /Edit Category Section -->
+
+  </main>
+{% endblock %}

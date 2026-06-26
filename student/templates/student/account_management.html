@@ -1,42 +1,98 @@
 {% extends "account/base.html" %}
 
- {% load static %}
- {% load crispy_forms_tags %}
+{% load static %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-  <main class="main">
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-      <div class="container position-relative">
-        <h1>Student Dashboard</h1>
-        <p>Welcome, {{ user.first_name }}!</p>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Student Dashboard</li>
-          </ol>
-        </nav>
+<style>
+  .subscription-card {
+    max-width: 650px;
+    margin: 30px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    color: white;
+  }
+  .subscription-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  .status-badge.active {
+    background: #28a745;
+  }
+  .status-badge.inactive {
+    background: #6c757d;
+  }
+  .small-text {
+    color: #ccc;
+  }
+</style>
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Subscription Management</h1>
+      <p>Welcome, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Subscription Management</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Subscription Management Section -->
+  <section id="subscription-management-section" class="subscription-management-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>My Subscription</h2>
+      <!-- <p>Manage your subscription</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+
+      <div class="subscription-card">
+        <div class="subscription-header">
+          <h3>Subscription</h3>
+
+          {% if has_subscription %}
+          <span class="status-badge active">Active</span>
+          {% else %}
+          <span class="status-badge inactive">Inactive</span>
+          {% endif %}
+        </div>
+
+        {% if has_subscription %}
+        <p>You currently have access to all PandaSpeak learning materials.</p>
+        <p class="small-text">Plan: {{ SubPlan|default:"Annual Learning Plan" }}</p>
+
+        <a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">
+          Start Learning
+        </a>
+        {% else %}
+        <p>You do not have an active subscription yet.</p>
+
+        <a href="{% url 'subscription_plans' %}" class="btn btn-success rounded-pill">
+          View Subscription Plans
+        </a>
+        {% endif %}
       </div>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- Subscription Management Section -->
-    <section id="subscription-management-section" class="subscription-management-section section">
+  </section><!-- /Subscription Management Section -->
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Subscription Management</h2>
-        <p>Manage your subscription</p>
-      </div><!-- End Section Title -->
-
-      <div class="container" data-aos="fade-up">
-        
-          <h5>Your Subscription status: {{ SubPlan }}</h5>
-          <a href="{% url 'account_management_student' %}" class="btn btn-primary">Update Subscription</a>
-      </div>
-
-    </section><!-- /Subscription Management Section -->
-
-  </main>
+</main>
 {% endblock %}
- 
+
+<a href="{% url 'account_management_student' %}" class="btn btn-primary">Update Subscription</a>

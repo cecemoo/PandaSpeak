@@ -1,0 +1,179 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Manager Dashboard</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Manager Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Manager Dashboard Section -->
+    <section id="manager-dashboard-section" class="manager-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Manager Dashboard Section</h2>
+            <p>Manage all aspects of the platform, including accounts, classes, and learning materials.</p>
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <!-- left sidebar -->
+                {% include 'account/sidebar.html' %}
+
+
+                <!-- right side content -->
+                <div class="col-md-9">
+                    <div class="row g-3">
+
+                        <!-- Vocabulary Categories -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Vocabulary Categories
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ vocabulary_category_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sentence Categories -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Sentence Categories
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ sentence_category_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Idiom Categories -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Idiom Categories
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ idiom_category_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Classes -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Classes
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ course_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vocabularies -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Vocabularies
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ vocabulary_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sentences -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Sentences
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ sentence_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Idioms -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    Idioms
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ idiom_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pronunciations -->
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                    BoPoMoFo
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ pronunciation_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="card border-default mb-3">
+                                <div class="card-header text-center text-uppercase fw-bold">
+                                   Tones
+                                </div>
+                                <div class="card-body text-dark">
+                                    <h5 class="card-title text-center">
+                                        {{ tone_count }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+
+
+    </section><!-- /Manager Dashboard Section -->
+
+</main>
+{% endblock %}

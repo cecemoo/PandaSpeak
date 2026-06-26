@@ -1,0 +1,103 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load tz %}
+{% block content %}
+
+<style>
+    .cart-box {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+    }
+    .cart-summary {
+        margin-top: 25px;
+        text-align: right;
+    }
+</style>
+
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title">
+        <div class="heading">
+            <div class="container">
+                <div class="row d-flex justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="heading-title">Your Cart</h1>
+                        <p class="mb-0">
+                            Hello, {{ request.user.first_name }}, review the items in your cart below.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="breadcrumbs">
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Your Cart</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Cart Section -->
+    <section id="starter-section" class="starter-section section">
+        <div class="container" data-aos="fade-up">
+            {% if slots %}
+            <div class="cart-box">
+                <table class="table table-light align-middle">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Teacher</th>
+                            <th>Time</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in slots %}
+                        <tr>
+                            <td>{{ slot.course.title }}</td>
+                            <td>{{ slot.course.teacher.first_name }} {{ slot.course.teacher.last_name }}</td>
+                            <td>{{ slot.start_time|time:"H:i" }}</td>
+                            <td>${{ slot.course.price|floatformat:2 }} / {{slot.course.duration_minutes}} minutes</td>
+                            <td>
+                                <form method="post" action="{% url 'course:remove_from_cart' slot.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger rounded-pill btn-sm">
+                                        Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="cart-summary">
+                    <h4>Total: ${{ total_amount|floatformat:2 }}</h4>
+                    <form method="post" action="{% url 'course:cart_checkout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success rounded-pill">Checkout</button>
+                    </form>
+
+                    <a class="btn btn-info rounded-pill mt-3" href="{% url 'course:course_list' %}">
+                        Book more courses
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <p>Your cart is empty.</p>
+            {% endif %}
+            <br>
+        </div>
+    </section><!-- Cart Section -->
+
+</main>
+
+{% endblock %}
+
+

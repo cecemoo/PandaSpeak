@@ -2,10 +2,9 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
 from teacher.decorators import subscription_required
-from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm
+from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
 from account.models import CustomUser
-from student.models import Subscription
-
+from subscription.models import Subscription
 
 
 
@@ -34,45 +33,66 @@ def account_management(request):
 
 
 
-@login_required(login_url='my_login')
+
 def add_vocabulary(request):
     if request.method == 'POST':
         form = VocabularyForm(request.POST, request.FILES)
+        
         if form.is_valid():
             vocabulary = form.save(commit=False)
-            vocabulary.teacher = request.user
+
+            if hasattr(vocabulary, "teacher"):
+                vocabulary.teacher = request.user
             vocabulary.save()
-            return redirect('teacher_dashboard')
+
+            if request.user.is_staff:
+                return redirect('vocabularies')
+            else:
+                return redirect('teacher_dashboard')
     else:
         form = VocabularyForm()
-    return render(request, 'teacher/add_vocabulary.html', {'form': form})
+    context = {'form': form}
+    return render(request, 'teacher/add_vocabulary.html', context)
 
 
-@login_required(login_url='my_login')
+
 def add_sentence(request):
     if request.method == 'POST':
         form = SentenceForm(request.POST, request.FILES)
         if form.is_valid():
             sentence = form.save(commit=False)
-            sentence.teacher = request.user
+
+            if hasattr(sentence, "teacher"):
+                sentence.teacher = request.user
             sentence.save()
-            return redirect('teacher_dashboard')
+
+            if request.user.is_staff:
+                return redirect('sentences')
+            else:
+                return redirect('teacher_dashboard')
     else:
         form = SentenceForm()
-    return render(request, 'teacher/add_sentence.html', {'form': form})
+    context = {'form': form}
+    return render(request, 'teacher/add_sentence.html', context)
 
 
 
 
-@login_required(login_url='my_login')
+
 def add_idiom(request):
     if request.method == 'POST':
         form = IdiomForm(request.POST, request.FILES)
         if form.is_valid():
             idiom = form.save(commit=False)
-            idiom.teacher = request.user
+
+            if hasattr(idiom, "teacher"):
+                idiom.teacher = request.user
             idiom.save()
-            return redirect('teacher_dashboard')
+
+            if request.user.is_staff:
+                return redirect('idioms')
+            else:
+                return redirect('teacher_dashboard')
     else:
         form = IdiomForm()
     return render(request, 'teacher/add_idiom.html', {'form': form})
@@ -80,15 +100,21 @@ def add_idiom(request):
 
 
 
-@login_required(login_url='my_login')
+
 def add_pronunciation(request):
     if request.method == 'POST':
         form = PronunciationForm(request.POST, request.FILES)
         if form.is_valid():
             pronunciation = form.save(commit=False)
-            pronunciation.teacher = request.user
+
+            if hasattr(pronunciation, "teacher"):
+                pronunciation.teacher = request.user
             pronunciation.save()
-            return redirect('teacher_dashboard')
+
+            if request.user.is_staff:
+                return redirect('pronunciations')
+            else:
+                return redirect('teacher_dashboard')
     else:
         form = PronunciationForm()
     return render(request, 'teacher/add_pronunciation.html', {'form': form})
@@ -103,3 +129,24 @@ def delete_account(request):
         deleteUser.delete()
         return redirect('home')
     return render(request, 'teacher/delete_account.html')
+
+
+
+
+def add_tone(request):
+    if request.method == 'POST':
+        form = ToneForm(request.POST, request.FILES)
+        if form.is_valid():
+            tone = form.save(commit=False)
+
+            if hasattr(tone, "teacher"):
+                tone.teacher = request.user
+            tone.save()
+
+            if request.user.is_staff:
+                return redirect('tones')
+            else:
+                return redirect('teacher_dashboard')
+    else:
+        form = ToneForm()
+    return render(request, 'teacher/add_tone.html', {'form': form})

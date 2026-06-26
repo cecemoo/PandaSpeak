@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from account.models import CustomUser
-from . models import Vocabulary, Sentence, Pronunciation, Idiom
+from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone
 
 
 class UpdateUserForm(ModelForm):
@@ -32,4 +32,10 @@ class PronunciationForm(ModelForm):
 class IdiomForm(ModelForm):
     class Meta:
         model = Idiom
+        fields = '__all__'
+
+
+class ToneForm(ModelForm):
+    class Meta:
+        model = Tone
         fields = '__all__'

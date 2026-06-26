@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from functools import wraps
-from .models import UserSubscription
+from .models import Subscription
 
 
 
@@ -10,7 +10,7 @@ def subscription_required(view_func):
         if not request.user.is_authenticated:
             return redirect("login")
         
-        has_subscription = UserSubscription.objects.filter(
+        has_subscription = Subscription.objects.filter(
             user=request.user,
             is_active=True
         ).exists()
