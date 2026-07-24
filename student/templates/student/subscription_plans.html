@@ -42,10 +42,9 @@
       </div><!-- End Section Title -->
 
       <div class="container" data-aos="fade-up">
-        <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
-          <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
+     
          <div id="paypal-button-container-P-6WU49349628878712NITRXWQ" style="max-width:500px; margin:0 auto;"></div>
-<script src="https://www.paypal.com/sdk/js?client-id=AQs_LXRH5Kasvlg8iQsRvPdR0uI2MFmBghOF5q6wTgXhIvALN7TFMSadlxQQb1ibW6XxZNcytXdsBRfR&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>
   paypal.Buttons({
       style: {
@@ -57,12 +56,12 @@
       createSubscription: function(data, actions) {
         return actions.subscription.create({
           /* Creates the subscription */
-          plan_id: 'P-6WU49349628878712NITRXWQ'
+          plan_id: 'P-1SD58047K0688043LNJR4JSQ'
         });
       },
       onApprove: function(data, actions) {
         window.location.href = "/subscription/success/?subscription_id=?" + data.subscriptionID;
-        // alert(data.subscriptionID); // You can add optional success message for the subscriber here
+        alert(data.subscriptionID); 
       }
   }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ'); // Renders the PayPal button
 </script> 
@@ -77,28 +76,8 @@
 
 {% endblock %}
  
-<!-- real account -->
-<div class="paypal-wrapper">
-            <div id="paypal-button-container-P-0P38157063833905CNIYCD5A"></div>
-          </div>
-<script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-<script>
-  paypal.Buttons({
-      style: {
-          shape: 'pill',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-      },
-      createSubscription: function(data, actions) {
-        return actions.subscription.create({
-          /* Creates the subscription */
-          plan_id: 'P-0P38157063833905CNIYCD5A'
-        });
-      },
-      onApprove: function(data, actions) {
-        window.location.href = "/subscription/success/?subscription_id=?" + data.subscriptionID;
-        alert(data.subscriptionID);
-      }
-  }).render('#paypal-button-container-P-0P38157063833905CNIYCD5A'); // Renders the PayPal button
-</script>
+
+
+
+
+ 
