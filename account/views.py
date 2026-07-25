@@ -289,14 +289,10 @@ def vocabularies(request):
 def edit_vocabulary(request, vocab_id):
     vocab = get_object_or_404(Vocabulary, id=vocab_id)
     if request.method == 'POST':
-        print("files received:", request.FILES, flush=True)
-       
         form = VocabularyForm(request.POST, request.FILES, instance=vocab)
         if form.is_valid():
             form.save()
-            print("saved audio:", form.instance.audio_file.name, flush=True)
             return redirect('vocabularies')
-        print("form errors:", form.errors, flush=True) 
     else:
         form = VocabularyForm(instance=vocab)
     context = {'form': form, 'vocab': vocab}
