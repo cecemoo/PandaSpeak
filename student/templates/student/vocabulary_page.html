@@ -69,7 +69,7 @@
         {% for item in vocabularies %}
 
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
-          {{ item.word }}&nbsp;{{item.english_translation|default:""}}
+          {{ item.word }}
         </button>
 
         <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">

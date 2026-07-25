@@ -31,7 +31,7 @@
       <div class="container" data-aos="fade-up">
        
         <div>
-          <form action="{% url 'edit_vocabulary' vocab_id=vocab.id %}" method="POST" autocomplete="off">
+          <form action="{% url 'edit_vocabulary' vocab_id=vocab.id %}" method="POST" enctype="multipart/form-data" autocomplete="off">
             {% csrf_token %}
             {{ form|crispy }}
             <button type="submit" value="submit" class="btn btn-success round">Save Changes</button>

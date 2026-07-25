@@ -63,7 +63,7 @@
         {% for item in sentences %}
 
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
-          {{ item.translation }}
+          {{ item.text }}
         </button>
 
         <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
@@ -71,7 +71,7 @@
             <div class="modal-content text-dark">
 
               <div class="modal-header">
-                <h5 class="modal-title">{{ item.text }}</h5>
+                <h5 class="modal-title">{{ item.translation }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
 
