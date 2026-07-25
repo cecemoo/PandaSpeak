@@ -215,7 +215,7 @@ def add_idiom_category(request):
 def edit_vocab_category(request, category_id):
     vocab_category = get_object_or_404(VocabularyCategory, id=category_id)
     if request.method == 'POST':
-        form = AddVocabCategoryForm(request.POST, instance=vocab_category)
+        form = AddVocabCategoryForm(request.POST, request.FILES, instance=vocab_category)
         if form.is_valid():
             form.save()
             return redirect('categories')
@@ -229,7 +229,7 @@ def edit_vocab_category(request, category_id):
 def edit_sentence_category(request, category_id):
     sentence_category = get_object_or_404(SentenceCategory, id=category_id)
     if request.method == 'POST':
-        form = AddSentenceCategoryForm(request.POST, instance=sentence_category)
+        form = AddSentenceCategoryForm(request.POST, request.FILES, instance=sentence_category)
         if form.is_valid():
             form.save()
             return redirect('categories')
@@ -243,7 +243,7 @@ def edit_sentence_category(request, category_id):
 def edit_idiom_category(request, category_id):
     idiom_category = get_object_or_404(IdiomCategory, id=category_id)
     if request.method == 'POST':
-        form = AddIdiomCategoryForm(request.POST, instance=idiom_category)
+        form = AddIdiomCategoryForm(request.POST, request.FILES, instance=idiom_category)
         if form.is_valid():
             form.save()
             return redirect('categories')
@@ -289,7 +289,7 @@ def vocabularies(request):
 def edit_vocabulary(request, vocab_id):
     vocab = get_object_or_404(Vocabulary, id=vocab_id)
     if request.method == 'POST':
-        form = VocabularyForm(request.POST, instance=vocab)
+        form = VocabularyForm(request.POST, request.FILES, instance=vocab)
         if form.is_valid():
             form.save()
             return redirect('vocabularies')
