@@ -296,10 +296,12 @@ def edit_vocabulary(request, vocab_id):
             form.save()
             print("saved audio:", form.instance.audio_file.name, flush=True)
             return redirect('vocabularies')
-    form = VocabularyForm(instance=vocab)
+        print("form errors:", form.errors, flush=True) 
+    else:
+        form = VocabularyForm(instance=vocab)
     context = {'form': form, 'vocab': vocab}
     return render(request, 'account/edit_vocabulary.html', context)
-    print("form errors:", form.errors, flush=True)  # Debugging line to print form errors
+     # Debugging line to print form errors
 
 
 @login_required(login_url='my_login')
