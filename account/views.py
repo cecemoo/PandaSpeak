@@ -319,7 +319,7 @@ def sentences(request):
 def edit_sentence(request, sentence_id):
     sentence = get_object_or_404(Sentence, id=sentence_id)
     if request.method == 'POST':
-        form = SentenceForm(request.POST, instance=sentence)
+        form = SentenceForm(request.POST, request.FILES, instance=sentence)
         if form.is_valid():
             form.save()
             return redirect('sentences')
@@ -349,7 +349,7 @@ def idioms(request):
 def edit_idiom(request, idiom_id):
     idiom = get_object_or_404(Idiom, id=idiom_id)
     if request.method == 'POST':
-        form = IdiomForm(request.POST, instance=idiom)
+        form = IdiomForm(request.POST, request.FILES, instance=idiom)
         if form.is_valid():
             form.save()
             return redirect('idioms')
@@ -379,7 +379,7 @@ def pronunciations(request):
 def edit_pronunciation(request, pronunciation_id):
     pronunciation = get_object_or_404(Pronunciation, id=pronunciation_id)
     if request.method == 'POST':
-        form = PronunciationForm(request.POST, instance=pronunciation)
+        form = PronunciationForm(request.POST, request.FILES, instance=pronunciation)
         if form.is_valid():
             form.save()
             return redirect('pronunciations')
@@ -409,7 +409,7 @@ def tones(request):
 def edit_tone(request, tone_id):
     tone = get_object_or_404(Tone, id=tone_id)
     if request.method == 'POST':
-        form = ToneForm(request.POST, instance=tone)
+        form = ToneForm(request.POST, request.FILES, instance=tone)
         if form.is_valid():
             form.save()
             return redirect('tones')
