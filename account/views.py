@@ -289,6 +289,8 @@ def vocabularies(request):
 def edit_vocabulary(request, vocab_id):
     vocab = get_object_or_404(Vocabulary, id=vocab_id)
     if request.method == 'POST':
+        print("files:", request.FILES)
+        print("post:", request.POST)
         form = VocabularyForm(request.POST, request.FILES, instance=vocab)
         if form.is_valid():
             form.save()
