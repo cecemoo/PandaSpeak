@@ -445,22 +445,28 @@ def cart_checkout(request):
 
     return redirect(checkout_session.url)
 
-
+import logging
+logger = logging.getLogger(__name__)
 
 @login_required(login_url='my_login')
 def cart_payment_success(request):
-    session_id = request.GET.get('session_id')
-    if not session_id:
-        messages.error(request, "Missing payment session.")
-        return redirect('course:course_list')
+    try: 
+        session_id = request.GET.get('session_id')
+        if not session_id:
+            messages.error(request, "Missing payment session.")
+            return redirect('course:course_list')
 
-    session = stripe.checkout.Session.retrieve(session_id)
-    payment_intent_id = session.payment_intent
-    timeslot_ids = session.metadata["timeslot_ids"].split(',') 
-
-    if not timeslot_ids:
-        messages.error(request, "No time slots found in payment session.")
+        session = stripe.checkout.Session.retrieve(session_id)
+        payment_intent_id = session.payment_intent
+        timeslot_value = session.metadata.get('timeslot_ids', '')
+        timeslot_ids = timeslot_value.split(',')
+    except Exception as error:
+        logger.exception("Stripe payment success handling failed")
+        messages.error(request, f"Payment was received, but the booking could not be completed: {error}")
         return redirect('course:course_list')
+    # if not timeslot_ids:
+    #     messages.error(request, "No time slots found in payment session.")
+    #     return redirect('course:course_list')
 
     now = timezone.now()
     created_bookings = []
