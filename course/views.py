@@ -535,7 +535,7 @@ def cart_payment_success(request):
                 ),
                 settings.DEFAULT_FROM_EMAIL,
                 [teacher.email],
-                fail_silently=True,
+                fail_silently=False,
             )  
     lines = []
     for booking in created_bookings:
@@ -559,7 +559,7 @@ def cart_payment_success(request):
         ),
         settings.DEFAULT_FROM_EMAIL,
         [request.user.email],
-        fail_silently=True,
+        fail_silently=False,
     )
             
 
