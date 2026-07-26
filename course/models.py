@@ -35,7 +35,18 @@ class Course(models.Model):
    
     def __str__(self):
         return self.title
-    
+
+    def save(self, *args, **kwargs):
+        if self.video_url and "drive.google.com/file/d/" in self.video_url:
+            self.video_url = (
+                self.video_url
+                .replace("/view?usp=sharing", "/preview")
+                .replace("/view", "/preview")
+            )
+        super().save(*args, **kwargs)
+
+
+        
 
 class TimeSlot(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='time_slots')

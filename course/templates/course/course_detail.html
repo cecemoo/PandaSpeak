@@ -143,6 +143,12 @@
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerpolicy="strict-origin-when-cross-origin" 
                         allowfullscreen></iframe>
+                        <script>
+                            const iframe = document.getElementById("course-video");
+                            if (iframe.src.includes("drive.google.com/file/d/")) {
+                                iframe.src = iframe.src.replace("/view", "/preview").replace("?usp=sharing", "");
+                            }
+                        </script>
                     </div>
                 </div>
                 {% endif %}
