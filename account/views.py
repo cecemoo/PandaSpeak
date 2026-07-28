@@ -12,7 +12,7 @@ from course.forms import CourseForm
 from django.shortcuts import get_object_or_404
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
 from django.utils import timezone
-from course.views import generate_timeslots_for_course
+
 
 
 

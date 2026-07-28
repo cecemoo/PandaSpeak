@@ -32,6 +32,7 @@ class Course(models.Model):
     available_days = models.CharField(max_length=100, blank=True, help_text='Comma separated weekdays (0=Monday, 6=Sunday)')
     daily_start_time = models.TimeField(blank=True, null=True)
     daily_end_time = models.TimeField(blank=True, null=True)
+    teacher_timezone = models.CharField(max_length=64, default="America/Chicago",help_text="Time zone used when creating this course schedule.",)
    
     def __str__(self):
         return self.title

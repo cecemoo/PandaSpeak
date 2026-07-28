@@ -222,6 +222,47 @@
   <!-- Main JS File -->
   <script src="{% static 'assets/js/main.js' %}"></script>
 
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!detectedTimezone){
+        return;
+      }
+      const previouslySavedTimezone = sessionStorage.getItem("pandaspeak_timezone");
+      if (previouslySavedTimezone == detectedTimezone){
+        return;
+      }
+      fetch("{% url 'course:set_student_timezone' %}", {
+
+    method: "POST",
+
+    headers: {
+
+        "Content-Type": "application/json",
+
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || ""
+
+    },
+
+    body: JSON.stringify({
+
+        timezone: detectedTimezone
+
+    })
+
+})
+
+.then(response => response.json())
+
+.then(data => {
+
+    sessionStorage.setItem("pandaspeak_timezone", detectedTimezone);
+
+})
+
+.catch(error => console.error(error));
+    });
+  </script>
 </body>
 
 </html>

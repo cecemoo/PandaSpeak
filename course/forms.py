@@ -5,6 +5,27 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import time
+from zoneinfo import available_timezones
+
+
+COMMON_TIMEZONE_CHOICES = [
+    ("America/Chicago", "Houston /Chicago"),
+    ("America/New_York", "New York"),
+    ("America/Los_Angeles", "Los Angeles"),
+    ("America/Denver", "Denver"),
+    ("America/Phoenix", "Phoenix"),
+    ("Pacific/Honolulu", "Hawaii"),
+    ("Asia/Tokyo", "Tokyo"),
+    ("Asia/Shanghai", "Shanghai"),
+    ("Asia/Singapore", "Singapore"),
+    ("Asia/Taipei", "Taipei"),
+    ("Asia/Seoul", "Seoul"),
+    ("Asia/Beijing", "Beijing"),
+    ("Europe/London", "London"),
+    ("Europe/Paris", "Paris"),
+    ("Australia/Sydney", "Sydney"),
+]
+
 
 
 HOUR_CHOICES = [(f"{h:02d}:00", f"{h:02d}:00") for h in range(24)]
@@ -14,6 +35,16 @@ class CourseForm(forms.ModelForm):
     initial_capacity = forms.IntegerField(min_value=1,initial=1,required=True,label="Capacity per time slot",help_text="Set the maximum number of students allowed in each time slot. ")
     daily_start_time = forms.ChoiceField(choices=HOUR_CHOICES, required=True, label="Daily start time", widget=forms.Select(),)
     daily_end_time = forms.ChoiceField(choices=HOUR_CHOICES, required=True, label="Daily end time", widget=forms.Select(),)
+    teacher_timezone = forms.ChoiceField(
+        choices=COMMON_TIMEZONE_CHOICES,
+        initial="America/Chicago",
+        required=True,
+        label="Schedule time zone",
+        help_text=(
+            "Enter the teaching schedule in this time zone. "
+            "Students will see it converted to their local time."
+        ),
+    )
 
     class Meta:
         model = Course
@@ -29,6 +60,7 @@ class CourseForm(forms.ModelForm):
         'available_days',
         'daily_start_time',
         'daily_end_time',
+        "teacher_timezone",
         ]
 
         help_texts = {

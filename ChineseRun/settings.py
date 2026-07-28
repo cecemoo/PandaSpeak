@@ -17,7 +17,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -59,11 +59,15 @@ AUTH_USER_MODEL = 'account.CustomUser'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'course.middleware.StudentTimezoneMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'ChineseRun.urls'
@@ -123,7 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Chicago'
 
 USE_I18N = True
 

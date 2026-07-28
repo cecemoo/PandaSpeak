@@ -44,6 +44,13 @@
             </p>
         </div><!-- End Section Title -->
 
+        <div class="text-center mb-2">
+            <small style=color:#d6d6d6">
+                <i class="bi bi-globe"></i>
+                <strong> Time shown in your local time:</strong> {{ student_timezone }}
+            </small>
+        </div>
+
         <div class="container" data-aos="fade-up">
             <div class="container table-responsive">
                 <table class="table table-bordered table-sm text-center align-middle">
@@ -96,7 +103,7 @@
             </div>
             <a href="{% url 'course:course_detail' course.id %}">Class: {{ course.title }}</a>
         </div>
-</main>
+
 </section><!-- weekly_schedule Section -->
 
 <style>

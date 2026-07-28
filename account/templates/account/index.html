@@ -752,7 +752,11 @@
 
             <a href="{% url 'course:course_detail' course.id %}">
               <div class="post-img">
+                {% if course.image %}
                 <img src="{{ course.image.url }}" alt="" class="img-fluid">
+                {% else %}
+                <img src="{% static 'assets/img/pandaspeak.png' %}" alt="" class="img-fluid">
+                {% endif %}
               </div>
               <p class="post-category">Instructor: &nbsp;{{ course.teacher.first_name }} {{ course.teacher.last_name }}
               </p>

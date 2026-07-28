@@ -27,5 +27,5 @@ urlpatterns = [
     path('booking/<int:pk>/cancel/', views.cancel_booking, name='cancel_booking'),
 
     
-
+    path("set-timezone/", views.set_student_timezone, name="set_student_timezone"),
 ]

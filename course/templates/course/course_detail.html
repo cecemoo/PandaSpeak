@@ -104,6 +104,8 @@
                         <div class="course-image-box">
                             {% if course.image %}
                             <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                            {% else %}
+                            <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
                             {% endif %}
                         </div>
 
@@ -121,14 +123,12 @@
                                 <li><strong>Available Time Slots:</strong>
                                     <br>
 
-                                    {% if available_slots %}
+                                   
                                     <a class="btn btn-success rounded-pill"
                                         href="{% url 'course:weekly_schedule' course.pk %}">
                                         View Weekly Schedule & Book
                                     </a>
-                                    {% else %}
-                                    <p>No available time slots at the moment.</p>
-                                    {% endif %}
+                                    
                                 </li>
                             </ul>
                         </div>

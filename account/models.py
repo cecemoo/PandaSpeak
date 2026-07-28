@@ -16,7 +16,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_teacher = models.BooleanField(default=False, verbose_name="Are you a teacher?")
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
 
-    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
