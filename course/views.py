@@ -26,12 +26,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def get_valid_timezone(timezone_name):
-    """
-    Return a valid ZoneInfo object.
 
-    If the supplied timezone is missing or invalid,
-    use the project's configured timezone.
-    """
     try:
         return ZoneInfo(timezone_name)
     except (ZoneInfoNotFoundError, TypeError, ValueError):
@@ -39,12 +34,7 @@ def get_valid_timezone(timezone_name):
 
 
 def get_student_timezone(request):
-    """
-    Return the student's timezone saved from the browser.
-
-    If the browser timezone has not been saved yet,
-    use Django's currently activated timezone.
-    """
+    
     timezone_name = request.session.get("student_timezone")
 
     if not timezone_name:
@@ -54,9 +44,6 @@ def get_student_timezone(request):
 
 
 def get_teacher_timezone(course):
-    """
-    Return the timezone selected by the teacher for this course.
-    """
     timezone_name = course.teacher_timezone
 
     if not timezone_name:
@@ -66,10 +53,6 @@ def get_teacher_timezone(course):
 
 
 def format_class_time(start_time, end_time, target_timezone):
-    """
-    Convert the stored UTC datetimes into the requested timezone
-    and return a readable date and time range.
-    """
     local_start = timezone.localtime(
         start_time,
         target_timezone,
@@ -407,229 +390,125 @@ class CourseCreateView(LoginRequiredMixin, View):
 
 
 class WeeklyScheduleView(LoginRequiredMixin, TemplateView):
-
     template_name = "course/weekly_schedule.html"
-
     def get_context_data(self, **kwargs):
-
         ctx = super().get_context_data(**kwargs)
-
         course = get_object_or_404(
-
             Course,
-
             pk=kwargs["pk"],
-
         )
 
         ctx["course"] = course
-
         current_tz = timezone.get_current_timezone()
-
         start_str = self.request.GET.get("start")
 
         if start_str:
-
             try:
-
                 week_start = datetime.strptime(
-
                     start_str,
-
                     "%Y-%m-%d",
-
                 ).date()
-
             except ValueError:
-
                 today = timezone.localdate()
-
                 week_start = today - timedelta(
-
                     days=today.weekday()
-
                 )
-
         else:
-
             today = timezone.localdate()
-
             week_start = today - timedelta(
-
                 days=today.weekday()
-
             )
 
         week_end = week_start + timedelta(days=7)
-
         # Create the beginning and end of the student's local week
-
         local_week_start = timezone.make_aware(
-
             datetime.combine(week_start, time.min),
-
             current_tz,
 
         )
-
         local_week_end = timezone.make_aware(
-
             datetime.combine(week_end, time.min),
-
             current_tz,
-
         )
-
         now = timezone.now()
-
         timeslots = (
-
             course.time_slots
-
             .filter(
-
                 start_time__gte=max(now, local_week_start),
-
                 start_time__lt=local_week_end,
-
             )
-
             .select_related("course")
-
             .prefetch_related("bookings")
-
             .order_by("start_time")
-
         )
 
         slot_map = {}
 
         for timeslot in timeslots:
-
             # Convert the stored time to the current student's time zone
-
             local_start = timezone.localtime(
-
                 timeslot.start_time,
-
                 current_tz,
-
             )
-
             local_end = timezone.localtime(
-
                 timeslot.end_time,
-
                 current_tz,
-
             )
-
             local_date = local_start.date()
-
             local_hour = local_start.hour
-
             if week_start <= local_date < week_end:
-
                 slot_map[(local_date, local_hour)] = {
-
                     "slot": timeslot,
-
                     "local_start": local_start,
-
                     "local_end": local_end,
-
                 }
 
         days = [
-
             week_start + timedelta(days=index)
-
             for index in range(7)
-
         ]
-
         hours = []
-
         for hour in range(24):
-
             row_cells = []
-
             for day in days:
-
                 slot_data = slot_map.get((day, hour))
-
                 if slot_data:
-
                     timeslot = slot_data["slot"]
-
                     status = (
-
                         "available"
-
                         if timeslot.is_available
-
                         else "full"
-
                     )
-
                     row_cells.append({
-
                         "date": day,
-
                         "slot": timeslot,
-
                         "local_start": slot_data["local_start"],
-
                         "local_end": slot_data["local_end"],
-
                         "status": status,
-
                     })
-
                 else:
-
                     row_cells.append({
-
                         "date": day,
-
                         "slot": None,
-
                         "local_start": None,
-
                         "local_end": None,
-
                         "status": "empty",
-
                     })
-
             hours.append({
-
                 "hour": hour,
-
                 "cells": row_cells,
 
             })
-
         ctx["days"] = days
-
         ctx["hours"] = hours
-
         ctx["week_start"] = week_start
-
         ctx["week_end"] = week_end - timedelta(days=1)
-
         ctx["prev_start"] = week_start - timedelta(days=7)
-
         ctx["next_start"] = week_start + timedelta(days=7)
-
         ctx["student_timezone"] = (
-
             timezone.get_current_timezone_name()
-
         )
-
         ctx["teacher_timezone"] = course.teacher_timezone
-
         return ctx    
 
 
@@ -823,61 +702,34 @@ def remove_from_cart(request, pk):
 
 @login_required(login_url='my_login')
 def cart_checkout(request):
-
     cart = request.session.get("cart", [])
-
     if request.method != "POST":
-
         return redirect("course:view_cart")
 
     if not cart:
-
         messages.error(request, "Your cart is empty.")
-
         return redirect("course:view_cart")
-
     # Make sure every cart value is a TimeSlot primary key.
-
     timeslot_ids = [str(item) for item in cart if item]
-
     slots = list(
-
         TimeSlot.objects
-
         .filter(pk__in=timeslot_ids)
-
         .select_related("course", "course__teacher")
-
     )
-
     if not slots:
-
         messages.error(request, "No valid classes were found in your cart.")
-
         return redirect("course:view_cart")
-
     # Check whether some cart items no longer exist.
-
     found_ids = {str(slot.pk) for slot in slots}
-
     missing_ids = [
-
         timeslot_id
-
         for timeslot_id in timeslot_ids
-
         if timeslot_id not in found_ids
-
     ]
-
     if missing_ids:
-
         logger.warning(
-
             "The following cart TimeSlot IDs were not found: %s",
-
             missing_ids,
-
         )
     student_timezone_name, student_tz = get_student_timezone(request)
     line_items = []
@@ -901,77 +753,41 @@ def cart_checkout(request):
                 "quantity": 1,
             }
         )
-
     domain = request.build_absolute_uri("/").rstrip("/")
-
     try:
-
         checkout_session = stripe.checkout.Session.create(
-
             payment_method_types=["card"],
-
             mode="payment",
-
             customer_email=request.user.email or None,
-
             line_items=line_items,
-
             metadata={
-
                 "timeslot_ids": ",".join(
-
                     str(slot.pk) for slot in slots
-
                 ),
-
                 "user_id": str(request.user.pk),
-
             },
-
             success_url=(
-
                 domain
-
                 + reverse("course:cart_payment_success")
-
                 + "?session_id={CHECKOUT_SESSION_ID}"
-
             ),
-
             cancel_url=(
-
                 domain
-
                 + reverse("course:cart_payment_cancel")
-
             ),
-
         )
-
     except stripe.error.StripeError:
-
         logger.exception(
-
             "Stripe Checkout Session creation failed for user %s",
-
             request.user.pk,
-
         )
-
         messages.error(
-
             request,
-
             "We could not start the payment. Please try again.",
-
         )
-
         return redirect("course:view_cart")
-
     # Do not clear the cart here.
-
     # Clear it only after the booking has been saved successfully.
-
     return redirect(checkout_session.url, permanent=False)
 
 
@@ -981,312 +797,162 @@ logger = logging.getLogger(__name__)
 
 @login_required(login_url='my_login')
 def cart_payment_success(request):
-
     session_id = request.GET.get("session_id")
-
     if not session_id:
-
         messages.error(request, "Missing payment session.")
-
         return redirect("course:course_list")
-
     try:
-
         stripe_session = stripe.checkout.Session.retrieve(session_id)
-
     except stripe.error.StripeError:
-
         logger.exception(
-
             "Could not retrieve Stripe session %s",
-
             session_id,
-
         )
-
         messages.error(
-
             request,
-
             "We could not verify your payment.",
-
         )
-
         return redirect("course:course_list")
-
     # Do not save a booking unless Stripe confirms payment.
-
     if stripe_session.payment_status != "paid":
-
         logger.warning(
-
             "Stripe session %s is not paid. Payment status: %s",
-
             session_id,
-
             stripe_session.payment_status,
-
         )
-
         messages.error(
-
             request,
-
             "Your payment has not been confirmed.",
 
         )
-
         return redirect("course:view_cart")
-
     metadata = stripe_session.metadata or {}
- 
     try:
         stripe_user_id = str(metadata["user_id"]).strip()
     except (KeyError, TypeError, AttributeError):
         stripe_user_id = ""
-
     current_user_id = str(request.user.pk)
-
     if stripe_user_id != current_user_id:
-
         logger.error(
-
             "Stripe session user mismatch. Session user=%s, "
-
             "logged-in user=%s, session=%s",
-
             stripe_user_id,
-
             current_user_id,
-
             session_id,
-
         )
-
         messages.error(
-
             request,
-
             "This payment session does not belong to your account.",
-
         )
-
         return redirect("course:course_list")
-
     try:
         timeslot_value = str(metadata["timeslot_ids"]).strip()
     except (KeyError, TypeError):
         timeslot_value = ""
-
     if not timeslot_value:
-
         logger.error(
-
             "Stripe session %s has no timeslot_ids metadata. "
-
             "Metadata: %s",
-
             session_id,
-
             dict(metadata),
-
         )
-
         messages.error(
-
             request,
-
             "Payment was successful, but no class time slots were found. "
-
             "Please contact PandaSpeak Support.",
-
         )
-
         return redirect("course:course_list")
-
     timeslot_ids = [
-
         value.strip()
-
         for value in timeslot_value.split(",")
-
         if value.strip()
-
     ]
-
     payment_intent_id = str(
-
         stripe_session.payment_intent or ""
-
     )
-
     processed_bookings = []
-
     try:
-
         with transaction.atomic():
-
             slots = list(
-
                 TimeSlot.objects
-
                 .select_for_update()
-
                 .filter(pk__in=timeslot_ids)
-
                 .select_related("course", "course__teacher")
-
             )
-
             slot_map = {
-
                 str(slot.pk): slot
-
                 for slot in slots
-
             }
-
             missing_ids = [
-
                 timeslot_id
-
                 for timeslot_id in timeslot_ids
-
                 if timeslot_id not in slot_map
-
             ]
-
             if missing_ids:
-
                 logger.error(
-
                     "Paid Stripe session %s contains missing "
-
                     "TimeSlot IDs: %s",
-
                     session_id,
-
                     missing_ids,
-
                 )
-
             for timeslot_id in timeslot_ids:
-
                 slot = slot_map.get(timeslot_id)
-
                 if slot is None:
-
                     continue
-
                 booking, created = Booking.objects.get_or_create(
-
                     student=request.user,
-
                     timeslot=slot,
-
                     defaults={
-
                         "status": "confirmed",
-
                         "stripe_payment_intent_id": payment_intent_id,
-
                         "stripe_session_id": session_id,
-
                         "paid_at": timezone.now(),
-
                         "canceled_at": None,
-
                         "is_refunded": False,
-
                     },
-
                 )
-
                 # Also restore/update an existing booking.
-
                 if not created:
-
                     booking.status = "confirmed"
-
                     booking.stripe_payment_intent_id = payment_intent_id
-
                     booking.stripe_session_id = session_id
-
                     booking.paid_at = timezone.now()
-
                     booking.canceled_at = None
-
                     booking.is_refunded = False
-
                     booking.save(
-
                         update_fields=[
-
                             "status",
-
                             "stripe_payment_intent_id",
-
                             "stripe_session_id",
-
                             "paid_at",
-
                             "canceled_at",
-
                             "is_refunded",
-
                         ]
-
                     )
-
                 processed_bookings.append(booking)
-
             if not processed_bookings:
-
                 raise ValueError(
-
                     "No bookings could be created from the "
-
                     f"TimeSlot IDs: {timeslot_ids}"
-
                 )
-
     except Exception:
-
         logger.exception(
-
             "Booking creation failed after successful payment. "
-
             "Stripe session=%s, user=%s, timeslots=%s",
-
             session_id,
-
             request.user.pk,
-
             timeslot_ids,
-
         )
-
         messages.error(
-
             request,
-
             "Your payment was successful, but the booking could not "
-
             "be saved. Please contact PandaSpeak Support.",
-
         )
-
         return redirect("course:course_list")
 
     # Clear the cart only after the transaction finishes successfully.
-
     request.session["cart"] = []
-
     request.session.modified = True
-
-    # Send teacher emails separately so an email problem does not
-
-    # interfere with saving the bookings.
 
     for booking in processed_bookings:
         slot = booking.timeslot
@@ -1337,7 +1003,7 @@ def cart_payment_success(request):
             f"Course: {slot.course.title}\n"
             f"Time: {student_time_text}\n"
             f"Time Zone: {student_timezone_name}\n"
-            f"{teacher.get_full_name()}\n"
+            f"Instructor:{teacher.get_full_name()}\n"
         )
 
     if request.user.email:
@@ -1356,37 +1022,21 @@ def cart_payment_success(request):
                     "Best regards,\n"
                     "PandaSpeak Support Team"
                 ),
-
                 settings.DEFAULT_FROM_EMAIL,
-
                 [request.user.email],
-
                 fail_silently=False,
-
             )
-
         except Exception:
-
             logger.exception(
-
                 "Student confirmation email failed. User ID=%s, "
-
                 "Stripe session=%s",
-
                 request.user.pk,
-
                 session_id,
-
             )
-
     messages.success(
-
         request,
-
         "Payment successful. Your classes have been booked!",
-
     )
-
     return redirect("course:course_list")
 
 
@@ -1395,14 +1045,12 @@ def cart_payment_success(request):
 @login_required(login_url='my_login')
 def cancel_booking(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
-
     is_student = booking.student_id == request.user.id
     is_teacher = booking.timeslot.course.teacher_id == request.user.id
     if not (is_student or is_teacher):
         messages.error(request, "You do not have permission to cancel this booking.")
         return redirect('course:my_bookings')
     
-
     # prevent cancel too close to start time
     if booking.timeslot.start_time <= timezone.now() + timezone.timedelta(hours=24):
         messages.error(request, "Cannot cancel booking less than 24 hours before start time.")

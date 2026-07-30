@@ -1,5 +1,25 @@
 {% extends "account/base.html" %}
 {% block content %}
-<h1>Payment Cancelled</h1>
-<p>Your payment was cancelled. You can try again from the course page.</p>
+
+<style>
+    .payment-result-page {
+        padding-top: 120px;
+        padding-bottom: 80px;
+        min-height: 70vh;
+    }
+    .payment-result-page h1 {
+        margin-bottom: 20px;
+    }
+</style>
+
+
+
+<div class="container payment-result-page">
+    <div class="alert alert-warning">
+        <h1>Payment Cancelled</h1>
+        <p>Your payment was cancelled. No charge was made. You may return to the course page and try again.</p>
+        <a href="{% url 'course_list' %}" class="btn btn-primary">Return to Courses</a>
+    </div>
+</div>
+
 {% endblock %}
