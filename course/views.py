@@ -25,6 +25,8 @@ import uuid
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal, ROUND_HALF_UP
+from django.contrib.auth import get_user_model
+
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY 
@@ -738,79 +740,25 @@ def cart_payment_success(request):
             "Please contact PandaSpeak Support.",
         )
         return redirect("course:course_list")
-    timeslot_ids = [
-        value.strip()
-        for value in timeslot_value.split(",")
-        if value.strip()
-    ]
-    payment_intent_id = str(
-        stripe_session.payment_intent or ""
-    )
-    processed_bookings = []
+
     try:
-        with transaction.atomic():
-            slots = list(
-                TimeSlot.objects
-                .select_for_update()
-                .filter(pk__in=timeslot_ids)
-                .select_related("course", "course__teacher")
+        student, processed_bookings, timeslot_ids = (
+            create_paid_bookings_from_session(stripe_session)
+        )
+        if student.pk != request.user.pk:
+            logger.error(
+                "Stripe session user mismatch. Session user=%s, "
+                "logged-in user=%s, session=%s",
+                student.pk,
+                request.user.pk,
+                session_id,
             )
-            slot_map = {
-                str(slot.pk): slot
-                for slot in slots
-            }
-            missing_ids = [
-                timeslot_id
-                for timeslot_id in timeslot_ids
-                if timeslot_id not in slot_map
-            ]
-            if missing_ids:
-                logger.error(
-                    "Paid Stripe session %s contains missing "
-                    "TimeSlot IDs: %s",
-                    session_id,
-                    missing_ids,
-                )
-            for timeslot_id in timeslot_ids:
-                slot = slot_map.get(timeslot_id)
-                if slot is None:
-                    continue
-                booking, created = Booking.objects.get_or_create(
-                    student=request.user,
-                    timeslot=slot,
-                    defaults={
-                        "status": "confirmed",
-                        "stripe_payment_intent_id": payment_intent_id,
-                        "stripe_session_id": session_id,
-                        "paid_at": timezone.now(),
-                        "canceled_at": None,
-                        "is_refunded": False,
-                    },
-                )
-                # Also restore/update an existing booking.
-                if not created:
-                    booking.status = "confirmed"
-                    booking.stripe_payment_intent_id = payment_intent_id
-                    booking.stripe_session_id = session_id
-                    booking.paid_at = timezone.now()
-                    booking.canceled_at = None
-                    booking.is_refunded = False
-                    booking.save(
-                        update_fields=[
-                            "status",
-                            "stripe_payment_intent_id",
-                            "stripe_session_id",
-                            "paid_at",
-                            "canceled_at",
-                            "is_refunded",
-                        ]
-                    )
-                processed_bookings.append(booking)
-            if not processed_bookings:
-                raise ValueError(
-                    "No bookings could be created from the "
-                    f"TimeSlot IDs: {timeslot_ids}"
-                )
+            messages.error(
+                request,
+                "This payment session does not belong to your account.",
+            )
+            return redirect("course:course_list")
+        
     except Exception:
         logger.exception(
             "Booking creation failed after successful payment. "
@@ -829,6 +777,8 @@ def cart_payment_success(request):
     # Clear the cart only after the transaction finishes successfully.
     request.session["cart"] = []
     request.session.modified = True
+
+    teacher_totals = {}
 
     for booking in processed_bookings:
         slot = booking.timeslot
@@ -988,6 +938,186 @@ def stripe_connect_return(request):
         messages.error(request,"Stripe account status could not be checked.",)
     return redirect("teacher_dashboard")
 
+
+def create_paid_bookings_from_session(session):
+
+    session_id = getattr(session, "id", None)
+
+    payment_intent_id = getattr(session, "payment_intent", None)
+
+    metadata = getattr(session, "metadata", None)
+
+    user_id = str(
+
+        getattr(metadata, "user_id", "") or ""
+
+    ).strip()
+
+    timeslot_value = str(
+
+        getattr(metadata, "timeslot_ids", "") or ""
+
+    ).strip()
+
+    if not session_id:
+
+        raise ValueError("Stripe session has no session ID.")
+
+    if not payment_intent_id:
+
+        raise ValueError(
+
+            f"Stripe session {session_id} has no PaymentIntent."
+
+        )
+
+    if not user_id:
+
+        raise ValueError(
+
+            f"Stripe session {session_id} has no user_id metadata."
+
+        )
+
+    if not timeslot_value:
+
+        raise ValueError(
+
+            f"Stripe session {session_id} has no timeslot_ids metadata."
+
+        )
+
+    timeslot_ids = [
+
+        value.strip()
+
+        for value in timeslot_value.split(",")
+
+        if value.strip()
+
+    ]
+
+    User = get_user_model()
+
+    try:
+
+        student = User.objects.get(pk=user_id)
+
+    except User.DoesNotExist as exc:
+
+        raise ValueError(
+
+            f"Student {user_id} was not found."
+
+        ) from exc
+
+    processed_bookings = []
+
+    with transaction.atomic():
+
+        slots = list(
+
+            TimeSlot.objects
+
+            .select_for_update()
+
+            .filter(pk__in=timeslot_ids)
+
+            .select_related("course", "course__teacher")
+
+        )
+
+        slot_map = {
+
+            str(slot.pk): slot
+
+            for slot in slots
+
+        }
+
+        missing_ids = [
+
+            timeslot_id
+
+            for timeslot_id in timeslot_ids
+
+            if timeslot_id not in slot_map
+
+        ]
+
+        if missing_ids:
+
+            raise ValueError(
+
+                f"Missing TimeSlot IDs: {missing_ids}"
+
+            )
+
+        for timeslot_id in timeslot_ids:
+
+            slot = slot_map[timeslot_id]
+
+            booking, created = Booking.objects.get_or_create(
+
+                student=student,
+
+                timeslot=slot,
+
+                defaults={
+
+                    "status": "confirmed",
+
+                    "stripe_payment_intent_id": payment_intent_id,
+
+                    "stripe_session_id": session_id,
+
+                    "paid_at": timezone.now(),
+
+                    "canceled_at": None,
+
+                    "is_refunded": False,
+
+                },
+
+            )
+
+            if not created:
+
+                booking.status = "confirmed"
+
+                booking.stripe_payment_intent_id = payment_intent_id
+
+                booking.stripe_session_id = session_id
+
+                booking.paid_at = booking.paid_at or timezone.now()
+
+                booking.canceled_at = None
+
+                booking.is_refunded = False
+
+                booking.save(
+
+                    update_fields=[
+
+                        "status",
+
+                        "stripe_payment_intent_id",
+
+                        "stripe_session_id",
+
+                        "paid_at",
+
+                        "canceled_at",
+
+                        "is_refunded",
+
+                    ]
+
+                )
+
+            processed_bookings.append(booking)
+
+    return student, processed_bookings, timeslot_ids
 
 
 def process_teacher_transfers(session):
@@ -1171,6 +1301,7 @@ def stripe_webhook(request):
         )
         if payment_status == "paid":
             try:
+                create_paid_bookings_from_session(session)
                 process_teacher_transfers(session)
             except Exception:
                 logger.exception(
