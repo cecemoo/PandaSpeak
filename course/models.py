@@ -74,7 +74,6 @@ class Booking(models.Model):
         ('confirmed', 'Confirmed'),
         ('canceled', 'Canceled'),
     )
-
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bookings')
     timeslot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name='bookings')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
@@ -84,6 +83,14 @@ class Booking(models.Model):
     canceled_at = models.DateTimeField(blank=True, null=True)
 
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_transfer_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    teacher_transfer_amount_cents = models.PositiveIntegerField(
+        default=0,
+    )
     is_refunded = models.BooleanField(default=False)
 
     class Meta:

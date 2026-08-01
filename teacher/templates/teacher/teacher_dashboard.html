@@ -11,10 +11,10 @@
     border-radius: 15px;
     transition: 0.3s;
   }
+
   .dashboard-card:hover {
     transform: translateY(-5px);
   }
-
 </style>
 <main class="main">
 
@@ -60,6 +60,27 @@
               </div>
             </div>
           </a>
+        </div>
+
+        <div class="col-md-4">
+
+            {% if user.is_authenticated and user.is_teacher %}
+            {% if user.stripe_account_id %}
+            <a href="{% url 'course:stripe_connect_onboard' %}" class="text-decoration-none">
+              <div class="card text-center dashboard-card">
+                <div class="card-body">
+                  <h5>Connect Stripe Account</h5>
+                  <p>Connect your Stripe account to receive payments.</p>
+                </div>
+              </div>
+            </a>
+            </a>
+            {% else %}
+            <a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-primary rounded-pill">
+              Connect Stripe account
+            </a>
+            {% endif %}
+            {% endif %}
         </div>
 
         <div class="col-md-4">

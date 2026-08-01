@@ -21,12 +21,16 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Count, F, Q
 from django.views.generic import TemplateView
+import uuid
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal, ROUND_HALF_UP
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY 
 
 
 def get_valid_timezone(timezone_name):
-
     try:
         return ZoneInfo(timezone_name)
     except (ZoneInfoNotFoundError, TypeError, ValueError):
@@ -34,21 +38,16 @@ def get_valid_timezone(timezone_name):
 
 
 def get_student_timezone(request):
-    
     timezone_name = request.session.get("student_timezone")
-
     if not timezone_name:
         timezone_name = timezone.get_current_timezone_name()
-
     return timezone_name, get_valid_timezone(timezone_name)
 
 
 def get_teacher_timezone(course):
     timezone_name = course.teacher_timezone
-
     if not timezone_name:
         timezone_name = settings.TIME_ZONE
-
     return timezone_name, get_valid_timezone(timezone_name)
 
 
@@ -57,7 +56,6 @@ def format_class_time(start_time, end_time, target_timezone):
         start_time,
         target_timezone,
     )
-
     local_end = timezone.localtime(
         end_time,
         target_timezone,
@@ -68,7 +66,6 @@ def format_class_time(start_time, end_time, target_timezone):
             f"{local_start.strftime('%Y-%m-%d %I:%M %p')} – "
             f"{local_end.strftime('%I:%M %p')}"
         )
-
     return (
         f"{local_start.strftime('%Y-%m-%d %I:%M %p')} – "
         f"{local_end.strftime('%Y-%m-%d %I:%M %p')}"
@@ -110,277 +107,143 @@ class CourseDetailView(DetailView):
 
 
 class CourseCreateView(LoginRequiredMixin, View):
-
     template_name = "course/course_form.html"
-
     def get(self, request, *args, **kwargs):
-
         form = CourseForm()
-
         return render(
-
             request,
-
             self.template_name,
-
             {"form": form},
-
         )
 
     def post(self, request, *args, **kwargs):
-
         form = CourseForm(request.POST, request.FILES)
-
         if form.is_valid():
-
             course = form.save(commit=False)
-
             course.teacher = request.user
-
             course.save()
-
             initial_capacity = form.cleaned_data.get(
-
                 "initial_capacity",
-
                 1,
-
             )
-
             self.generate_timeslots_for_course(
-
                 course=course,
-
                 capacity=initial_capacity,
-
             )
-
             if request.user.is_staff:
-
                 return redirect("lessons")
-
             return redirect("teacher_dashboard")
-
         return render(
-
             request,
-
             self.template_name,
-
             {"form": form},
-
         )
 
     def generate_timeslots_for_course(
-
         self,
-
         course,
-
         capacity=1,
-
         start_date=None,
-
         end_date=None,
-
         available_days=None,
-
         daily_start_time=None,
-
         daily_end_time=None,
-
     ):
-
         start_date = start_date or course.start_date
-
         end_date = end_date or course.end_date
-
         daily_start_time = (
-
             daily_start_time or course.daily_start_time
-
         )
-
         daily_end_time = (
-
             daily_end_time or course.daily_end_time
-
         )
-
         if not start_date or not end_date:
-
             return
-
         if not daily_start_time or not daily_end_time:
-
             return
-
         if available_days is None:
-
             raw = (course.available_days or "").strip()
-
             parts = []
-
             try:
-
                 if raw.startswith("["):
-
                     data = ast.literal_eval(raw)
-
                     if isinstance(data, (list, tuple)):
-
                         parts = [str(item) for item in data]
-
                     else:
-
                         parts = [str(data)]
-
                 else:
-
                     parts = [
-
                         part.strip()
-
                         for part in raw.split(",")
-
                         if part.strip()
-
                     ]
-
             except (ValueError, SyntaxError):
-
                 cleaned = (
-
                     raw.replace("[", "")
-
                     .replace("]", "")
-
                     .replace('"', "")
-
                     .replace("'", "")
-
                 )
-
                 parts = [
-
                     part.strip()
-
                     for part in cleaned.split(",")
-
                     if part.strip()
-
                 ]
-
             allowed_days = [
-
                 int(day)
-
                 for day in parts
-
                 if str(day).isdigit()
-
             ]
-
         else:
-
             allowed_days = [
-
                 int(day)
-
                 for day in available_days
-
             ]
-
         if not allowed_days:
-
             return
-
         try:
-
             teacher_tz = ZoneInfo(
-
                 course.teacher_timezone
-
             )
-
         except (
-
             ZoneInfoNotFoundError,
-
             TypeError,
-
             AttributeError,
-
         ):
-
             teacher_tz = ZoneInfo(settings.TIME_ZONE)
-
         duration = timedelta(
-
             minutes=course.duration_minutes or 60
-
         )
-
         current_day = start_date
-
         while current_day <= end_date:
-
             if current_day.weekday() in allowed_days:
-
                 naive_day_start = datetime.combine(
-
-                    current_day,
-
-                    daily_start_time,
-
+                 current_day,
+                 daily_start_time,
                 )
-
                 naive_day_end = datetime.combine(
-
                     current_day,
-
                     daily_end_time,
-
                 )
-
                 day_start = timezone.make_aware(
-
                     naive_day_start,
-
                     teacher_tz,
-
                 )
-
                 day_end = timezone.make_aware(
-
                     naive_day_end,
-
                     teacher_tz,
-
                 )
-
                 slot_start = day_start
-
                 while slot_start + duration <= day_end:
-
                     TimeSlot.objects.update_or_create(
-
                         course=course,
-
                         start_time=slot_start,
-
                         defaults={
-
                             "end_time": slot_start + duration,
-
                             "capacity": capacity,
-
                         },
-
                     )
-
                     slot_start += duration
-
             current_day += timedelta(days=1)
 
 
@@ -755,16 +618,29 @@ def cart_checkout(request):
         )
     domain = request.build_absolute_uri("/").rstrip("/")
     try:
+        order_reference = uuid.uuid4().hex
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             mode="payment",
             customer_email=request.user.email or None,
             line_items=line_items,
+
+            payment_intent_data={
+                "transfer_group": order_reference,
+                "metadata": {
+                    "order_reference": order_reference,
+                    "timeslot_ids": ",".join(
+                        str(slot.pk) for slot in slots
+                    ),
+                    "user_id": str(request.user.pk),
+                },
+            },
             metadata={
                 "timeslot_ids": ",".join(
                     str(slot.pk) for slot in slots
                 ),
                 "user_id": str(request.user.pk),
+                "order_reference": order_reference,
             },
             success_url=(
                 domain
@@ -1041,6 +917,272 @@ def cart_payment_success(request):
 
 
 
+@login_required(login_url="my_login")
+def stripe_connect_onboard(request):
+    teacher = request.user
+    # Only teachers should connect a Stripe account
+    if not getattr(teacher, "is_teacher", False):
+        messages.error(request, "Only teachers can connect a Stripe account.")
+        return redirect("course:course_list")
+    try:
+        # Create the connected account only once
+        if not teacher.stripe_account_id:
+            account = stripe.Account.create(
+              type="express",
+                country="US",
+                email=teacher.email,
+                capabilities={
+                    "card_payments": {"requested": True},
+                    "transfers": {"requested": True},
+                },
+                metadata={
+                    "teacher_id": str(teacher.pk),
+                },
+            )
+            teacher.stripe_account_id = account.id
+            teacher.save(update_fields=["stripe_account_id"])
+        # Stripe Account Links expire and can only be used once,
+        # so create a new link every time this view is opened.
+        account_link = stripe.AccountLink.create(
+            account=teacher.stripe_account_id,
+            refresh_url=request.build_absolute_uri(
+                reverse("course:stripe_connect_refresh")
+            ),
+            return_url=request.build_absolute_uri(
+                reverse("course:stripe_connect_return")
+            ),
+            type="account_onboarding",
+        )
+        return redirect(account_link.url)
+    except stripe.error.StripeError:
+        logger.exception(
+            "Stripe Connect onboarding failed for teacher %s",
+            teacher.pk,
+        )
+        messages.error(
+            request,
+            "Stripe could not start the account setup. Please try again.",
+        )
+        return redirect("teacher_dashboard")
+
+
+@login_required(login_url="my_login")
+def stripe_connect_refresh(request):
+    return redirect("course:stripe_connect_onboard")
+
+
+@login_required(login_url="my_login")
+def stripe_connect_return(request):
+    teacher = request.user
+    if not teacher.stripe_account_id:
+        messages.error(request, "No Stripeaccount was found.")
+        return redirect("teacher_dashboard")
+    try:
+        account = stripe.Account.retrieve(teacher.stripe_account_id)
+        if account.details_submitted:
+            messages.success(request,"Your Stripe account information was submitted successfully.",)
+        else:
+            messages.warning(request,"Your Stripe account setup is not complete yet.",)
+    except stripe.error.StripeError:
+        logger.exception("Could not retrieve connected account for teacher %s", teacher.pk)
+        messages.error(request,"Stripe account status could not be checked.",)
+    return redirect("teacher_dashboard")
+
+
+
+def process_teacher_transfers(session):
+    session_id = getattr(session, "id", None)
+    payment_intent_id = getattr(session, "payment_intent", None)
+    metadata = getattr(session, "metadata", None)
+
+    if not payment_intent_id:
+        raise ValueError(f"No PaymentIntent found for Stripe Session {session_id}")
+    timeslot_value = str(getattr(metadata, "timeslot_ids", "") or "").strip()
+
+    if not timeslot_value:
+        raise ValueError(f"No timeslot_ids found for Stripe Session {session_id}")
+    
+    timeslot_ids = [value.strip() for value in timeslot_value.split(",") if value.strip()]
+
+    slots = list(TimeSlot.objects.filter(pk__in=timeslot_ids).select_related("course","course__teacher"))
+
+    if not slots:
+        raise ValueError(f"No TimeSlots found for Stripe Session {session_id}")
+
+    payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id, expand=["latest_charge"],)
+    latest_charge = getattr(payment_intent, "latest_charge", None)
+
+    if isinstance(latest_charge, str):
+        charge_id = latest_charge
+    elif latest_charge:
+        charge_id = getattr(latest_charge, "id", None)
+    else:
+        charge_id = None
+
+    if not charge_id:
+        raise ValueError(f"No Stripe charge found for PaymentIntent" f"{payment_intent_id}")
+    
+    payment_intent_metadata = getattr(payment_intent, "metadata", None)
+    order_reference =  (
+        getattr(metadata, "order_reference", None)
+        or getattr(
+            payment_intent_metadata, "order_reference", None
+        )
+    )
+    commission_percent = Decimal(str(getattr(settings,"PANDASPEAK_COMMISSION_PERCENT", 20)))
+
+    if commission_percent < 0 or commission_percent >= 100:
+        raise ValueError(f"PANDASPEAK_COMMISSION_PERCENT must be between 0 and 100. Current value: {commission_percent}")
+    
+    teacher_totals = {}
+
+    for slot in slots:
+        teacher = slot.course.teacher
+        teacher_id = teacher.pk
+
+        if teacher_id not in teacher_totals:
+            teacher_totals[teacher_id] = {
+                "teacher": teacher,
+                "gross_amount": Decimal("0.00"),
+                "timeslot_ids": [],
+            }
+        teacher_totals[teacher_id]["gross_amount"] += (slot.course.price)
+        
+        teacher_totals[teacher_id]["timeslot_ids"].append(str(slot.pk))
+    for teacher_id, teacher_data in teacher_totals.items():
+        teacher = teacher_data["teacher"]
+        gross_amount = teacher_data["gross_amount"]
+        if not teacher.stripe_account_id:
+            raise ValueError(f"Teacher {teacher_id} has no connected" f" Stripe account. Cannot transfer funds.")
+        
+        platform_fee = (gross_amount * commission_percent / Decimal("100")).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+        teacher_amount = gross_amount - platform_fee
+        transfer_amount_cents = int(
+            teacher_amount * Decimal("100")
+        )
+
+        if transfer_amount_cents <= 0:
+            raise ValueError(f"Calculated transfer for teacher " f"{teacher_id} is not positive.")
+        
+        transfer = stripe.Transfer.create(
+            amount=transfer_amount_cents,
+            currency="usd",
+            destination=teacher.stripe_account_id,
+            source_transaction=charge_id,
+            transfer_group=order_reference,
+            metadata={
+                "checkout_session_id": session_id,
+                "payment_intent_id": payment_intent_id,
+                "teacher_id": str(teacher_id),
+                "timeslot_ids": ",".join(teacher_data["timeslot_ids"]),
+                "gross_amount": str(gross_amount),
+                "platform_fee": str(platform_fee),
+                "teacher_amount": str(teacher_amount),
+                "commission_percent": str(commission_percent),
+            },
+
+            idempotency_key=(f"pandaspeak-transfer-" f"{session_id}-{teacher_id}"),
+        )
+        for timeslot_id in teacher_data["timeslot_ids"]:
+            booking = Booking.objects.filter(
+                timeslot_id=timeslot_id,
+                stripe_session_id=session_id,
+            ).first()
+            if not booking:
+                logger.warning(
+                    "Booking not found while saving transfer ID. "
+                    "Session=%s, timeslot=%s",
+                    session_id,
+                    timeslot_id,
+                )
+                continue
+            class_price = booking.timeslot.course.price
+            class_teacher_amount_cents = int(
+                (
+                    class_price
+                    * (
+                        Decimal("100") - commission_percent
+                    )
+                    / Decimal("100")
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+                * Decimal("100")
+            )
+            booking.stripe_transfer_id = transfer.id
+            booking.teacher_transfer_amount_cents = (
+                class_teacher_amount_cents
+            )
+            booking.save(
+                update_fields=[
+                    "stripe_transfer_id",
+                    "teacher_transfer_amount_cents",
+                ]
+            )
+
+        logger.info((
+            "teacher transfer completed. "
+            "Session=%s, teacher=%s, gross=%s, "
+            "platform_fee=%s, teacher_amount=%s, "
+            "transfer=%s"
+        ),
+        session_id,
+        teacher_id,
+        gross_amount,
+        platform_fee,
+        teacher_amount,
+        transfer.id,)
+
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    payload = request.body
+    signature = request.META.get("HTTP_STRIPE_SIGNATURE")
+    if not signature:
+        return HttpResponse(status=400)
+    try:
+        event = stripe.Webhook.construct_event(
+           payload=payload,
+            sig_header=signature,
+            secret=settings.STRIPE_WEBHOOK_SECRET,
+        )
+    except ValueError:
+        # Stripe sent an invalid payload.
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        # The signing secret or Stripe signature did not match.
+        return HttpResponse(status=400)
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        session_id = getattr(session, "id", None)
+        payment_status = getattr(session, "payment_status", None)
+
+        logger.info(
+            "Checkout completed: session=%s, payment_status=%s",
+            session_id,
+            payment_status,
+        )
+        if payment_status == "paid":
+            try:
+                process_teacher_transfers(session)
+            except Exception:
+                logger.exception(
+                    "Failed to process teacher transfers for session %s",
+                    session_id,
+                )
+                return HttpResponse(status=500)
+    return HttpResponse(status=200)
+
+
+
+
 # cancel a booking
 @login_required(login_url='my_login')
 def cancel_booking(request, pk):
@@ -1070,15 +1212,77 @@ def cancel_booking(request, pk):
     
     try:
         if booking.stripe_payment_intent_id and not booking.is_refunded:
-            stripe.Refund.create(
-                payment_intent=booking.stripe_payment_intent_id
-
+            # Full price paid by the student for this one class.
+            refund_amount_cents = int(
+                booking.timeslot.course.price * Decimal("100")
             )
+            # PandaSpeak commission percentage.
+            commission_percent = Decimal(
+                str(
+                    getattr(
+                        settings,
+                        "PANDASPEAK_COMMISSION_PERCENT",
+                        20,
+                    )
+                )
+            )
+            # Amount originally transferred to the teacher.
+            teacher_amount_cents = int(
+                (
+                    booking.timeslot.course.price
+                    * (
+                        Decimal("100") - commission_percent
+                    )
+                    / Decimal("100")
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+                * Decimal("100")
+            )
+            # Refund only this canceled class to the student.
+            refund = stripe.Refund.create(
+                payment_intent=booking.stripe_payment_intent_id,
+                amount=refund_amount_cents,
+                reason="requested_by_customer",
+                metadata={
+                    "booking_id": str(booking.pk),
+                    "timeslot_id": str(booking.timeslot_id),
+                    "course_id": str(
+                        booking.timeslot.course_id
+                    ),
+                },
+                idempotency_key=(
+                    f"booking-refund-{booking.pk}"
+                ),
+            )
+            # Reverse only this class's teacher payment.
+            if booking.stripe_transfer_id:
+                stripe.Transfer.create_reversal(
+                    booking.stripe_transfer_id,
+                    amount=teacher_amount_cents,
+                    metadata={
+                        "booking_id": str(booking.pk),
+                        "refund_id": refund.id,
+                        "reason": "class_canceled",
+                    },
+                    idempotency_key=(
+                        f"booking-transfer-reversal-{booking.pk}"
+                    ),
+                )
             booking.is_refunded = True
-            booking.save()
+            booking.save(update_fields=["is_refunded"])
     except stripe.error.StripeError as e:
-        messages.error(request, f"Refund failed: {str(e)}. Please contact support.")
-        return redirect('course:my_bookings')
+        logger.exception(
+            "Refund failed for booking %s",
+            booking.pk,
+        )
+        messages.error(
+            request,
+            f"Refund failed: {str(e)}. Please contact support."
+        )
+        return redirect("course:my_bookings")
+
     
     booking.cancel()
     if student.email:

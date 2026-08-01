@@ -28,4 +28,9 @@ urlpatterns = [
 
     
     path("set-timezone/", views.set_student_timezone, name="set_student_timezone"),
+
+    path("stripe/connect/", views.stripe_connect_onboard, name="stripe_connect_onboard"),
+    path("stripe/connect/refresh/", views.stripe_connect_refresh, name="stripe_connect_refresh"),
+    path("stripe/connect/return/", views.stripe_connect_return, name="stripe_connect_return"),
+    path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
 ]
