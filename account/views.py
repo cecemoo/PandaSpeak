@@ -1,19 +1,20 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
-from course.models import Course, TimeSlot
+from course.models import Course, TimeSlot, Booking
 from .models import TermsOfService, PrivacyPolicy
 from datetime import date
 from course.forms import CourseForm
-from django.shortcuts import get_object_or_404
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
 from django.utils import timezone
-
-
+from django.contrib import messages
+import stripe
+from django.conf import settings
+from decimal import Decimal, ROUND_HALF_UP
 
 
 
@@ -444,3 +445,137 @@ def delete_lesson(request, lesson_id):
     lesson = get_object_or_404(Course, id=lesson_id)
     lesson.delete()
     return redirect('lessons')
+
+
+
+@login_required(login_url='my_login')
+@user_passes_test(admin_only, login_url='my_login')
+def booking_management(request):
+    bookings = Booking.objects.select_related(
+        "student", "timeslot", "timeslot__course",
+    ).order_by("-created_at")
+    return render(request, "account/booking_management.html", {"bookings": bookings})
+
+
+
+@login_required(login_url='my_login')
+@user_passes_test(admin_only, login_url='my_login')
+def refund_booking(request, booking_id):
+    booking = get_object_or_404(
+        Booking.objects.select_related("timeslot__course"),
+        pk=booking_id,
+    )
+    if booking.status == "refunded" or booking.is_refunded:
+        messages.warning(
+            request,
+            "This booking has already been refunded.",
+        )
+        return redirect("booking_management")
+    if not booking.stripe_payment_intent_id:
+        messages.error(
+            request,
+            "This booking does not have a Stripe payment ID.",
+        )
+        return redirect("booking_management")
+    if not booking.stripe_transfer_id:
+        messages.error(
+            request,
+            "This booking does not have a Stripe teacher transfer ID.",
+        )
+        return redirect("booking_management")
+    # Full price of this individual booking.
+    refund_amount = Decimal(str(booking.timeslot.course.price))
+    # Convert dollars to Stripe cents.
+    refund_amount_cents = int(
+        (refund_amount * Decimal("100")).quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP,
+        )
+    )
+    # Teacher received 80% and PandaSpeak retained 20%.
+    teacher_amount = (
+        refund_amount * Decimal("0.80")
+    ).quantize(
+        Decimal("0.01"),
+        rounding=ROUND_HALF_UP,
+    )
+    teacher_amount_cents = int(
+        (teacher_amount * Decimal("100")).quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP,
+        )
+    )
+    try:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        # 1. Refund only this booking's full price to the student.
+        refund = stripe.Refund.create(
+            payment_intent=booking.stripe_payment_intent_id,
+            amount=refund_amount_cents,
+            reason="requested_by_customer",
+            metadata={
+                "booking_id": str(booking.id),
+                "timeslot_id": str(booking.timeslot_id),
+                "reason": "manager_refund",
+            },
+            idempotency_key=f"manager-refund-{booking.id}",
+        )
+        if refund.status not in ("succeeded", "pending"):
+            messages.error(
+                request,
+                f"Stripe did not complete the refund. "
+                f"Refund status: {refund.status}",
+            )
+            return redirect("booking_management")
+        # 2. Reverse only this booking's 80% teacher portion.
+        reversal = stripe.Transfer.create_reversal(
+            booking.stripe_transfer_id,
+            amount=teacher_amount_cents,
+            metadata={
+                "booking_id": str(booking.id),
+                "refund_id": refund.id,
+                "reason": "manager_refund",
+            },
+            idempotency_key=(
+                f"manager-transfer-reversal-{booking.id}"
+            ),
+        )
+        # 3. Update PandaSpeak only after both Stripe operations succeed.
+        booking.status = "refunded"
+        booking.is_refunded = True
+        booking.save(
+            update_fields=[
+                "status",
+                "is_refunded",
+            ]
+        )
+        messages.success(
+            request,
+            (
+                f"Booking #{booking.id} was refunded successfully. "
+                f"Student refund: ${refund_amount:.2f}. "
+                f"Teacher transfer reversed: ${teacher_amount:.2f}. "
+                f"Refund ID: {refund.id}. "
+                f"Reversal ID: {reversal.id}."
+            ),
+        )
+    except stripe.error.StripeError as error:
+        error_message = (
+            getattr(error, "user_message", None)
+            or str(error)
+        )
+        messages.error(
+            request,
+            f"Stripe refund failed: {error_message}",
+        )
+    except Exception as error:
+        messages.error(
+            request,
+            f"Refund failed: {error}",
+        )
+    return redirect("booking_management")
+    print("stripe key mode:", settings.STRIPE_SECRET_KEY)
+    print("stripe key ending:", settings.STRIPE_SECRET_KEY[-4:])
+    print("transfer id:", booking.stripe_transfer_id)
+    print("payment intent id:", booking.stripe_payment_intent_id)
+
+

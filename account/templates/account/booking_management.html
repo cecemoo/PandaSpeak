@@ -1,0 +1,89 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Booking Management</h1>
+            <!-- <p>Login to your account to access all features.</p> -->
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Booking Management</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Booking Management Section -->
+    <section id="booking-management-section" class="booking-management-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Booking Management Section</h2>
+
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+
+            <div class="mb-4">
+                <a href="{% url 'manager_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="booking-table" class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Teacher</th>
+                            <th>Course Title</th>
+                            <th>Time Slot</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Refund</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.student.get_full_name }}</td>
+                            <td>{{ booking.timeslot.course.teacher.get_full_name }}</td>
+                            <td>{{ booking.timeslot.course.title }}</td>
+                            <td>{{ booking.timeslot.start_time|date:"M d, Y H:i" }} - {{ booking.timeslot.end_time|date:"H:i" }}</td>
+                            <td>{{ booking.get_status_display }}</td>
+                            <td>
+                                {% if booking.status == 'refunded' %}
+                                <span class="text-danger">Refunded</span>
+                                {% elif booking.stripe_payment_intent_id %}
+                                Paid
+                                {% else %}
+                                <span class="text-muted">No payment ID</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking.status == "refunded" %}
+                                <span class="badge bg-secondary">Refunded</span>
+                                {% elif booking.stripe_payment_intent_id %}
+                                <a href="{% url 'refund_booking' booking.id %}"
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Issue a refund for this booking?')">Refund</a>
+                                {% else %}
+                                <span class="text-muted">No payment ID</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section><!-- /Booking Management Section -->
+
+</main>
+{% endblock %}

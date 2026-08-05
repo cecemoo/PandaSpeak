@@ -988,135 +988,78 @@ def create_paid_bookings_from_session(session):
         )
 
     timeslot_ids = [
-
         value.strip()
-
         for value in timeslot_value.split(",")
-
         if value.strip()
-
     ]
-
     User = get_user_model()
 
     try:
-
         student = User.objects.get(pk=user_id)
-
     except User.DoesNotExist as exc:
-
         raise ValueError(
-
             f"Student {user_id} was not found."
-
         ) from exc
 
     processed_bookings = []
-
     with transaction.atomic():
 
         slots = list(
-
             TimeSlot.objects
-
             .select_for_update()
-
             .filter(pk__in=timeslot_ids)
-
             .select_related("course", "course__teacher")
-
         )
 
         slot_map = {
-
             str(slot.pk): slot
-
             for slot in slots
-
         }
 
         missing_ids = [
-
             timeslot_id
-
             for timeslot_id in timeslot_ids
-
             if timeslot_id not in slot_map
-
         ]
 
         if missing_ids:
-
             raise ValueError(
-
                 f"Missing TimeSlot IDs: {missing_ids}"
-
             )
 
         for timeslot_id in timeslot_ids:
-
             slot = slot_map[timeslot_id]
-
             booking, created = Booking.objects.get_or_create(
-
                 student=student,
-
                 timeslot=slot,
-
                 defaults={
-
                     "status": "confirmed",
-
                     "stripe_payment_intent_id": payment_intent_id,
-
                     "stripe_session_id": session_id,
-
                     "paid_at": timezone.now(),
-
                     "canceled_at": None,
-
                     "is_refunded": False,
-
                 },
-
             )
 
             if not created:
-
                 booking.status = "confirmed"
-
                 booking.stripe_payment_intent_id = payment_intent_id
-
                 booking.stripe_session_id = session_id
-
                 booking.paid_at = booking.paid_at or timezone.now()
-
                 booking.canceled_at = None
-
                 booking.is_refunded = False
-
                 booking.save(
-
                     update_fields=[
-
                         "status",
-
                         "stripe_payment_intent_id",
-
                         "stripe_session_id",
-
                         "paid_at",
-
                         "canceled_at",
-
                         "is_refunded",
-
                     ]
-
                 )
-
             processed_bookings.append(booking)
-
     return student, processed_bookings, timeslot_ids
 
 
@@ -1220,40 +1163,40 @@ def process_teacher_transfers(session):
             booking = Booking.objects.filter(
                 timeslot_id=timeslot_id,
                 stripe_session_id=session_id,
+                stripe_payment_intent_id=payment_intent_id,
             ).first()
+            print("saving transfer:",
+                  "session_id:", session_id,
+                  "payment_intent_id:", payment_intent_id,
+                  "timeslot_id:", timeslot_id,
+                  "transfer_id:", transfer.id)
             if not booking:
                 logger.warning(
                     "Booking not found while saving transfer ID. "
-                    "Session=%s, timeslot=%s",
-                    session_id,
+                    "PaymentIntent=%s, timeslot=%s, session=%s",
+                    payment_intent_id,
                     timeslot_id,
+                    session_id,
                 )
                 continue
-            class_price = booking.timeslot.course.price
+            class_price = Decimal(str(booking.timeslot.course.price))
             class_teacher_amount_cents = int(
                 (
                     class_price
-                    * (
-                        Decimal("100") - commission_percent
-                    )
-                    / Decimal("100")
+                    * (Decimal("100") - commission_percent)
                 ).quantize(
                     Decimal("0.01"),
                     rounding=ROUND_HALF_UP,
                 )
-                * Decimal("100")
             )
             booking.stripe_transfer_id = transfer.id
-            booking.teacher_transfer_amount_cents = (
-                class_teacher_amount_cents
-            )
+            booking.teacher_transfer_amount_cents = class_teacher_amount_cents
             booking.save(
                 update_fields=[
                     "stripe_transfer_id",
                     "teacher_transfer_amount_cents",
                 ]
             )
-
         logger.info((
             "teacher transfer completed. "
             "Session=%s, teacher=%s, gross=%s, "
@@ -1293,7 +1236,7 @@ def stripe_webhook(request):
         session = event["data"]["object"]
         session_id = getattr(session, "id", None)
         payment_status = getattr(session, "payment_status", None)
-
+        print("checkout completed event")
         logger.info(
             "Checkout completed: session=%s, payment_status=%s",
             session_id,
@@ -1301,7 +1244,9 @@ def stripe_webhook(request):
         )
         if payment_status == "paid":
             try:
+                print("creating bookings")
                 create_paid_bookings_from_session(session)
+                print("calling transfers")
                 process_teacher_transfers(session)
             except Exception:
                 logger.exception(
@@ -1309,6 +1254,7 @@ def stripe_webhook(request):
                     session_id,
                 )
                 return HttpResponse(status=500)
+    print("webhook received")
     return HttpResponse(status=200)
 
 

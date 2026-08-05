@@ -11,6 +11,8 @@ urlpatterns = [
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
     path('manager_dashboard/', views.manager_dashboard, name='manager_dashboard'),
+    path('booking_management/', views.booking_management, name='booking_management'),
+    path('booking/<int:booking_id>/refund/', views.refund_booking, name='refund_booking'),
 
     path('categories/', views.categories, name='categories'),
     path('add_vocab_category/', views.add_vocab_category, name='add_vocab_category'),
