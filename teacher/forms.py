@@ -33,6 +33,9 @@ class IdiomForm(ModelForm):
     class Meta:
         model = Idiom
         fields = '__all__'
+        labels = {
+            'idiom': 'Chinese Expression',
+        }
 
 
 class ToneForm(ModelForm):

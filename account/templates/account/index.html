@@ -333,12 +333,12 @@
                 </div>
                 <div class="col-md-8">
                   <div class="program-content">
-                    <h3>Chinese Idioms</h3>
+                    <h3>Chinese Expressions</h3>
                     {% if today_idiom %}
                     <div class="program-highlights">
                       <!-- <span><i class="bi bi-clock"></i> 5 Years</span> -->
                       <span><i class="bi bi-people-fill"></i>Category: {{ today_idiom.category }}</span>
-                      <!-- <span><i class="bi bi-calendar3"></i> Fall Only</span> -->
+                      <span><i class="bi bi-bookmark-star"></i> Type: {{ today_idiom.get_expression_type_display }}</span>
                     </div>
                     <p>{{ today_idiom.idiom }}<inline>&nbsp;&nbsp;{{ today_idiom.pinyin }}</inline>
                     </p>

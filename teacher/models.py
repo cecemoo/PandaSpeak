@@ -71,6 +71,15 @@ class IdiomCategory(models.Model):
 
 
 class Idiom(models.Model):
+    EXPRESSION_TYPES = [
+        ("idiom", "Idiom"),
+        ("proverb", "Proverb"),
+        ("saying", "Saying"),
+        ("phrase", "Phrase"),
+        ("slang", "Slang"),
+        ("quotation", "Quotation"),
+    ]
+    expression_type = models.CharField(max_length=30, choices=EXPRESSION_TYPES, default="idiom", verbose_name="Expression Type")
     idiom = models.CharField(max_length=100)
     pinyin = models.CharField(max_length=100, blank=True)
     english_translation = models.CharField(max_length=255, blank=True)

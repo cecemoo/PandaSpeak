@@ -39,11 +39,11 @@
     <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
       <div class="container position-relative">
         <h1>Category: {{ category.category_name }}</h1>
-        <p>Explore and learn new idioms with their meanings and pronunciations.</p>
+        <p>Explore and learn new Chinese expressions with their meanings and pronunciations.</p>
         <nav class="breadcrumbs">
           <ol>
             <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Idiom</li>
+            <li class="current">Chinese Expressions</li>
             <li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li>
           </ol>
         </nav>
@@ -56,7 +56,7 @@
       <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">
         <h2>{{ category.category_name }}</h2>
-        <!-- <p>Explore and learn new idioms with their meanings and pronunciations.</p> -->
+        <!-- <p>Explore and learn new Chinese expressions with their meanings and pronunciations.</p> -->
       </div><!-- End Section Title -->
 
      <div class="container" data-aos="fade-up">
@@ -75,8 +75,10 @@
                 <h5 class="modal-title">{{ item.idiom }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
+              
 
               <div class="modal-body">
+                <p><strong>Type:</strong> {{ item.get_expression_type_display }}</p>
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
                 <p><strong>Meaning:</strong> {{ item.meaning }}</p>
                 <p><strong>Example Scenario:</strong> {{ item.example_scenario }}</p>

@@ -9,12 +9,12 @@
     <!-- Page Title -->
     <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
         <div class="container position-relative">
-            <h1>All Idioms</h1>
+            <h1>All Chinese Expressions</h1>
             <p>Logged in as {{ user.first_name }}!</p>
             <nav class="breadcrumbs">
                 <ol>
                     <li><a href="{% url 'home' %}">Home</a></li>
-                    <li class="current">Idioms</li>
+                    <li class="current">Chinese Expressions</li>
                 </ol>
             </nav>
         </div>
@@ -25,8 +25,8 @@
 
         <!-- Section Title -->
         <div class="container section-title" data-aos="fade-up">
-            <h2>Idioms Section</h2>
-            <a href="{% url 'add_idiom' %}" class="btn btn-primary round">Add Idiom</a>
+            <h2>Chinese Expressions Section</h2>
+            <a href="{% url 'add_idiom' %}" class="btn btn-primary round">Add Chinese Expression</a>
             
         </div><!-- End Section Title -->
 
@@ -43,7 +43,8 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Category</th>
-                                <th scope="col">Idiom</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Chinese Expression</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Action</th>
                             </tr>
@@ -53,6 +54,7 @@
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
                                 <td>{{ i.category.category_name }}</td>
+                                <td>{{ i.get_expression_type_display }}</td>
                                 <td>{{ i.idiom }}</td>
                                 <td>{{ i.created_at }}</td>
                                <td>
