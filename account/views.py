@@ -315,7 +315,10 @@ def delete_vocabulary(request, vocab_id):
 @login_required(login_url='my_login')
 @user_passes_test(admin_only, login_url='my_login')
 def sentences(request):
-    sentences = Sentence.objects.all()
+    sentences = Sentence.objects.all().order_by(
+        'category__category_name',
+        'text',
+    )
     context = {'sentences': sentences}
     return render(request, 'account/sentences.html', context)
 
