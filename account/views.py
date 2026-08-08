@@ -280,7 +280,10 @@ def delete_idiom_category(request, category_id):
 @login_required(login_url='my_login')
 @user_passes_test(admin_only, login_url='my_login')
 def vocabularies(request):
-    vocabularies = Vocabulary.objects.all()
+    vocabularies = Vocabulary.objects.all().order_by(
+        'category__category_name',
+        'word'
+    )
     context = {'vocabularies': vocabularies}
     return render(request, 'account/vocabularies.html', context)
 
