@@ -38,6 +38,11 @@
 
                 <!-- right side content -->
                 <div class="col-md-9">
+                    {% regroup sentences by category as category_list %}
+                    {% for category in category_list %}
+                    <h4 class="mt-4 mb-3">
+                        {{ category.grouper.category_name }}
+                    </h4>
                     <table class="table">
                         <thead>
                             <tr>
@@ -49,7 +54,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for s in sentences %}
+                            {% for s in category.list %}
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
                                 <td>{{ s.category.category_name }}</td>
@@ -67,6 +72,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endfor %}
                 </div>
             </div>
         </div>

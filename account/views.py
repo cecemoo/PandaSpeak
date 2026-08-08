@@ -433,7 +433,11 @@ def delete_tone(request, tone_id):
 @login_required(login_url='my_login')
 @user_passes_test(admin_only, login_url='my_login')
 def lessons(request):
-    courses = Course.objects.all()
+    courses = Course.objects.all().order_by(
+        'teacher__first_name',
+        'teacher__last_name',
+        'title',
+    )
     context = {'courses': courses}
     return render(request, 'account/lessons.html', context)
 
@@ -573,9 +577,6 @@ def refund_booking(request, booking_id):
             f"Refund failed: {error}",
         )
     return redirect("booking_management")
-    print("stripe key mode:", settings.STRIPE_SECRET_KEY)
-    print("stripe key ending:", settings.STRIPE_SECRET_KEY[-4:])
-    print("transfer id:", booking.stripe_transfer_id)
-    print("payment intent id:", booking.stripe_payment_intent_id)
+    
 
 

@@ -27,7 +27,7 @@
         <div class="container section-title" data-aos="fade-up">
             <h2>Vocabularies Section</h2>
             <a href="{% url 'add_vocabulary' %}" class="btn btn-primary round">Add Vocabulary</a>
-            
+
         </div><!-- End Section Title -->
 
         <div class="container" data-aos="fade-up">
@@ -38,27 +38,32 @@
 
                 <!-- right side content -->
                 <div class="col-md-9">
+                    {% regroup vocabularies by category as category_list %}
+                    {% for category in category_list %}
+                    <h4 class="mt-4 mb-3">
+                        {{ category.grouper.category_name }}
+                    </h4>
                     <table class="table">
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
-                                <th scope="col">Category</th>
                                 <th scope="col">Vocabulary</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            {% for v in vocabularies %}
+                            {% for v in category.list %}
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
-                                <td>{{ v.category.category_name }}</td>
                                 <td>{{ v.word }}</td>
                                 <td>{{ v.created_at }}</td>
-                               <td>
-                                   <a href="{% url 'edit_vocabulary' vocab_id=v.id %}">
+                                <td>
+                                    <a href="{% url 'edit_vocabulary' vocab_id=v.id %}">
                                         <i class="fa-solid fa-pen-to-square" style="color: rgb(116, 192, 252);"></i>
                                     </a>
+
                                     <a href="{% url 'delete_vocabulary' vocab_id=v.id %}">
                                         <i class="fa-solid fa-trash" style="color: rgb(210, 59, 22);"></i>
                                     </a>
@@ -67,6 +72,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -76,3 +82,7 @@
 
 </main>
 {% endblock %}
+
+
+
+
