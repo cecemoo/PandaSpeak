@@ -205,7 +205,7 @@
 
                 {% if item.audio_file %}
                 <audio id="tone{{ forloop.counter }}" onclick="event.stopPropagation()" controls>
-                  <source src="{{ item.audio_file.url }}" type="audio/mpeg">
+                  <source src="{{ item.audio_file.url }}" >
                 </audio>
 
                 <!-- <button type="button" class="btn btn-secondary" onclick="selectTone('{{ forloop.counter }}')">
