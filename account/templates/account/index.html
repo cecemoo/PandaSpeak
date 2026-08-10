@@ -276,7 +276,7 @@
                     <p>{{ today_vocabulary.example_sentence }}</p>
                     {% if today_vocabulary.audio_file %}
                     <audio id="vocabularyAudio">
-                      <source src="{{ today_vocabulary.audio_file.url }}" type="audio/mpeg">
+                      <source src="{{ today_vocabulary.audio_file.url }}">
                     </audio>
                     <button class="btn btn-outline-success btn-sm" type="button"
                       onclick="document.getElementById('vocabularyAudio').play()">Play Audio</button>
@@ -310,7 +310,7 @@
                     <p>{{ today_sentence.translation }}</p>
                     {% if today_sentence.audio_file %}
                     <audio id="sentenceAudio">
-                      <source src="{{ today_sentence.audio_file.url }}" type="audio/mpeg">
+                      <source src="{{ today_sentence.audio_file.url }}">
                     </audio>
                     <button class="btn btn-outline-success btn-sm" type="button"
                       onclick="document.getElementById('sentenceAudio').play()">Play Audio</button>
@@ -345,7 +345,7 @@
                     <p>{{ today_idiom.meaning }}</p>
                     {% if today_idiom.audio_scenario_file %}
                     <audio id="idiomAudio">
-                      <source src="{{ today_idiom.audio_scenario_file.url }}" type="audio/mpeg">
+                      <source src="{{ today_idiom.audio_scenario_file.url }}">
                     </audio>
                     <button class="btn btn-outline-success btn-sm" type="button"
                       onclick="document.getElementById('idiomAudio').play()">Play Audio</button>
@@ -379,7 +379,7 @@
                     </h3>
                     {% if today_pronunciation.audio_file %}
                     <audio id="pronunciationAudio">
-                      <source src="{{ today_pronunciation.audio_file.url }}" type="audio/mpeg">
+                      <source src="{{ today_pronunciation.audio_file.url }}">
                     </audio>
                     <button class="btn btn-outline-success btn-sm" type="button"
                       onclick="document.getElementById('pronunciationAudio').play()">Play Audio</button>
