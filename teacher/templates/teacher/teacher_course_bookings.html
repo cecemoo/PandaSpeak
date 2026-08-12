@@ -106,7 +106,7 @@
                     This class has booking history and cannot be deleted.
                 </p>
                 {% else %}
-                <a href="{% url 'delete_teacher_course' course.id %}" class="btn btn-danger">
+                <a href="{% url 'delete_teacher_course' course.id %}" class="btn btn-danger rounded-pill">
                     Delete Class
                 </a>
                 {% endif %}

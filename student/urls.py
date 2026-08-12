@@ -14,5 +14,11 @@ urlpatterns = [
     path('idioms/category/<int:category_id>/', views.idiom_category_page, name='idiom_category_page'),
     path('pronunciations/', views.pronunciation_page, name='pronunciation_page'),
 
+    path('tests/', views.test_list, name='test_list'),
+    path('tests/<int:test_id>/', views.take_test, name='take_test'),
+    path('tests/question/<int:question_id>/submit-speaking/', views.submit_speaking_answer, name='submit_speaking_answer'),
+    path('tests/results/<int:submission_id>/', views.test_result, name='test_result'),
+    path('test-results/', views.student_test_results, name='student_test_results'),
+
     
 ]

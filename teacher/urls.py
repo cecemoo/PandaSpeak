@@ -16,5 +16,13 @@ urlpatterns = [
 
     path('teacher_course_bookings', views.teacher_course_bookings, name='teacher_course_bookings'),
     path('courses/<int:course_id>/delete/', views.delete_teacher_course, name='delete_teacher_course'),
+
+    path('tests/create/', views.create_test, name='teacher_create_test'),
+    path('tests/<int:test_id>/questions/', views.add_test_questions, name='teacher_add_test_questions'),
+    path('tests/<int:test_id>/publish/', views.publish_test, name='publish_test'),
+    path('teacher_test_list/', views.teacher_test_list, name='teacher_test_list'),
+    path('tests/<int:test_id>/delete/', views.delete_test, name='teacher_delete_test'),
+    path('tests/<int:test_id>/view/', views.teacher_view_test, name='teacher_view_test'),
+    path('tests/results/', views.student_test_results, name='teacher_student_test_results'),
     
 ]

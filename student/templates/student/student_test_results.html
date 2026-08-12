@@ -1,0 +1,110 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Test Results</h1>
+            <p>Welcome, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Test Results</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Chinese Speaking & Listening Tests Results</h2>
+
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <p class="text-muted">Select a test below to view your results.</p>
+            <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
+            {% if results %}
+            <table class="table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Date</th>
+                        <th>Listening Score</th>
+                        <th>Speaking Score</th>
+                        <th>Total Score</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>
+                            {{ result.test.title }}
+                        </td>
+                        <td>
+                            {{ result.submitted_at|date:"M d, Y" }}
+                        </td>
+                        <td>
+                            {% if result.listening_score != None %}
+                            {{ result.listening_score }}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if result.has_speaking %}
+                            {% if result.speaking_score != None %}
+                            {{ result.speaking_score }}
+                            {% else %}
+                            Pending
+                            {% endif %}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if result.has_speaking %}
+                            {% if result.total_score != None %}
+                            {{ result.total_score }}
+                            {% else %}
+                            Pending
+                            {% endif %}
+                            {% else %}
+                            {{ result.listening_score }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if result.has_speaking %}
+                            {% if result.is_graded %}
+                            Graded
+                            {% else %}
+                            Waiting for speaking grade
+                            {% endif %}
+                            {% else %}
+                            Completed
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>You have not completed any tests yet.</p>
+            {% endif %}
+        </div>
+
+    </section><!-- /Register Section Section -->
+
+</main>
+
+
+{% endblock %}

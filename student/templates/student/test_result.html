@@ -1,0 +1,63 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Test Result</h1>
+            <p>Welcome, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Test Result</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Chinese Speaking & Listening Tests</h2>
+            <p>Here are your test results.</p>
+        </div><!-- End Section Title -->
+
+        <div class="card mt-4">
+            <div class="card-body">
+
+                <h3>{{ test.title }}</h3>
+
+                <p>
+                    <strong>Listening Score:</strong>
+                    {{ listening_score }} / {{ listening_total }}
+                </p>
+
+                {% if has_speaking %}
+
+                <p>
+                    <strong>Speaking Score:</strong>
+                    Pending teacher review
+                </p>
+
+                <p class="text-muted">
+                    Your speaking recordings were submitted to the teacher.
+                </p>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+    </section><!-- /Register Section Section -->
+
+</main>
+
+
+{% endblock %}

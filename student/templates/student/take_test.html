@@ -1,0 +1,358 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>{{ test.title }}</h1>
+      <p>Welcome, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">{{ test.title }}</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Register Section Section -->
+  <section id="register-section" class="register-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>{{ test.title }}</h2>
+      <p>Level: {{ test.level }}</p>
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
+        <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
+        <ul>
+          {% if test.description %}
+          <p>{{ test.description }}</p>
+          {% for question in questions %}
+          <div class="card mb-4">
+            <div class="card-body">
+              <h4>Question {{ forloop.counter }}</h4>
+              <p>{{ question.prompt }}</p>
+              {% if question.question_type == 'listen_mc' %}
+              {% if question.audio %}
+              <audio controls class="mb-3">
+                <source src="{{ question.audio.url }}">
+              </audio>
+              {% endif %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="answer_{{ question.id }}" value="A"
+                  id="q{{ question.id }}_a">
+                <label class="form-check-label" for="q{{ question.id }}_a">
+                  A. {{ question.choice_a }}
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="answer_{{ question.id }}" value="B"
+                  id="q{{ question.id }}_b">
+                <label class="form-check-label" for="q{{ question.id }}_b">
+                  B. {{ question.choice_b }}
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="answer_{{ question.id }}" value="C"
+                  id="q{{ question.id }}_c">
+                <label class="form-check-label" for="q{{ question.id }}_c">
+                  C. {{ question.choice_c }}
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="answer_{{ question.id }}" value="D"
+                  id="q{{ question.id }}_d">
+                <label class="form-check-label" for="q{{ question.id }}_d">
+                  D. {{ question.choice_d }}
+                </label>
+              </div>
+              <!-- Multiple choice answers here -->
+              {% elif question.question_type == 'listen_text' %}
+              {% if question.audio %}
+              <audio controls class="mb-3">
+                <source src="{{ question.audio.url }}">
+              </audio>
+              {% endif %}
+              <input type="text" name="answer_{{ question.id }}" class="form-control" placeholder="Type your answer">
+              {% elif question.question_type == 'speak_read' %}
+              <p class="text-muted">
+                Read the text above aloud.
+              </p>
+              <div class="speaking-question" data-question-id="{{ question.id }}">
+                <button type="button" class="btn btn-success start-recording">
+                  Start Recording
+                </button>
+                <button type="button" class="btn btn-danger stop-recording" disabled>
+                  Stop
+                </button>
+                <audio class="recording-preview mt-3" controls style="display:none;"></audio>
+        
+              </div>
+              {% elif question.question_type == 'speaking_answer' %}
+              <p class="text-muted">
+                Answer the question in Chinese.
+              </p>
+              <div class="speaking-question" data-question-id="{{ question.id }}">
+                <button type="button" class="btn btn-success start-recording">
+                  Start Recording
+                </button>
+                <button type="button" class="btn btn-danger stop-recording" disabled>
+                  Stop
+                </button>
+                <audio class="recording-preview mt-3" controls style="display:none;"></audio>
+                
+              </div>
+              {% endif %}
+              <p class="mt-3">
+                <strong>Points:</strong>
+                {{ question.points }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+          {% endif %}
+        </ul>
+        <button type="submit" class="btn btn-primary rounded-pill mt-4">
+          Submit Test
+        </button>
+      </form>
+    </div>
+
+  </section><!-- /Register Section Section -->
+
+</main>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form');
+
+    const recordings = {};
+
+    document.querySelectorAll('.speaking-question').forEach(function (container) {
+
+      const questionId = container.dataset.questionId;
+
+      const startButton = container.querySelector('.start-recording');
+      const stopButton = container.querySelector('.stop-recording');
+      const preview = container.querySelector('.recording-preview');
+
+      let mediaRecorder;
+      let audioChunks = [];
+      let stream;
+
+      startButton.addEventListener('click', async function () {
+
+        try {
+
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+          });
+
+          audioChunks = [];
+
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.addEventListener('dataavailable', function (event) {
+
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+
+          });
+
+          mediaRecorder.addEventListener('stop', function () {
+
+            const audioBlob = new Blob(
+              audioChunks,
+              {
+                type: mediaRecorder.mimeType
+              }
+            );
+
+            recordings[questionId] = audioBlob;
+
+            const audioURL = URL.createObjectURL(audioBlob);
+
+            preview.src = audioURL;
+            preview.style.display = 'block';
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            startButton.textContent = 'Record Again';
+
+            if (stream) {
+              stream.getTracks().forEach(function (track) {
+                track.stop();
+              });
+            }
+
+          });
+
+          mediaRecorder.start();
+
+          startButton.disabled = true;
+          stopButton.disabled = false;
+
+          startButton.textContent = 'Recording...';
+
+        } catch (error) {
+
+          alert(
+            'PandaSpeak could not access your microphone. Please allow microphone access and try again.'
+          );
+
+          console.error(error);
+        }
+
+      });
+
+
+      stopButton.addEventListener('click', function () {
+
+        if (
+          mediaRecorder &&
+          mediaRecorder.state === 'recording'
+        ) {
+
+          mediaRecorder.stop();
+
+        }
+
+      });
+
+    });
+
+
+    form.addEventListener('submit', async function (event) {
+
+      event.preventDefault();
+
+      const formData = new FormData(form);
+
+
+      // Add every speaking recording to the form
+      Object.keys(recordings).forEach(function (questionId) {
+
+        const blob = recordings[questionId];
+
+        let extension = 'webm';
+
+        if (blob.type.includes('mp4')) {
+          extension = 'mp4';
+        } else if (blob.type.includes('ogg')) {
+          extension = 'ogg';
+        }
+
+        formData.append(
+          'recording_' + questionId,
+          blob,
+          'speaking_question_' +
+          questionId +
+          '.' +
+          extension
+        );
+
+      });
+
+
+      const submitButton = form.querySelector(
+        'button[type="submit"]'
+      );
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting Test...';
+
+
+      try {
+
+        const response = await fetch(
+          window.location.href,
+          {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          }
+        );
+
+
+        if (response.redirected) {
+
+          window.location.href = response.url;
+          return;
+
+        }
+
+
+        const html = await response.text();
+
+        document.open();
+        document.write(html);
+        document.close();
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          'There was a problem submitting your test. Please try again.'
+        );
+
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit Test';
+
+      }
+
+    });
+
+
+    function getCookie(name) {
+
+      let cookieValue = null;
+
+      if (document.cookie && document.cookie !== '') {
+
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+
+          const cookie = cookies[i].trim();
+
+          if (
+            cookie.substring(
+              0,
+              name.length + 1
+            ) === name + '='
+          ) {
+
+            cookieValue = decodeURIComponent(
+              cookie.substring(
+                name.length + 1
+              )
+            );
+
+            break;
+          }
+        }
+      }
+
+      return cookieValue;
+    }
+
+  });
+</script>
+
+{% endblock %}

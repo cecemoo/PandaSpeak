@@ -2,14 +2,14 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Exists, OuterRef
 from teacher.decorators import subscription_required
-from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
+from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm, LanguageTestForm, TestQuestionForm
 from account.models import CustomUser
 from subscription.models import Subscription
 from course.models import Course, Booking
 from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-
+from student.models import LanguageTest, TestQuestion, StudentTestSubmission
 
 
 @login_required(login_url='my_login')
@@ -250,3 +250,111 @@ def delete_teacher_course(request, course_id):
         "teacher/confirm_delete_course.html",
         context,
     )
+
+
+
+
+@login_required(login_url='my_login')
+def create_test(request):
+    if not request.user.is_teacher:
+        return redirect('student_dashboard')
+    if request.method == 'POST':
+        form = LanguageTestForm(request.POST)
+        if form.is_valid():
+            test = form.save(commit=False)
+            test.teacher = request.user
+            test.save()
+
+            messages.success(request, 'Test created successfully.')
+            return redirect('teacher_add_test_questions', test_id=test.id)
+    else:
+        form = LanguageTestForm()
+    return render(request, 'teacher/create_test.html', {'form': form})
+
+
+
+@login_required(login_url='my_login')
+def add_test_questions(request, test_id):
+    test = get_object_or_404(LanguageTest, id=test_id, teacher=request.user)
+    if request.method == 'POST':
+        form = TestQuestionForm(request.POST, request.FILES)
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.test = test
+            question.correct_answer = request.POST.get('correct_choice') or request.POST.get('correct_answer')
+            question.save()
+
+            messages.success(request, 'Question added successfully.')
+            return redirect('teacher_add_test_questions', test_id=test.id)
+    else:
+        form = TestQuestionForm()
+    questions = TestQuestion.objects.filter(test=test).order_by('order')
+    return render(request, 'teacher/add_test_questions.html', {'form': form, 'test': test, 'questions': questions})
+
+
+
+
+@login_required(login_url='my_login')
+def publish_test(request, test_id):
+    test = get_object_or_404(LanguageTest, id=test_id, teacher=request.user)
+    if request.method == "POST":
+        if not test.questions.exists():
+            messages.error(request, "Please add at least one question before publishing the test.")
+            return redirect('teacher_add_test_questions', test_id=test.id)
+        test.is_published = True
+        test.save()
+        messages.success(request, "Test published successfully.")
+        return redirect('teacher_dashboard')
+    return redirect("teacher_add_test_questions", test_id=test.id)
+
+
+
+@login_required(login_url='my_login')
+def teacher_test_list(request):
+    tests = LanguageTest.objects.filter(teacher=request.user)
+    context = {
+        'tests': tests,
+    }
+    return render(request, 'teacher/teacher_test_list.html', context)
+
+
+@login_required(login_url='my_login')
+def delete_test(request, test_id):
+    test = get_object_or_404(LanguageTest, id=test_id)
+    if request.method == "POST":
+        test.delete()
+        messages.success(request, 'Test deleted successfully.')
+        return redirect('teacher_test_list')
+
+
+
+@login_required(login_url='my_login')
+def teacher_view_test(request, test_id):
+    test = get_object_or_404(LanguageTest, id=test_id)
+    questions = test.questions.all().order_by('order')
+    context = {
+        'test': test,
+        'questions': questions,
+    }
+    return render(request, 'teacher/teacher_view_test.html', context)
+
+
+
+@login_required(login_url='my_login')
+def student_test_results(request):
+    results = StudentTestSubmission.objects.filter(
+        test__teacher=request.user
+    ).select_related(
+        "student",
+        "test"
+    ).order_by('-submitted_at')
+
+    for result in results:
+        result.has_speaking = TestQuestion.objects.filter(
+            test=result.test,
+            question_type__in=['speaking', 'mixed']
+        ).exists()
+    context = {
+        'results': results,
+    }
+    return render(request, 'teacher/student_test_results.html', context)

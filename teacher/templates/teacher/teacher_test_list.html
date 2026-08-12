@@ -1,0 +1,96 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>View Created Test</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">View Created Test</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>View Created Test</h2>
+            <!-- <p>Manage your tone entries, track student progress, and update your profile.</p> -->
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            {% if tests %}
+            <div class="table-responsive mt-4">
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Status</th>
+                            <th>Questions</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for test in tests %}
+                        <tr>
+                            <td>{{ test.title }}</td>
+
+                            <td>
+                                {% if test.is_published %}
+                                Published
+                                {% else %}
+                                Draft
+                                {% endif %}
+                            </td>
+
+                            <td>{{ test.questions.count }}</td>
+
+                            <td>
+                                <a href="{% url 'teacher_view_test' test.id %}" class="btn btn-secondary rounded-pill btn-sm">
+                                    View
+                                </a>
+
+                                <a href="{% url 'teacher_add_test_questions' test.id %}" class="btn btn-primary rounded-pill btn-sm">
+                                    Edit
+                                </a>
+
+                                <form method="post" action="{% url 'teacher_delete_test' test.id %}"
+                                    style="display:inline;">
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="btn btn-danger rounded-pill btn-sm"
+                                        onclick="return confirm('Are you sure you want to delete this test?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center mt-4">
+                No tests have been created yet.
+            </p>
+            {% endif %}
+
+
+        </div>
+
+    </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

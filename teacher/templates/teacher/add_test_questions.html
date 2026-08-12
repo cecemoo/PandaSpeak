@@ -1,0 +1,171 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Add Test Questions</h1>
+      <p>Hello, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Add Test Questions</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Teacher Dashboard Section -->
+  <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Add Test Questions</h2>
+      <!-- <p>Manage your tone entries, track student progress, and update your profile.</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          {{ form.question_type.label_tag }}
+          {{ form.question_type }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.prompt.label_tag }}
+          {{ form.prompt }}
+        </div>
+
+        <div id="audio-field" class="mb-3">
+          {{ form.audio.label_tag }}
+          {{ form.audio }}
+        </div>
+
+        <div id="multiple-choice-fields">
+
+          <div class="mb-3">
+            {{ form.choice_a.label_tag }}
+            {{ form.choice_a }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.choice_b.label_tag }}
+            {{ form.choice_b }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.choice_c.label_tag }}
+            {{ form.choice_c }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.choice_d.label_tag }}
+            {{ form.choice_d }}
+          </div>
+        </div>
+
+        <div id="correct-choice-field" class="mb-3">
+          {{ form.correct_choice.label_tag }}
+          {{ form.correct_choice }}
+        </div>
+        <div id="correct-answer-field" class="mb-3">
+          {{ form.correct_answer.label_tag }}
+          {{ form.correct_answer }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.points.label_tag }}
+          {{ form.points }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.order.label_tag }}
+          {{ form.order }}
+        </div>
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary rounded-pill">
+          Add Test Question
+        </button>
+                <a href="{% url 'teacher_test_list' %}" class="btn btn-secondary rounded-pill">
+                    Back to Tests
+                </a>
+            </div>
+      </form>
+      {% if test.questions.exists %}
+      <hr class="my-4">
+
+      {% if not test.is_published %}
+      <form method="post" action="{% url 'publish_test' test.id %}">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-success rounded-pill">
+          Publish Test
+        </button>
+      </form>
+      {% else %}
+      <div class="alert alert-success">
+        ✓ This test has been published.
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </section><!-- /Teacher Dashboard Section -->
+
+</main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const questionType = document.getElementById("id_question_type");
+
+    const multipleChoiceFields =
+      document.getElementById("multiple-choice-fields");
+
+    const correctChoiceField =
+      document.getElementById("correct-choice-field");
+
+    const correctAnswerField =
+      document.getElementById("correct-answer-field");
+
+    const audioField =
+      document.getElementById("audio-field");
+
+    function updateFields() {
+
+      const selectedType = questionType.value;
+
+      if (selectedType === "listen_mc") {
+        multipleChoiceFields.style.display = "block";
+        correctChoiceField.style.display = "block";
+        correctAnswerField.style.display = "none";
+        audioField.style.display = "block";
+      }
+
+      else if (selectedType === "listen_text") {
+        multipleChoiceFields.style.display = "none";
+        correctChoiceField.style.display = "none";
+        correctAnswerField.style.display = "block";
+        audioField.style.display = "block";
+      }
+
+      else {
+        multipleChoiceFields.style.display = "none";
+        correctChoiceField.style.display = "none";
+        correctAnswerField.style.display = "none";
+        audioField.style.display = "none";
+      }
+    }
+
+    questionType.addEventListener("change", updateFields);
+    updateFields();
+  });
+</script>
+
+{% endblock %}
