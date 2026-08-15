@@ -108,22 +108,19 @@ def user_logout(request):
     return redirect('home')
 
 
-@login_required(login_url='my_login')
-@user_passes_test(admin_only, login_url='my_login')
+
 def faq(request):
     return render(request, 'account/faq.html')
 
 
-@login_required(login_url='my_login')
-@user_passes_test(admin_only, login_url='my_login')
+
 def terms(request):
     content = TermsOfService.objects.first()
     context = {'content': content}
     return render(request, 'account/terms.html', context)
 
 
-@login_required(login_url='my_login')
-@user_passes_test(admin_only, login_url='my_login')
+
 def privacy(request):
     content = PrivacyPolicy.objects.first()
     context = {'content': content}
