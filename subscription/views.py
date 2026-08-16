@@ -6,6 +6,8 @@ import stripe
 import requests
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
+from django.core.mail import send_mail
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -91,6 +93,22 @@ def cancel_subscription(request):
     if cancel_response.status_code == 204:
         subscription.is_cancelled = True
         subscription.save()
+        
+        student_name = request.user.get_full_name() or request.user.username
+        send_mail(
+            subject = "PandaSpeak Subscription Cancellation Confirmation",
+            message=(
+                f"A student has cancelled their PandaSpeak subscription.\n\n"
+                f"Student: {student_name}\n"
+                f"Email: {request.user.email}\n"
+                f"Account Type: Student\n"
+                f"PayPal Subscription ID: {subscription.paypal_subscription_id}\n"
+                f"Access until: {subscription.access_until}\n\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
         messages.success(
             request, "Your subscription has been canceled successfully."
             "You will not be charged for the next billing cycle, and you will retain access until the end of your current subscription period."

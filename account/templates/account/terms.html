@@ -5,9 +5,96 @@
 {% block content %}
 
 <style>
-  .terms-content {
-    max-width: 800px;
+  .terms--section {
+    padding: 70px 0;
+  }
+
+  .terms-wrapper {
+    max-width: 950px;
     margin: 0 auto;
+  }
+
+  .terms-header {
+    text-align: center;
+    margin-bottom: 35px;
+  }
+
+  .terms-header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .terms-updated {
+    color: #9ca3af;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .terms-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 40px 45px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .terms-content {
+    color: #d1d5db;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  .terms-content p {
+    margin-bottom: 22px;
+  }
+
+  .terms-content strong {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .terms-content h2,
+  .terms-content h3 {
+    color: #63e68a;
+    margin-top: 35px;
+    margin-bottom: 15px;
+  }
+
+  .terms-content ul,
+  .terms-content ol {
+    padding-left: 25px;
+    margin-bottom: 22px;
+  }
+
+  .terms-content li {
+    margin-bottom: 8px;
+  }
+
+  .terms-empty {
+    text-align: center;
+    color: #9ca3af;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .terms-section {
+      padding: 45px 0;
+    }
+
+    .terms-header h1 {
+      font-size: 2rem;
+    }
+
+    .terms-card {
+      padding: 25px 20px;
+      border-radius: 12px;
+    }
+
+    .terms-content {
+      font-size: 15px;
+      line-height: 1.7;
+    }
   }
 </style>
 
@@ -30,26 +117,37 @@
   <!-- Terms of Service Section -->
   <section id="terms-section" class="terms-section section">
 
-    <!-- Section Title -->
-    <div class="container section-title" data-aos="fade-up" >
-      <h2>Last Updated: {{ content.last_updated }}</h2>
-     
-        <div class="terms-content text-start mx-auto">
-          {% if content %}
-          <p>{{ content.content | linebreaks }}</p>
-          {% endif %}
-        </div>
-      
-    </div><!-- End Section Title -->
-
     <div class="container" data-aos="fade-up">
 
-      <div>
+      <div class="terms-wrapper">
+
+        <div class="terms-header">
+          <!-- <h1>Terms of Service</h1> -->
+
+          {% if content %}
+          <p class="terms-updated">
+            Last Updated: {{ content.last_updated }}
+          </p>
+          {% endif %}
+        </div>
+
+        <div class="terms-card">
+          {% if content %}
+          <div class="terms-content">
+            {{ content.content | linebreaks }}
+          </div>
+          {% else %}
+          <p class="terms-empty">
+            Terms of Service are currently being updated.
+          </p>
+          {% endif %}
+        </div>
 
       </div>
+
     </div>
 
-  </section><!-- /Terms of Service Section -->
+  </section>
 
 </main>
 {% endblock %}

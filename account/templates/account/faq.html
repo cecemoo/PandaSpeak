@@ -3,6 +3,24 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+<style>
+    .faq-list {
+        max-width: 900px;
+        margin: 35px auto 60px;
+    }
+    .faq-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        transition: all 0.25s ease;
+    }
+    .faq-item:hover {
+        border-color: #63e68a;
+        background: rgba(99, 230,138, 0.04);
+    }
+</style>
 <main class="main">
 
     <!-- Page Title -->
@@ -30,50 +48,137 @@
 
         <div class="container" data-aos="fade-up">
 
-            <div>
-                <p><strong>Q: What is PandaSpeak?</strong></p>
-                <p>PandaSpeak is an online Chinese language learning platform that provides vocabulary, sentence
-                    patterns, common Chinese expressions, pronunciation exercises, learning materials, and private tutoring services to help
-                    adults improve their Chinese communication skills.</p>
-                <p><strong>Q: Who can use PandaSpeak?</strong></p>
-                <p>PandaSpeak is designed for adults who want to improve their Chinese communication skills, whether for
-                    personal, academic, or professional purposes.</p>
-                <p><strong>Q: Do I need prior Chinese knowledge?</strong></p>
-                <p>No, PandaSpeak is suitable for beginners as well as those with some prior knowledge of Chinese.</p>
-                <p><strong>Q: Can I access learning materials without a subscription?</strong></p>
-                <p>Some content may be available for free, but premium learning materials and tutoring services require
-                    an active subscription or payment.</p>
-                <p><strong>Q: Can I learn at my own pace?</strong></p>
-                <p>Yes. Students can access learning materials at any time and progress according to their own learning
-                    goals.</p>
-                <p><strong>Q: What does a subscription include?</strong></p>
-                <p>A subscription may include access to:
+            <div class="faq-list">
 
-                    Vocabulary lessons
-                    Sentence patterns
-                    Chinese expressions
-                    Pronunciation practice
-                    ** Features may change as the platform develops.
-                </p>
-                <p><strong>Q: How do I cancel my subscription?</strong></p> 
-                <p>You can cancel your subscription at any time from the Subscription Management page in your PandaSpeak account. After cancellation, you will not be charged for the next billing cycle, and you can continue accessing PandaSpeak learning materials until the end of your current paid subscription period. Refunds are not available for subscription payments already made.</p>
-                <p><strong>Q: Will I receive a refund if I cancel my subscription?</strong></p>
-                <p>No. Subscription fees are non-refundable. Canceling your subscription only stops future recurring charges and does not refund payments already made.</p>
-                <p><strong>Q: What happens if my payment fails?</strong></p>
-                <p>Access to learning content may be suspended until payment is successfully processed.</p>
-                <p><strong>Q: Do you offer one-on-one tutoring?</strong></p>
-                <p>Yes, PandaSpeak offers personalized one-on-one tutoring sessions.These sessions can be scheduled based on your availability and learning goals.</p>
-                <p><strong>Q: How are tutoring sessions conducted?</strong></p>
-                <p>Tutoring sessions may be conducted through online meeting platforms such as Google Meetor other approved communication tools.</p>
-                <p><strong>Q: Can I reschedule a tutoring session?</strong></p>
-                <p>Yes, tutoring sessions can be rescheduled based on availability and mutual agreement between the student and tutor.</p>
-                <p><strong>Q: What happens if I miss a tutoring session?</strong></p>
-                <p>If you miss a tutoring session without prior notice, it may be considered a no-show, and the session will not be refunded or rescheduled.</p>
-                <p><strong>Q: What devices are supported?</strong></p>
-                <p>PandaSpeak works on most modern computers, tablets, and smartphones with an internet connection.</p>
-                <p><strong>Q: Do I need to install software?</strong></p>
-                <p>No, PandaSpeak is a web-based platform, so you can access it through a web browser without installing additional software.</p>
-               
+                <details class="faq-item">
+                    <summary>What is PandaSpeak?</summary>
+                    <p>
+                        PandaSpeak is an online Chinese language learning platform that provides
+                        vocabulary, sentence patterns, common Chinese expressions, pronunciation
+                        exercises, learning materials, and private tutoring services to help adults
+                        improve their Chinese communication skills.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Who can use PandaSpeak?</summary>
+                    <p>
+                        PandaSpeak is designed for adults who want to improve their Chinese
+                        communication skills, whether for personal, academic, or professional purposes.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do I need prior Chinese knowledge?</summary>
+                    <p>
+                        No. PandaSpeak is suitable for beginners as well as those with some
+                        prior knowledge of Chinese.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I access learning materials without a subscription?</summary>
+                    <p>
+                        Some content may be available for free, but premium learning materials
+                        and tutoring services require an active subscription or payment.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I learn at my own pace?</summary>
+                    <p>
+                        Yes. Students can access learning materials at any time and progress
+                        according to their own learning goals.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does a subscription include?</summary>
+                    <p>A subscription may include access to:</p>
+                    <ul>
+                        <li>Vocabulary lessons</li>
+                        <li>Sentence patterns</li>
+                        <li>Chinese expressions</li>
+                        <li>Pronunciation practice</li>
+                    </ul>
+                    <p class="faq-note">
+                        Features may change as the platform develops.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How do I cancel my subscription?</summary>
+                    <p>
+                        You can cancel your subscription at any time from the Subscription
+                        Management page in your PandaSpeak account.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Will I receive a refund if I cancel my subscription?</summary>
+                    <p>
+                        No. Subscription fees are non-refundable. Cancelling your subscription
+                        stops future recurring charges, and you can continue using your subscription
+                        until the end of your current paid period.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What happens if my payment fails?</summary>
+                    <p>
+                        Access to premium learning content may be suspended until payment is
+                        successfully processed.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do you offer one-on-one tutoring?</summary>
+                    <p>
+                        Yes. PandaSpeak offers personalized one-on-one tutoring sessions.
+                        Sessions can be scheduled based on teacher availability.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How are tutoring sessions conducted?</summary>
+                    <p>
+                        Tutoring sessions may be conducted through online meeting platforms
+                        such as Google Meet or another agreed-upon platform.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I reschedule a tutoring session?</summary>
+                    <p>
+                        Yes. Tutoring sessions can be rescheduled based on availability and
+                        mutual agreement between the student and teacher.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What happens if I miss a tutoring session?</summary>
+                    <p>
+                        If you miss a tutoring session without prior notice, it may be
+                        considered a no-show and the session may not be refundable.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What devices are supported?</summary>
+                    <p>
+                        PandaSpeak works on most modern computers, tablets, and smartphones
+                        with an internet connection.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do I need to install software?</summary>
+                    <p>
+                        No. PandaSpeak is a web-based platform, so you can access it through
+                        your web browser without installing additional software.
+                    </p>
+                </details>
+
             </div>
         </div>
         </div>
