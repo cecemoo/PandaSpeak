@@ -116,7 +116,9 @@ def account_management(request):
     sub = Subscription.objects.filter( user=request.user, is_active=True).first()
     context = {
         "has_subscription": sub is not None,
-        "SubPlan": sub.subscription_plan if sub else 'No Active Subscription'
+        "SubPlan": sub.subscription_plan if sub else 'No Active Subscription',
+        "is_cancelled": sub.is_cancelled if sub else False,
+        "access_until": sub.access_until if sub else None,
     }
     return render(request, 'student/account_management.html', context)
 

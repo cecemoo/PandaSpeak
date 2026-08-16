@@ -3,7 +3,9 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from .models import Subscription, TutoringPayment
 import stripe
-
+import requests
+from django.contrib import messages
+from django.utils.dateparse import parse_datetime
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -20,7 +22,7 @@ def subscription_success(request):
         user=request.user,
         defaults={
             "subscription_plan": "standard",
-            "subscription_cost": 12.94,
+            "subscription_cost": 15.00,
             "paypal_subscription_id": paypal_subscription_id,
             "is_active": True,
             },
@@ -30,6 +32,77 @@ def subscription_success(request):
         "first_name": request.user.first_name,
     }
     return render(request, "subscription/success.html", context)
+
+
+
+
+@login_required
+def cancel_subscription(request):
+    if request.method != "POST":
+        return redirect("account_management_student")
+    try:
+        subscription = Subscription.objects.get(
+            user=request.user,
+            is_active=True
+        )
+    except Subscription.DoesNotExist:
+        messages.error(request, "No active subscription found.")
+        return redirect("account_management_student")
+    if not subscription.paypal_subscription_id:
+        messages.error(request, "No PayPal subscription ID found.")
+        return redirect("account_management_student")
+    
+    auth_response = requests.post(
+        f"{settings.PAYPAL_BASE_URL}/v1/oauth2/token",
+        auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_SECRET),
+        data={"grant_type": "client_credentials"},
+    )
+    if auth_response.status_code != 200:
+        messages.error(request, "Unable to connect to PayPal.")
+        return redirect("account_management_student")
+    
+    access_token = auth_response.json()["access_token"]
+
+    details_response = requests.get(
+        f"{settings.PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription.paypal_subscription_id}",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+    )
+    if details_response.status_code == 200:
+        paypal_data = details_response.json()
+        next_billing_time = (
+            paypal_data.get("billing_info", {})
+            .get("next_billing_time")
+        )
+        if next_billing_time:
+            subscription.access_until = parse_datetime(next_billing_time)
+            
+    cancel_response = requests.post(
+        f"{settings.PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription.paypal_subscription_id}/cancel",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+        json={"reason": "User requested cancellation."},
+    )
+
+    if cancel_response.status_code == 204:
+        subscription.is_cancelled = True
+        subscription.save()
+        messages.success(
+            request, "Your subscription has been canceled successfully."
+            "You will not be charged for the next billing cycle, and you will retain access until the end of your current subscription period."
+        )
+    else:
+        messages.error(
+            request,
+            "There was an error canceling your subscription. Please try again later."
+        )
+    return redirect("account_management_student")
+
+
 
 
 @login_required

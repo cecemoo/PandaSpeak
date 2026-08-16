@@ -171,3 +171,9 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(", ")
     if origin.strip()
 ]
+
+
+# PayPal
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+PAYPAL_SECRET = os.getenv("PAYPAL_SECRET")
+PAYPAL_BASE_URL = os.getenv("PAYPAL_BASE_URL")

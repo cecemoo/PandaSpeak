@@ -11,6 +11,8 @@ class Subscription(models.Model):
     paypal_subscription_id = models.CharField(max_length=300, blank=True, null=True)
     is_active = models.BooleanField(default=False)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, unique=True)
+    is_cancelled = models.BooleanField(default=False)
+    access_until = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.subscription_plan} subscription" 
