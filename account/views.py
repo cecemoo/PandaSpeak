@@ -15,6 +15,8 @@ from django.contrib import messages
 import stripe
 from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
+from django.core.mail import send_mail
+
 
 
 
@@ -77,7 +79,20 @@ def register(request):
     if request.method == 'POST':
         form  = CreateUserForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_user = form.save()
+            user_type = "Teacher" if new_user.is_teacher else "Student"
+            send_mail(
+                subject="New PandaSpeak Account Registration",
+                message=(
+                    f"A new account has been registered on PandaSpeak.\n\n"
+                    f"Name: {new_user.first_name} {new_user.last_name}\n"
+                    f"Email: {new_user.email}\n"
+                    f"Account Type: {user_type}\n"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=["pandaspeaksupport@gmail.com"],
+                fail_silently=False,
+            )
             return redirect('my_login')
     context = {'RegisterForm': form}
     return render(request, 'account/register.html', context)
