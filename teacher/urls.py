@@ -24,5 +24,10 @@ urlpatterns = [
     path('tests/<int:test_id>/delete/', views.delete_test, name='teacher_delete_test'),
     path('tests/<int:test_id>/view/', views.teacher_view_test, name='teacher_view_test'),
     path('tests/results/', views.student_test_results, name='teacher_student_test_results'),
+    path("surveys/create/", views.create_learning_survey, name="create_learning_survey"),
+    path("surveys/<int:survey_id>/questions/add/", views.add_survey_question, name="add_survey_question"),
+    path("surveys/<int:survey_id>/finish/", views.finish_learning_survey, name="finish_learning_survey"),
+    path("surveys/", views.teacher_survey_list, name="teacher_survey_list"),
+    path('surveys/<int:survey_id>/responses/', views.survey_responses, name='survey_responses'),
     
 ]

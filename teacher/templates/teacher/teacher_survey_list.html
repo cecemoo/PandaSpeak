@@ -1,0 +1,188 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    .survey-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 26px;
+        margin-bottom: 22px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .survey-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .survey-title {
+        margin-bottom: 8px;
+    }
+
+    .survey-description {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .survey-status {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .survey-status.published {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .survey-status.draft {
+        background: #fff3cd;
+        color: #664d03;
+    }
+
+    .survey-card-bottom {
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid #eeeeee;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .survey-date {
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    .survey-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .survey-list-wrapper {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+
+    @media (max-width: 768px) {
+
+        .survey-card-top,
+        .survey-card-bottom {
+            flex-direction: column;
+        }
+
+        .survey-actions {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+</style>
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Learning Surveys</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Learning Surveys</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Learning Surveys</h2>
+            <!-- <p>Manage your tone entries, track student progress, and update your profile.</p> -->
+        </div><!-- End Section Title -->
+        {% if surveys %}
+        <div class="survey-list-wrapper">
+            {% for survey in surveys %}
+            <div class="survey-card">
+                <div class="survey-card-top">
+                    <div>
+                        <h3 class="survey-title">
+                            {{ survey.title }}
+                        </h3>
+                        {% if survey.description %}
+                        <p class="survey-description">
+                            {{ survey.description }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if survey.is_active %}
+                        <span class="survey-status published">
+                            Published
+                        </span>
+                        {% else %}
+                        <span class="survey-status draft">
+                            Draft
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="survey-card-bottom">
+                    <div class="survey-date">
+                        Created {{ survey.created_at|date:"M d, Y" }}
+                    </div>
+                    <div class="survey-actions">
+                        {% if not survey.is_active %}
+                        <a href="{% url 'add_survey_question' survey.id %}" class="btn btn-primary rounded-pill">
+                            Continue Survey
+                        </a>
+                        <a href="{% url 'finish_learning_survey' survey.id %}" class="btn btn-success rounded-pill">
+                            Publish Survey
+                        </a>
+                        {% else %}
+                        <span class="text-muted">
+                            Available to students
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-2">
+                        {{ survey.responses.count }} student response{{ survey.responses.count|pluralize }}
+                    </p>
+
+                    <a href="{% url 'survey_responses' survey.id %}" class="btn btn-outline-primary rounded-pill btn-sm">
+                        View Responses
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <h4>No surveys yet</h4>
+            <p class="text-muted">
+                Create your first learning feedback survey.
+            </p>
+            <a href="{% url 'create_learning_survey' %}" class="btn btn-success rounded-pill">
+                Create Survey
+            </a>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <p>No surveys have been created yet.</p>
+        {% endif %}
+    </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

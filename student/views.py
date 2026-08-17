@@ -3,13 +3,17 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from subscription.models import Subscription
 from subscription.decorators import subscription_required
-from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory
+from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory, LearningSurvey, SurveyResponse
 from datetime import date
 from django.http import JsonResponse
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
 from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer
+from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
+from django.contrib import messages
+from django.core.mail import send_mail
+
 
 
 
@@ -23,10 +27,15 @@ def student_dashboard(request):
         user=request.user,
         is_active=True
     ).first()
-
+    available_surveys = LearningSurvey.objects.filter(
+        is_active=True
+    ).exclude(
+        responses__student=request.user
+    )
     context = {
         'has_subscription': sub is not None,
-        'SubPlan': sub.subscription_plan if sub else 'No Active Subscription'
+        'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
+        'available_surveys': available_surveys
     }
     return render(request, 'student/student_dashboard.html', context)
 
@@ -371,3 +380,95 @@ def student_test_results(request):
         student=request.user
     ).select_related('test').order_by('-submitted_at')
     return render(request, 'student/student_test_results.html', {'results': results})
+
+
+
+
+
+
+@login_required(login_url='my_login')
+def take_learning_survey(request, survey_id):
+
+    survey = get_object_or_404(
+    LearningSurvey,
+    id=survey_id,
+    is_active=True
+    )
+
+    # Prevent duplicate submission
+    if SurveyResponse.objects.filter(
+        survey=survey,
+        student=request.user
+        ).exists():
+        messages.info(
+        request,
+        "You have already completed this survey."
+        )
+        return redirect("student_survey_list")
+
+    questions = survey.questions.all().order_by("order")
+
+    if request.method == "POST":
+        response = SurveyResponse.objects.create(
+        survey=survey,
+        student=request.user
+        )
+
+        for question in questions:
+            answer_value = request.POST.get(
+            f"question_{question.id}"
+            )
+            SurveyAnswer.objects.create(
+            response=response,
+            question=question,
+            answer=answer_value
+            )
+        teacher = survey.teacher
+        if teacher.email:
+            send_mail(
+                    subject=f"new Survey Response: {survey.title}",
+                    message=(
+                        f"{request.user.get_full_name() or request.user.username} "
+                        f"has completed the survey '{survey.title}'."
+                        f"\n\nPlease log in to the PandaSpeak platform to review the responses."
+                        f"Best regards,"
+                        f"\nPandaSpeak Support Team"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[teacher.email],
+                    fail_silently=False,
+                )
+
+        messages.success(
+            request,
+            "Thank you. Your survey has been submitted successfully."
+            )
+
+        return redirect("student_survey_list")
+
+    return render(
+        request,
+        "student/take_learning_survey.html",
+        {
+        "survey": survey,
+        "questions": questions,
+        }
+        )
+
+
+
+
+@login_required(login_url='my_login')
+def student_survey_list(request):
+    available_surveys = LearningSurvey.objects.filter(
+        is_active=True
+    ).exclude(
+        responses__student=request.user
+    )
+    return render(
+        request,
+        'student/student_survey_list.html',
+        {
+            'available_surveys': available_surveys
+        }
+    )

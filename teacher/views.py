@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Exists, OuterRef
 from teacher.decorators import subscription_required
-from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm, LanguageTestForm, TestQuestionForm
+from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm, LanguageTestForm, TestQuestionForm, LearningSurveyForm, SurveyQuestionForm
 from account.models import CustomUser
 from subscription.models import Subscription
 from course.models import Course, Booking
@@ -10,6 +10,10 @@ from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from student.models import LanguageTest, TestQuestion, StudentTestSubmission
+from .models import LearningSurvey, SurveyQuestion
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 
 @login_required(login_url='my_login')
@@ -358,3 +362,150 @@ def student_test_results(request):
         'results': results,
     }
     return render(request, 'teacher/student_test_results.html', context)
+
+
+
+
+@login_required(login_url='my_login')
+def create_learning_survey(request):
+    if request.method == "POST":
+        form = LearningSurveyForm(request.POST)
+        if form.is_valid():
+            survey = form.save(commit=False)
+            survey.teacher = request.user
+            survey.save()
+            messages.success(
+                request,
+                "Survey created successfully. Now add your survey questions."
+            )
+            return redirect("add_survey_question", survey_id=survey.id)
+    else:
+        form = LearningSurveyForm()
+    return render(
+        request,
+        "teacher/create_learning_survey.html",
+        {"form": form}
+    )
+
+
+@login_required(login_url='my_login')
+def add_survey_question(request, survey_id):
+    survey = get_object_or_404(
+        LearningSurvey,
+        id=survey_id,
+        teacher=request.user
+    )
+    if request.method == "POST":
+        form = SurveyQuestionForm(request.POST)
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.survey = survey
+            question.save()
+            messages.success(
+                request,
+                "Survey question added successfully."
+            )
+            return redirect(
+                "add_survey_question",
+                survey_id=survey.id
+            )
+    else:
+        form = SurveyQuestionForm()
+    questions = survey.questions.all().order_by("order")
+    return render(
+        request,
+        "teacher/add_survey_question.html",
+        {
+            "form": form,
+            "survey": survey,
+            "questions": questions
+        }
+    )
+
+
+@login_required(login_url='my_login')
+def finish_learning_survey(request,survey_id):
+    survey = get_object_or_404(
+        LearningSurvey,
+        id=survey_id,
+        teacher=request.user
+    )
+    if not survey.questions.exists():
+        messages.warning(
+            request,
+            "Please add at least one question before finishing the survey."
+        )
+        return redirect(
+            "add_survey_question",
+            survey_id=survey.id
+        )
+    survey.is_active = True
+    survey.save()
+    students = CustomUser.objects.filter(
+        is_teacher=False,
+        is_active=True
+    ).exclude(
+        email=""
+    )
+    student_emails = list(
+        students.values_list("email", flat=True)
+    )
+    if student_emails:
+        for student in students:
+            student_name = student.get_full_name() or student.email
+            send_mail(
+                subject=f"New Learning Survey: {survey.title}",
+                message=(
+                    f"Hello, {student_name},\n\n"
+                    f"A new learning survey has been published:"
+                    f"'{survey.title}'.\n\n"
+                    f"Please log into PandaSpeak to complete the survey.\n\n"
+                    f"Best regards,\n\n"
+                    f"\nPandaSpeak Support Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[student.email],
+                fail_silently=False,
+            )
+    messages.success(
+        request,
+        "Survey published successfully."
+    )
+    return redirect(
+        "teacher_dashboard"
+    )   
+    
+
+
+@login_required(login_url='my_login')
+def teacher_survey_list(request):
+    surveys = LearningSurvey.objects.filter(
+        teacher=request.user
+    ).order_by("-created_at")
+    return render(
+        request,
+        "teacher/teacher_survey_list.html",
+        {"surveys": surveys}
+    )
+
+
+@login_required(login_url='my_login')
+def survey_responses(request, survey_id):
+    survey = get_object_or_404(
+        LearningSurvey,
+        id=survey_id,
+        teacher=request.user
+    )
+    responses = survey.responses.select_related(
+        "student"
+    ).prefetch_related(
+        "answers__question"
+    ).order_by("-submitted_at")
+    return render(
+        request,
+        "teacher/survey_responses.html",
+        {
+            "survey": survey,
+            "responses": responses
+        }
+    )

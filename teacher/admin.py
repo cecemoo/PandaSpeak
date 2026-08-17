@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Vocabulary, Pronunciation, Sentence, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
+from .models import Vocabulary, Pronunciation, Sentence, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone, LearningSurvey, SurveyQuestion, SurveyResponse, SurveyAnswer
 
 # Register your models here.
 
@@ -10,7 +10,10 @@ admin.site.register(Idiom)
 admin.site.register(VocabularyCategory)
 admin.site.register(SentenceCategory)
 admin.site.register(IdiomCategory)
-
+admin.site.register(LearningSurvey)
+admin.site.register(SurveyQuestion)
+admin.site.register(SurveyResponse)
+admin.site.register(SurveyAnswer)
 
 
 class ToneAdmin(admin.ModelAdmin):

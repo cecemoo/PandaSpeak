@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from account.models import CustomUser
-from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone
+from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, LearningSurvey, SurveyQuestion
 from student.models import LanguageTest, TestQuestion
 
 
@@ -136,3 +136,65 @@ class TestQuestionForm(forms.ModelForm):
             if commit:
                 instance.save()
             return instance
+
+
+
+
+class LearningSurveyForm(forms.ModelForm):
+    class Meta:
+        model = LearningSurvey
+        fields = ["title", "description"]
+        widgets = {
+            "title": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter survey title"
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "form-control",
+                "placeholder": "Describe the purpose of this survey",
+                "rows": 4
+            }),
+        }
+
+
+class SurveyQuestionForm(forms.ModelForm):
+    class Meta:
+        model = SurveyQuestion
+        fields = [
+            "question_text",
+            "question_type",
+            "option_a",
+            "option_b",
+            "option_c",
+            "option_d",
+            "order",
+        ]
+        widgets = {
+            "question_text": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter survey question"
+            }),
+            "question_type": forms.Select(attrs={
+                "class": "form-control"
+            }),
+            "option_a": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Option A"
+            }),
+            "option_b": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Option B"
+            }),
+            "option_c": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Option C"
+            }),
+            "option_d": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Option D"
+            }),
+            "order": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 1
+            }),
+        }

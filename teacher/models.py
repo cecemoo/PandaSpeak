@@ -1,5 +1,5 @@
 from django.db import models
-
+from account.models import CustomUser
 
 
 
@@ -119,3 +119,58 @@ class Tone(models.Model):
     example = models.CharField(max_length=50)
     description = models.CharField(max_length=100, choices=DESCRIPTION_CHOICES)
     audio_file = models.FileField(upload_to='tones/')
+
+
+
+
+class LearningSurvey(models.Model):
+    teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_surveys')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class SurveyQuestion(models.Model):
+   QUESTION_TYPES = [
+    ("rating", "Rating 1-5"),
+    ("multiple_choice", "Multiple Choice"),
+    ("text", "Written Response"),
+   ]
+   survey = models.ForeignKey(LearningSurvey, on_delete=models.CASCADE, related_name='questions')
+   question_text = models.CharField(max_length=500)
+   question_type = models.CharField(max_length=50, choices=QUESTION_TYPES, default="rating")
+   option_a = models.CharField(max_length=200, blank=True, null=True)
+   option_b = models.CharField(max_length=200, blank=True, null=True)
+   option_c = models.CharField(max_length=200, blank=True, null=True)
+   option_d = models.CharField(max_length=200, blank=True, null=True)
+   order = models.PositiveIntegerField(default=1)
+
+   def __str__(self):
+         return self.question_text
+
+
+class SurveyResponse(models.Model):
+    survey = models.ForeignKey(LearningSurvey, on_delete=models.CASCADE, related_name="responses")
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="survey_responses")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ("survey", "student")  
+
+    def __str__(self):
+        return f"{self.student} - {self.survey}"
+
+
+
+class SurveyAnswer(models.Model):
+    response = models.ForeignKey(SurveyResponse, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(SurveyQuestion, on_delete=models.CASCADE)
+    answer = models.TextField(blank=True, null=True)
+    class Meta:
+        unique_together = ("response", "question")
+
+    def __str__(self):
+        return f"{self.response.student} - {self.question.question_text}"

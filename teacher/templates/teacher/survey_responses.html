@@ -1,0 +1,82 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Survey Responses</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Survey Responses</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Survey Responses</h2>
+           <a href="{% url 'teacher_survey_list' %}"
+           class="btn btn-outline-secondary rounded-pill mb-4">Back to Survey List</a>
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <h3 class="mb-4">{{ survey.title }}</h3>
+
+            {% for response in responses %}
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        {{ response.student.get_full_name|default:response.student.username }}
+                    </h5>
+
+                    <p class="text-muted">
+                        Submitted: {{ response.submitted_at }}
+                    </p>
+
+                    <hr>
+
+                    {% for answer in response.answers.all %}
+
+                    <div class="mb-3">
+                        <strong>
+                            {{ answer.question.question_text }}
+                        </strong>
+
+                        <p class="mb-0">
+                            {{ answer.answer }}
+                        </p>
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            {% empty %}
+
+            <p class="text-muted">
+                No students have responded to this survey yet.
+            </p>
+
+            {% endfor %}
+
+
+        </div>
+
+    </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

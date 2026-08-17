@@ -1,0 +1,86 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Add Learning Survey</h1>
+      <p>Hello, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Add Learning Survey</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Teacher Dashboard Section -->
+  <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Add Learning Survey</h2>
+      <!-- <p>Manage your vocabulary entries, track student progress, and update your profile.</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+          <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+              <h2 class="mb-2">Create Learning Survey</h2>
+              <p class="text-muted mb-4">
+                Create a survey to collect feedback from your students.
+              </p>
+
+              <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                  <label class="form-label">Survey Title</label>
+                  {{ form.title }}
+
+                  {% if form.title.errors %}
+                  <div class="text-danger small mt-1">
+                    {{ form.title.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Description</label>
+                  {{ form.description }}
+
+                  {% if form.description.errors %}
+                  <div class="text-danger small mt-1">
+                    {{ form.description.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                  <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    Create Survey
+                  </button>
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

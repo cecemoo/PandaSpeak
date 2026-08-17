@@ -1,0 +1,222 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Add Survey Question</h1>
+      <p>Hello, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Add Survey Question</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Teacher Dashboard Section -->
+  <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Add Survey Question</h2>
+      <!-- <p>Manage your survey questions, track student progress, and update your profile.</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container py-4">
+
+      <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+
+              <h2 class="mb-2">
+                Add Survey Questions
+              </h2>
+
+              <p class="text-muted">
+                Survey: <strong>{{ survey.title }}</strong>
+              </p>
+
+              {% if survey.description %}
+              <p class="text-muted">
+                {{ survey.description }}
+              </p>
+              {% endif %}
+
+              <hr>
+
+              <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Question
+                  </label>
+
+                  {{ form.question_text }}
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Question Type
+                  </label>
+
+                  {{ form.question_type }}
+                </div>
+
+                <div id="multiple-choice-options">
+
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Option A
+                    </label>
+                    {{ form.option_a }}
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Option B
+                    </label>
+                    {{ form.option_b }}
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Option C
+                    </label>
+                    {{ form.option_c }}
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Option D
+                    </label>
+                    {{ form.option_d }}
+                  </div>
+
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Question Order
+                  </label>
+
+                  {{ form.order }}
+                </div>
+
+                <button type="submit" class="btn btn-primary rounded-pill">
+                  Add Question
+                </button>
+
+                <a href="{% url 'finish_learning_survey' survey.id %}"
+                class="btn btn-success rounded-pill ms-2">Publish Survey</a>
+
+              </form>
+
+            </div>
+          </div>
+
+
+          {% if questions %}
+
+          <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+              <h4 class="mb-3">
+                Questions Added
+              </h4>
+
+              {% for question in questions %}
+
+              <div class="border rounded p-3 mb-3">
+
+                <strong>
+                  {{ question.order }}.
+                  {{ question.question_text }}
+                </strong>
+
+                <div class="text-muted small mt-1">
+                  {{ question.get_question_type_display }}
+                </div>
+
+                {% if question.question_type == "multiple_choice" %}
+
+                <ul class="mt-2 mb-0">
+                  {% if question.option_a %}
+                  <li>{{ question.option_a }}</li>
+                  {% endif %}
+
+                  {% if question.option_b %}
+                  <li>{{ question.option_b }}</li>
+                  {% endif %}
+
+                  {% if question.option_c %}
+                  <li>{{ question.option_c }}</li>
+                  {% endif %}
+
+                  {% if question.option_d %}
+                  <li>{{ question.option_d }}</li>
+                  {% endif %}
+                </ul>
+
+                {% endif %}
+
+              </div>
+
+              {% endfor %}
+
+            </div>
+          </div>
+
+          {% endif %}
+
+        </div>
+      </div>
+
+    </div>
+
+
+  </section><!-- /Teacher Dashboard Section -->
+
+</main>
+
+<script>
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const questionType =
+      document.getElementById("id_question_type");
+
+    const multipleChoiceOptions =
+      document.getElementById("multiple-choice-options");
+
+    function updateQuestionOptions() {
+
+      if (questionType.value === "multiple_choice") {
+        multipleChoiceOptions.style.display = "block";
+      } else {
+        multipleChoiceOptions.style.display = "none";
+      }
+
+    }
+
+    updateQuestionOptions();
+
+    questionType.addEventListener(
+      "change",
+      updateQuestionOptions
+    );
+
+  });
+
+</script>
+
+{% endblock %}
