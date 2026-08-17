@@ -68,7 +68,10 @@ def access_learning_materials(request):
 def vocabulary_category_page(request, category_id):
     category = VocabularyCategory.objects.get(id=category_id)
     vocabularies = Vocabulary.objects.filter(category=category)
-    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies})
+    selected_level = request.GET.get('level')
+    if selected_level and selected_level != 'all':
+        vocabularies = vocabularies.filter(level=selected_level)
+    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies, 'selected_level': selected_level})
 
 
 
@@ -100,7 +103,10 @@ def pronunciation_page(request):
 def sentence_category_page(request, category_id):
     category = SentenceCategory.objects.get(id=category_id)
     sentences = Sentence.objects.filter(category=category)
-    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences})
+    selected_level = request.GET.get('level')
+    if selected_level and selected_level != 'all':
+        sentences = sentences.filter(level=selected_level)
+    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences, 'selected_level': selected_level})
 
 
    
@@ -110,7 +116,10 @@ def sentence_category_page(request, category_id):
 def idiom_category_page(request, category_id):
     category = IdiomCategory.objects.get(id=category_id)
     idioms = Idiom.objects.filter(category=category)
-    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms})
+    selected_level = request.GET.get('level')
+    if selected_level and selected_level != 'all':
+        idioms = idioms.filter(level=selected_level)
+    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level})
    
 
 

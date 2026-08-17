@@ -60,11 +60,32 @@
       </div><!-- End Section Title -->
 
      <div class="container" data-aos="fade-up">
+      <div class="level-filter mb-4 text-center">
+        <a href="?level=all"
+          class="btn {% if not selected_level or selected_level == 'all' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          All
+        </a>
+        <a href="?level=level1"
+          class="btn {% if selected_level == 'level1' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          Level I
+        </a>
+        <a href="?level=level2"
+          class="btn {% if selected_level == 'level2' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          Level II
+        </a>
+        <a href="?level=level3"
+          class="btn {% if selected_level == 'level3' %}btn-success{% else %}btn-outline-success{% endif %}">
+          Level III
+        </a>
+      </div>
       <div class="word-container">
         {% for item in idioms %}
 
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.idiom }}
+          {% if item.level != 'unclassified' %}
+          <span class="level-badge">{{ item.get_level_display }}</span>
+          {% endif %}
         </button>
 
         <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
@@ -80,6 +101,7 @@
               <div class="modal-body">
                 <p><strong>Type:</strong> {{ item.get_expression_type_display }}</p>
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
+                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.meaning }}</p>
                 <p><strong>Example Scenario:</strong> {{ item.example_scenario }}</p>
 

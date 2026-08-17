@@ -3,6 +3,17 @@ from account.models import CustomUser
 
 
 
+LEVEL_CHOICES = [
+    ('unclassified', 'Unclassified'),
+    ('level1', 'Level I - Beginner'),
+    ('level2', 'Level II - Intermediate'),
+    ('level3', 'Level III - Advanced'),
+    ('all', 'All Levels'),
+
+]
+
+
+
 class VocabularyCategory(models.Model):
     category_name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -21,6 +32,13 @@ class Vocabulary(models.Model):
     audio_file = models.FileField(upload_to='vocabulary_audio/', blank=True, null=True)
     category = models.ForeignKey(VocabularyCategory, on_delete=models.CASCADE, related_name='vocabularies', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    level =models.CharField(
+        max_length=20,
+        choices = LEVEL_CHOICES,
+        default = 'unclassified'
+        )
+    
     def __str__(self):
         return self.word
     
@@ -35,6 +53,12 @@ class Pronunciation(models.Model):
     english_example = models.CharField(max_length=50, blank=True)
     audio_file = models.FileField(upload_to='pronunciations/')
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    level =models.CharField(
+        max_length=20,
+        choices = LEVEL_CHOICES,
+        default = 'unclassified'
+        )
 
     def __str__(self):
         return self.symbol
@@ -55,6 +79,12 @@ class Sentence(models.Model):
     audio_file = models.FileField(upload_to='sentences/', blank=True, null=True)
     category = models.ForeignKey(SentenceCategory, on_delete=models.CASCADE, related_name='sentences', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    level =models.CharField(
+        max_length=20,
+        choices = LEVEL_CHOICES,
+        default = 'unclassified'
+        )
 
     def __str__(self):
         return self.text[:50]  
@@ -88,6 +118,12 @@ class Idiom(models.Model):
     audio_scenario_file = models.FileField(upload_to='idiom_scenarios/', blank=True, null=True)
     category = models.ForeignKey(IdiomCategory, on_delete=models.CASCADE, related_name='idioms', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    level =models.CharField(
+        max_length=20,
+        choices = LEVEL_CHOICES,
+        default = 'unclassified'
+        )
 
     def __str__(self):
         return self.idiom

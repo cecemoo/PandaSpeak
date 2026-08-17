@@ -26,6 +26,7 @@
     background: gray;
     color: #111111;
   }
+
   .word-container {
     display: flex;
     flex-wrap: wrap;
@@ -33,37 +34,58 @@
   }
 </style>
 
-  <main class="main">
+<main class="main">
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-      <div class="container position-relative">
-        <h1>Category: {{ category.category_name }}</h1>
-        <p>Explore and learn new sentences with their meanings and pronunciations.</p>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Sentence</li>
-            <li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li>
-          </ol>
-        </nav>
-      </div>
-    </div><!-- End Page Title -->
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Category: {{ category.category_name }}</h1>
+      <p>Explore and learn new sentences with their meanings and pronunciations.</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Sentence</li>
+          <li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
 
-    <!-- Sentence Section Section -->
-    <section id="sentence-section" class="sentence-section section">
+  <!-- Sentence Section Section -->
+  <section id="sentence-section" class="sentence-section section">
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>{{ category.category_name }}</h2>
-      </div><!-- End Section Title -->
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>{{ category.category_name }}</h2>
+    </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
+      <div class="level-filter mb-4 text-center">
+        <a href="?level=all"
+          class="btn {% if not selected_level or selected_level == 'all' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          All
+        </a>
+        <a href="?level=level1"
+          class="btn {% if selected_level == 'level1' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          Level I
+        </a>
+        <a href="?level=level2"
+          class="btn {% if selected_level == 'level2' %}btn-success{% else %}btn-outline-success{% endif %} me-2">
+          Level II
+        </a>
+        <a href="?level=level3"
+          class="btn {% if selected_level == 'level3' %}btn-success{% else %}btn-outline-success{% endif %}">
+          Level III
+        </a>
+      </div>
       <div class="word-container">
         {% for item in sentences %}
 
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.text }}
+          {% if item.level != 'unclassified' %}
+          <span class="level-badge">{{ item.get_level_display }}</span>
+          {% endif %}
         </button>
 
         <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
@@ -77,6 +99,7 @@
 
               <div class="modal-body">
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
+                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.translation }}</p>
 
                 {% if item.audio_file %}
@@ -103,19 +126,8 @@
       </div>
     </div>
 
-    </section><!-- End Sentence Section Section -->
+  </section><!-- End Sentence Section Section -->
 
-  </main>
+</main>
 
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
