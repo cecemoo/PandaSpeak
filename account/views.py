@@ -605,7 +605,7 @@ def add_placement_question(request):
         form = PlacementQuestionForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('manager_placement_questions')
+            return redirect('manage_placement_questions')
     else:
         form = PlacementQuestionForm()
     return render(request, 'account/add_placement_question.html', {'form': form})
