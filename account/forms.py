@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
-from . models import CustomUser
+from . models import CustomUser, PlacementQuestion
 from django import forms
 from teacher.models import VocabularyCategory, SentenceCategory, IdiomCategory
 
@@ -22,4 +22,11 @@ class AddSentenceCategoryForm(forms.ModelForm):
 class AddIdiomCategoryForm(forms.ModelForm):
     class Meta:
         model = IdiomCategory
+        fields = '__all__'
+
+
+
+class PlacementQuestionForm(forms.ModelForm):
+    class Meta:
+        model = PlacementQuestion
         fields = '__all__'

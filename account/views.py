@@ -1,12 +1,12 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm
+from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
 from course.models import Course, TimeSlot, Booking
-from .models import TermsOfService, PrivacyPolicy
+from .models import TermsOfService, PrivacyPolicy, PlacementQuestion
 from datetime import date
 from course.forms import CourseForm
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
@@ -598,3 +598,25 @@ def refund_booking(request, booking_id):
     
 
 
+@login_required(login_url='my_login')
+@user_passes_test(admin_only, login_url='my_login')
+def add_placement_question(request):
+    if request.method == 'POST':
+        form = PlacementQuestionForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('manager_placement_questions')
+    else:
+        form = PlacementQuestionForm()
+    return render(request, 'account/add_placement_question.html', {'form': form})
+
+
+@login_required(login_url='my_login')
+@user_passes_test(admin_only, login_url='my_login')
+def manage_placement_questions(request):
+    questions = PlacementQuestion.objects.all().order_by('level','order')
+    return render(
+        request,
+        'account/manage_placement_questions.html',
+        {'questions': questions}
+    )

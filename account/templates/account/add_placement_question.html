@@ -1,0 +1,130 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    #add-category-section form {
+        max-width: 850px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.96);
+        padding: 32px;
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    #add-category-section label {
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    #add-category-section input,
+    #add-category-section select,
+    #add-category-section textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d7d7d7;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    #add-category-section textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    #add-category-section input:focus,
+    #add-category-section select:focus,
+    #add-category-section textarea:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+    }
+</style>
+
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Add Placement Question</h1>
+            <!-- <p>Login to your account to access all features.</p> -->
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Add Placement Question</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Add Category Section -->
+    <section id="add-category-section" class="add-category-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <!-- <h2>Add Placement Question Section</h2> -->
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Level</label>
+                        {{ form.level }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Order</label>
+                        {{ form.order }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Question</label>
+                        {{ form.prompt }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            Audio <span class="text-muted">(Optional)</span>
+                        </label>
+                        {{ form.audio }}
+                        <small class="text-muted d-block mt-1">
+                            Upload an audio file if this is a listening question.
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Choice A</label>
+                        {{ form.choice_a }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Choice B</label>
+                        {{ form.choice_b }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Choice C</label>
+                        {{ form.choice_c }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Choice D</label>
+                        {{ form.choice_d }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Correct Answer</label>
+                        {{ form.correct_answer }}
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        Save Question
+                    </button>
+                    <a href="{% url 'manage_placement_questions' %}" class="btn btn-outline-secondary">
+                        Back
+                    </a>
+                </div>
+            </form>
+
+        </div>
+
+    </section><!-- /Add Category Section -->
+
+</main>
+{% endblock %}

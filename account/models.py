@@ -42,3 +42,39 @@ class PrivacyPolicy(models.Model):
 
     def __str__(self):
         return f"Privacy Policy (Last Updated: {self.last_updated.strftime('%Y-%m-%d')})"
+
+
+
+
+class PlacementQuestion(models.Model):
+    LEVEL_CHOICES = [
+        ('level1', 'Level I - Beginner'),
+        ('level2', 'Level II - Intermediate'),
+        ('level3', 'Level III - Advanced'),
+    ]
+    ANSWER_CHOICES = [
+        ('A', 'A'),
+        ('B', 'B'),
+        ('C', 'C'),
+        ('D', 'D'),
+    ]
+    level = models.CharField(
+        max_length=20,
+        choices=LEVEL_CHOICES
+    )
+    prompt = models.TextField()
+    choice_a = models.CharField(max_length=500)
+    choice_b = models.CharField(max_length=500)
+    choice_c = models.CharField(max_length=500)
+    choice_d = models.CharField(max_length=500)
+
+    correct_answer = models.CharField(max_length=1, choices=ANSWER_CHOICES)
+    audio = models.FileField(
+        upload_to = 'placement_audio/', 
+        blank=True,
+        null=True
+    )
+    order = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.get_level_display()} - Question {self.order}"

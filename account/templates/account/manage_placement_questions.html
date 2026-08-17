@@ -1,0 +1,84 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Manage Placement Questions</h1>
+            <!-- <p>Login to your account to access all features.</p> -->
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Manage Placement Questions</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Add Category Section -->
+    <section id="add-category-section" class="add-category-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Manage Placement Questions</h2>
+            <p>View and manage questions used for the placement test.</p>
+        </div>
+        <div class="container" data-aos="fade-up">
+            <div class="d-flex justify-content-end mb-4">
+                <a href="{% url 'add_placement_question' %}" class="btn btn-success">
+                    + Add Placement Question
+                </a>
+            </div>
+            {% if questions %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Level</th>
+                            <th>Order</th>
+                            <th>Question</th>
+                            <th>Correct Answer</th>
+                            <th>Audio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in questions %}
+                        <tr>
+                            <td>{{ question.get_level_display }}</td>
+                            <td>{{ question.order }}</td>
+                            <td>{{ question.prompt }}</td>
+                            <td>
+                                <span class="badge bg-success">
+                                    {{ question.correct_answer }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if question.audio %}
+                                <span class="badge bg-primary">Yes</span>
+                                {% else %}
+                                <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <h5>No placement questions yet</h5>
+                <p class="text-muted">
+                    Add your first question to begin building the placement test.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </section><!-- /Add Category Section -->
+
+</main>
+{% endblock %}

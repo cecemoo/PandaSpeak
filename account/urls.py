@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from . import managers
+
+
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -50,5 +53,14 @@ urlpatterns = [
     path('lessons/', views.lessons, name='lessons'),
     # path('lesson/<int:lesson_id>/edit/', views.edit_lesson, name='edit_lesson'),
     path('lesson/<int:lesson_id>/delete/', views.delete_lesson, name='delete_lesson'),
+
+    path('placement-questions/', 
+        views.manage_placement_questions,
+        name='manage_placement_questions'
+    ),
+    path('placement-questions/add/',
+        views.add_placement_question,
+        name='add_placement_question'
+    ),
     
 ]
