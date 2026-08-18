@@ -649,25 +649,25 @@ def placement_test(request):
         if percentages['level1'] < 70:
             recommended_level = 'level I - Beginner'
             recommendation = (
-                'We recommend starting with Level I materials'
+                'We recommend starting with Level I materials '
                 'to build a strong foundation in Chinese.'
             )
         elif percentages['level2'] < 70:
             recommended_level = 'Level II - intermediate'
             recommendation = (
-                'You have a good foundation in Chinese.'
+                'You have a good foundation in Chinese. '
                 'Level II materials are recommended to continue developing your skills.'
             )
         elif percentages['level3'] < 60:
             recommended_level = 'Level II - Intermediate'
             recommendation = (
-                'You have a good foundation in Chinese.'
+                'You have a good foundation in Chinese. '
                 'Level II materials are recommended to continue developing your skills.'
             )
         else:
             recommended_level = 'Level III - Advanced'
             recommendation = (
-                'You demonstrate strong foundational Chinese skills.'
+                'You demonstrate strong foundational Chinese skills. '
                 'Level III materials are recommended for more advanced practice.'
             )
 
