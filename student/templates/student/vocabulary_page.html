@@ -100,7 +100,25 @@
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.word }}
           {% if item.level != 'unclassified' %}
-          <span class="level-badge">{{ item.get_level_display }}</span>
+          <span class="fw-semibold">
+            {{ item.expression }}
+          </span>
+
+          {% if item.level == 'level1' %}
+          <span class="badge rounded-pill bg-success ms-2">
+            {{ item.get_level_display }}
+          </span>
+
+          {% elif item.level == 'level2' %}
+          <span class="badge rounded-pill bg-primary ms-2">
+            {{ item.get_level_display }}
+          </span>
+
+          {% elif item.level == 'level3' %}
+          <span class="badge rounded-pill bg-warning text-dark ms-2">
+            {{ item.get_level_display }}
+          </span>
+          {% endif %}
           {% endif %}
         </button>
 

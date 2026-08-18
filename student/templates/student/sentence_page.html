@@ -84,7 +84,25 @@
         <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.text }}
           {% if item.level != 'unclassified' %}
-          <span class="level-badge">{{ item.get_level_display }}</span>
+          <span class="fw-semibold">
+            {{ item.expression }}
+          </span>
+
+          {% if item.level == 'level1' %}
+          <span class="badge rounded-pill bg-success ms-2">
+            {{ item.get_level_display }}
+          </span>
+
+          {% elif item.level == 'level2' %}
+          <span class="badge rounded-pill bg-primary ms-2">
+            {{ item.get_level_display }}
+          </span>
+
+          {% elif item.level == 'level3' %}
+          <span class="badge rounded-pill bg-warning text-dark ms-2">
+            {{ item.get_level_display }}
+          </span>
+          {% endif %}
           {% endif %}
         </button>
 
@@ -99,7 +117,7 @@
 
               <div class="modal-body">
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
-                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
+                <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.translation }}</p>
 
                 {% if item.audio_file %}
