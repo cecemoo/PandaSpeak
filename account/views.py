@@ -620,3 +620,83 @@ def manage_placement_questions(request):
         'account/manage_placement_questions.html',
         {'questions': questions}
     )
+
+
+def placement_test(request):
+    questions = PlacementQuestion.objects.all().order_by('level', 'order')
+    if request.method == 'POST':
+        level_scores = {
+            'level1': {'correct': 0, 'total': 0},
+            'level2': {'correct': 0, 'total': 0},
+            'level3': {'correct': 0, 'total': 0},
+        }
+        for question in questions:
+            level_scores[question.level]['total'] += 1
+
+            student_answer = request.POST.get(f'question_{question.id}')
+            if student_answer == question.correct_answer:
+                level_scores[question.level]['correct'] += 1
+
+        percentages = {}
+        for level, score in level_scores.items():
+            if score['total'] > 0:
+                percentages[level] = (
+                    score['correct'] / score['total']
+
+                ) * 100
+            else:
+                percentages[level] = 0
+        if percentages['level1'] < 70:
+            recommended_level = 'level I - Beginner'
+            recommendation = (
+                'We recommend starting with Level I materials'
+                'to build a strong foundation in Chinese.'
+            )
+        elif percentages['level2'] < 70:
+            recommended_level = 'Level II - intermediate'
+            recommendation = (
+                'You have a good foundation in Chinese.'
+                'Level II materials are recommended to continue developing your skills.'
+            )
+        elif percentages['level3'] < 60:
+            recommended_level = 'Level II - Intermediate'
+            recommendation = (
+                'You have a good foundation in Chinese.'
+                'Level II materials are recommended to continue developing your skills.'
+            )
+        else:
+            recommended_level = 'Level III - Advanced'
+            recommendation = (
+                'You demonstrate strong foundational Chinese skills.'
+                'Level III materials are recommended for more advanced practice.'
+            )
+
+        total_correct = sum(
+            score['correct'] for score in level_scores.values()
+        )
+        total_questions = sum(
+            score['total'] for score in level_scores.values()
+        )
+        if total_questions > 0:
+            overall_percentage = round(
+                (total_correct / total_questions) * 100
+            )
+        else:
+            overall_percentage = 0
+
+        return render(
+            request,
+            'account/placement_test_result.html',
+            {
+                'recommended_level': recommended_level,
+                'total_correct': total_correct,
+                'total_questions': total_questions,
+                'overall_percentage': overall_percentage,
+                'recommendation': recommendation,
+            }
+        )
+    return render(
+        request,
+        'account/placement_test.html',
+        {'questions': questions}
+    )

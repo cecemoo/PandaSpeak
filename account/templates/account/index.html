@@ -31,6 +31,7 @@
               <h1>Master Chinese, One Step at a Time</h1>
               <p>Build vocabulary, improve pronunciation, and speak with confidence</p>
               <div class="cta-buttons">
+                <a href="{% url 'placement_test' %}" class="btn-primary rounded-pill">Take Free Placement Test</a>
                 {% if user.is_authenticated %}
                 {% if not user.is_teacher and not user.is_staff %}
                 {% if user.subscription.is_active %}

@@ -62,5 +62,6 @@ urlpatterns = [
         views.add_placement_question,
         name='add_placement_question'
     ),
+    path('placement-test/', views.placement_test, name='placement_test'),
     
 ]
