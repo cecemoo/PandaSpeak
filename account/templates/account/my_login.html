@@ -36,6 +36,9 @@
             {{ LoginForm|crispy }}
             <button type="submit" value="submit">Login</button>
           </form>
+          <div class="text-center mt-3">
+            <a href="{% url 'password_reset' %}">Forgot your password?</a>
+          </div>
         </div>
       </div>
 
