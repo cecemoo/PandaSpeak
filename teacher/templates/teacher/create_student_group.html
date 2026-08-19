@@ -1,0 +1,65 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Create Student Group</h1>
+      <p>Hello, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Create Student Group</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Teacher Dashboard Section -->
+  <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Create Student Group</h2>
+      <!-- <p>Manage your sentence entries, track student progress, and update your profile.</p> -->
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Group Name</label>
+          {{ form.name }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Students</label>
+          {{ form.students }}
+          <div class="form-text">
+            Hold Command on Mac or Ctrl on Windows to select multiple students.
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary rounded-pill">
+          Create Group
+        </button>
+
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary rounded-pill">
+          Cancel
+        </a>
+
+      </form>
+
+
+    </div>
+
+  </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

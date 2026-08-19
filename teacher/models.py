@@ -1,6 +1,6 @@
 from django.db import models
 from account.models import CustomUser
-
+from course.models import StudentGroup
 
 
 LEVEL_CHOICES = [
@@ -165,6 +165,13 @@ class LearningSurvey(models.Model):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    student_group = models.ForeignKey(
+        StudentGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='surveys'
+    )
 
     def __str__(self):
         return self.title

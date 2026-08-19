@@ -87,8 +87,30 @@
           <a href="{% url 'teacher_course_bookings' %}" class="text-decoration-none">
             <div class="card text-center dashboard-card">
               <div class="card-body">
-                <h5>Manage Classes</h5>
+                <h5>Manage Tutoring Classes</h5>
                 <p>View and edit your tutoring classes.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{% url 'create_student_group' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Create Student Group</h5>
+                <p>Create and manage student groups.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{% url 'student_group_list' %}" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Student Group List</h5>
+                <p>View and manage your student groups.</p>
               </div>
             </div>
           </a>
@@ -127,7 +149,7 @@
           </a>
         </div>
 
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <a href="{% url 'add_tone' %}" class="text-decoration-none">
             <div class="card text-center dashboard-card">
               <div class="card-body">
@@ -136,7 +158,7 @@
               </div>
             </div>
           </a>
-        </div>
+        </div> -->
 
         <div class="col-md-4">
           <a href="{% url 'teacher_create_test' %}" class="text-decoration-none">

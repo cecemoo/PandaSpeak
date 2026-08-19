@@ -1,0 +1,108 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Student Group List</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Student Group List</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Student Group List</h2>
+            <!-- <p>Manage your sentence entries, track student progress, and update your profile.</p> -->
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Student Groups</h2>
+
+                <a href="{% url 'create_student_group' %}" class="btn btn-primary">
+                    Create New Group
+                </a>
+            </div>
+
+            {% if student_groups %}
+
+            <div class="row g-4">
+
+                {% for group in student_groups %}
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ group.name }}
+                            </h5>
+                            <p class="mb-2">
+                                <strong>Students:</strong>
+                                {{ group.students.count }}
+                            </p>
+                            {% if group.students.all %}
+                            <ul class="mb-3">
+                                {% for student in group.students.all %}
+                                <li>
+                                    {% if student.get_full_name %}
+                                    {{ student.get_full_name }}
+                                    {% else %}
+                                    {{ student.email }}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">
+                                No students in this group yet.
+                            </p>
+                            {% endif %}
+                            <div class="mt-3">
+                                <a href="{% url 'edit_student_group' group.id %}"
+                                    class="btn btn-sm rounded-pill btn-warning">
+                                    Edit
+                                </a>
+                                <form method="POST" action="{% url 'delete_student_group' group.id %}"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete this student group?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm rounded-pill btn-danger">
+                                        Delete
+                                    </button>
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+
+            <div class="alert alert-info">
+                You haven't created any student groups yet.
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

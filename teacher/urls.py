@@ -30,4 +30,8 @@ urlpatterns = [
     path("surveys/", views.teacher_survey_list, name="teacher_survey_list"),
     path('surveys/<int:survey_id>/responses/', views.survey_responses, name='survey_responses'),
     
+    path('student-groups/create/', views.create_student_group, name='create_student_group'),
+    path('student-groups/', views.student_group_list, name='student_group_list'),
+    path('student-groups/<int:group_id>/edit/', views.edit_student_group, name='edit_student_group'),
+    path('student-groups/<int:group_id>/delete/', views.delete_student_group, name='delete_student_group'),
 ]

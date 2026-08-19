@@ -13,7 +13,7 @@ from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTe
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
 from django.core.mail import send_mail
-
+from django.db.models import Q
 
 
 
@@ -29,9 +29,13 @@ def student_dashboard(request):
     ).first()
     available_surveys = LearningSurvey.objects.filter(
         is_active=True
+    ).filter(
+        Q(student_group__students=request.user) |
+        Q(student_group__isnull=True)
     ).exclude(
         responses__student=request.user
-    )
+    ).distinct()
+
     context = {
         'has_subscription': sub is not None,
         'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
@@ -153,7 +157,15 @@ def test_list(request):
     completed_test_ids = StudentTestSubmission.objects.filter(
         student=request.user
     ).values_list('test_id', flat=True)
-    tests = LanguageTest.objects.filter(is_active=True, is_published=True).exclude(id__in=completed_test_ids)
+    tests = LanguageTest.objects.filter(
+        is_active=True,
+        is_published=True
+    ).filter(
+        Q(student_group__students=request.user) | Q(student_group__isnull=True)
+    ).exclude(
+        id__in=completed_test_ids
+    ).distinct()
+
     context = {
         'tests': tests
     }
@@ -163,7 +175,10 @@ def test_list(request):
 @login_required(login_url='my_login')
 def take_test(request, test_id):
             test = get_object_or_404(
-                LanguageTest,
+                LanguageTest.objects.filter(
+                    Q(student_group__students=request.user) |
+                    Q(student_group__isnull=True)
+                ).distinct(),
                 id=test_id,
                 is_active=True,
                 is_published=True
@@ -181,9 +196,7 @@ def take_test(request, test_id):
                 listening_total = 0
                 speaking_recordings = []
                 for question in questions:
-                    # -------------------------
-                    # LISTENING QUESTIONS
-                    # -------------------------
+                    
                     if question.question_type in [
                         'listen_mc',
                         'listen_text'

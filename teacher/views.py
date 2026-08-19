@@ -5,7 +5,7 @@ from teacher.decorators import subscription_required
 from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm, LanguageTestForm, TestQuestionForm, LearningSurveyForm, SurveyQuestionForm
 from account.models import CustomUser
 from subscription.models import Subscription
-from course.models import Course, Booking
+from course.models import Course, Booking, StudentGroup
 from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
@@ -13,6 +13,9 @@ from student.models import LanguageTest, TestQuestion, StudentTestSubmission
 from .models import LearningSurvey, SurveyQuestion
 from django.core.mail import send_mail
 from django.conf import settings
+from course.forms import StudentGroupForm
+
+
 
 
 
@@ -46,9 +49,16 @@ def teacher_dashboard(request):
         .order_by("-created_at")[:10]
     )
     add_teacher_local_times(recent_bookings)
+
+    student_groups = StudentGroup.objects.filter(
+        teacher=request.user,
+        is_active=True,
+    ).order_by("name")
+
     context = {
         "courses": courses,
         "recent_bookings": recent_bookings,
+        "student_groups": student_groups,
     }
     return render(
         request,
@@ -57,6 +67,81 @@ def teacher_dashboard(request):
     )
 
 
+
+@login_required(login_url='my_login')
+def create_student_group(request):
+    if request.method == "POST":
+        form = StudentGroupForm(request.POST)
+        if form.is_valid():
+            student_group = form.save(commit=False)
+            student_group.teacher = request.user
+            student_group.save()
+            form.save_m2m()
+            return redirect("teacher_dashboard")
+    else:
+        form = StudentGroupForm()
+    context = {
+        "form": form,
+    }
+    return render(
+        request,
+        "teacher/create_student_group.html",
+        context
+    )
+
+
+@login_required(login_url='my_login')
+def student_group_list(request):
+    student_groups = (
+        StudentGroup.objects
+        .filter(teacher=request.user)
+        .prefetch_related("students")
+        .order_by("name")
+    )
+    context = {
+        "student_groups": student_groups,
+    }
+    return render(
+        request,
+        "teacher/student_group_list.html",
+        context,
+    )
+
+
+@login_required(login_url='my_login')
+def edit_student_group(request, group_id):
+    student_group = get_object_or_404(
+        StudentGroup,
+        id=group_id,
+        teacher=request.user,
+    )
+    if request.method == "POST":
+        form = StudentGroupForm(request.POST, instance=student_group)
+        if form.is_valid():
+            form.save()
+            return redirect("student_group_list")
+    else:
+        form = StudentGroupForm(instance=student_group)
+    context = {
+        "form": form,
+        "student_group": student_group,
+    }
+    return render(
+        request,
+        "teacher/edit_student_group.html",
+        context
+    )
+
+@login_required(login_url='my_login')
+def delete_student_group(request, group_id):
+    student_group = get_object_or_404(
+        StudentGroup,
+        id=group_id,
+        teacher=request.user,
+    )
+    if request.method == "POST":
+        student_group.delete()
+    return redirect("student_group_list")
 
 
 
@@ -263,7 +348,7 @@ def create_test(request):
     if not request.user.is_teacher:
         return redirect('student_dashboard')
     if request.method == 'POST':
-        form = LanguageTestForm(request.POST)
+        form = LanguageTestForm(request.POST or None, teacher=request.user)
         if form.is_valid():
             test = form.save(commit=False)
             test.teacher = request.user
@@ -272,7 +357,7 @@ def create_test(request):
             messages.success(request, 'Test created successfully.')
             return redirect('teacher_add_test_questions', test_id=test.id)
     else:
-        form = LanguageTestForm()
+        form = LanguageTestForm(teacher=request.user)
     return render(request, 'teacher/create_test.html', {'form': form})
 
 
@@ -307,6 +392,37 @@ def publish_test(request, test_id):
             return redirect('teacher_add_test_questions', test_id=test.id)
         test.is_published = True
         test.save()
+        if not test.notification_sent:
+            if test.student_group:
+                students = test.student_group.students.filter(
+                    is_active=True,
+                )
+            else:
+                students = CustomUser.objects.filter(
+                    is_teacher=False,
+                    is_active=True,
+                    is_staff=False,
+                )
+            for student in students:
+                if student.email:
+                    send_mail(
+                        subject=f"New PandaSpeak Test: {test.title}",
+                        
+                        message=(
+                            f"Hello {student.get_full_name() or student.email},\n\n"
+                            f"A new test '{test.title}' has been published by {test.teacher.get_full_name()}.\n\n"
+                            f"Please log into PandaSpeak to take the test.\n\n"
+                            f"Best regards,\n"
+                            f"PandaSpeak Support Team"
+                        ),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[student.email],
+                        fail_silently=False,
+                    )
+            test.notification_sent = True
+            test.save()
+
+
         messages.success(request, "Test published successfully.")
         return redirect('teacher_dashboard')
     return redirect("teacher_add_test_questions", test_id=test.id)
@@ -441,12 +557,21 @@ def finish_learning_survey(request,survey_id):
         )
     survey.is_active = True
     survey.save()
-    students = CustomUser.objects.filter(
-        is_teacher=False,
-        is_active=True
-    ).exclude(
-        email=""
-    )
+    if survey.student_group:
+        students = survey.student_group.students.filter(
+            is_active=True
+        ).exclude(
+            email=""
+        )
+    else:
+        students = CustomUser.objects.filter(
+            is_teacher=False,
+            is_active=True,
+            is_staff=False,
+        ).exclude(
+            email=""
+        )
+        
     student_emails = list(
         students.values_list("email", flat=True)
     )
@@ -460,7 +585,7 @@ def finish_learning_survey(request,survey_id):
                     f"A new learning survey has been published:"
                     f"'{survey.title}'.\n\n"
                     f"Please log into PandaSpeak to complete the survey.\n\n"
-                    f"Best regards,\n\n"
+                    f"Best regards,\n"
                     f"\nPandaSpeak Support Team"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,

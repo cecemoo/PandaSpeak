@@ -1,7 +1,7 @@
 from django.db import models
 from account.models import CustomUser
 from django.utils import timezone
-
+from django.conf import settings
 
 
 
@@ -105,3 +105,17 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.student.username} -> {self.timeslot}"
+
+
+
+
+class StudentGroup(models.Model):
+    name = models.CharField(max_length=100)
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='student_groups')
+    students = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='groups_joined', blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

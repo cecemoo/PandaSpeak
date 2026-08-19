@@ -1,4 +1,8 @@
 from django import forms
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.forms.models import inlineformset_factory
+from .models import Course, TimeSlot, StudentGroup
+from datetime import time
 from .models import Course, TimeSlot, WEEKDAY_CHOICES
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
@@ -6,6 +10,11 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import time
 from zoneinfo import available_timezones
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 
 
 COMMON_TIMEZONE_CHOICES = [
@@ -193,3 +202,25 @@ TimeSlotFormSet = inlineformset_factory(
     extra=5,
     can_delete=True,
 )
+
+
+
+class StudentGroupForm(forms.ModelForm):
+    class Meta:
+        model = StudentGroup
+        fields = ["name", "students"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter group name",
+            }),
+            "students": forms.SelectMultiple(attrs={
+                "class": "form-control",
+            }),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["students"].queryset = User.objects.filter(
+            is_teacher=False,
+            is_active=True,
+        ).order_by("first_name", "last_name", "email")

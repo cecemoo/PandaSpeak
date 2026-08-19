@@ -45,7 +45,18 @@
                     <tbody>
                         {% for test in tests %}
                         <tr>
-                            <td>{{ test.title }}</td>
+                            <td>{{ test.title }}
+                                <p class="mb-0">
+                                    <small>
+                                        <strong>Group:</strong>
+                                        {% if test.student_group %}
+                                        {{ test.student_group.name }}
+                                        {% else %}
+                                        All Students
+                                        {% endif %}
+                                    </small>
+                                </p>
+                            </td>
 
                             <td>
                                 {% if test.is_published %}
@@ -58,11 +69,13 @@
                             <td>{{ test.questions.count }}</td>
 
                             <td>
-                                <a href="{% url 'teacher_view_test' test.id %}" class="btn btn-secondary rounded-pill btn-sm">
+                                <a href="{% url 'teacher_view_test' test.id %}"
+                                    class="btn btn-secondary rounded-pill btn-sm">
                                     View
                                 </a>
 
-                                <a href="{% url 'teacher_add_test_questions' test.id %}" class="btn btn-primary rounded-pill btn-sm">
+                                <a href="{% url 'teacher_add_test_questions' test.id %}"
+                                    class="btn btn-primary rounded-pill btn-sm">
                                     Edit
                                 </a>
 

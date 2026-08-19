@@ -3,7 +3,7 @@ from django.forms import ModelForm
 from account.models import CustomUser
 from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, LearningSurvey, SurveyQuestion
 from student.models import LanguageTest, TestQuestion
-
+from course.models import StudentGroup
 
 
 
@@ -57,6 +57,7 @@ class LanguageTestForm(forms.ModelForm):
             'test_type',
             'description',
             'is_active',
+            'student_group',
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -73,6 +74,17 @@ class LanguageTestForm(forms.ModelForm):
                 'rows': 4
             }),
         }
+    def __init__(self, *args, **kwargs):
+        teacher = kwargs.pop("teacher", None)
+        super().__init__(*args, **kwargs)
+        if teacher:
+            self.fields["student_group"].queryset = StudentGroup.objects.filter(
+                teacher=teacher,
+                is_active=True
+            ).order_by("name")
+
+
+
 
 class TestQuestionForm(forms.ModelForm):
     correct_choice = forms.ChoiceField(
@@ -143,7 +155,7 @@ class TestQuestionForm(forms.ModelForm):
 class LearningSurveyForm(forms.ModelForm):
     class Meta:
         model = LearningSurvey
-        fields = ["title", "description"]
+        fields = ["title", "description", "student_group", "is_active"]
         widgets = {
             "title": forms.TextInput(attrs={
                 "class": "form-control",
@@ -153,6 +165,12 @@ class LearningSurveyForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "Describe the purpose of this survey",
                 "rows": 4
+            }),
+            "student_group": forms.Select(attrs={
+                "class": "form-control"
+            }),
+            "is_active": forms.CheckboxInput(attrs={
+                "class": "form-check-input"
             }),
         }
 

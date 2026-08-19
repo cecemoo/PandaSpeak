@@ -1,6 +1,6 @@
 from django.db import models
 from account.models import CustomUser
-
+from course.models import StudentGroup
 
 
 
@@ -17,6 +17,14 @@ class LanguageTest(models.Model):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     is_published = models.BooleanField(default=False)
+    notification_sent = models.BooleanField(default=False)
+    student_group = models.ForeignKey(
+        StudentGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='language_tests'
+    )
 
     def __str__(self):
         return self.title

@@ -122,6 +122,14 @@
                         <h3 class="survey-title">
                             {{ survey.title }}
                         </h3>
+                        <small class="text-muted d-block mb-2" style="font-size: 0.85rem;">
+                            Group:
+                            {% if survey.student_group %}
+                            {{ survey.student_group.name }}
+                            {% else %}
+                            All Students
+                            {% endif %}
+                        </small>
                         {% if survey.description %}
                         <p class="survey-description">
                             {{ survey.description }}
@@ -162,22 +170,23 @@
                         {{ survey.responses.count }} student response{{ survey.responses.count|pluralize }}
                     </p>
 
-                    <a href="{% url 'survey_responses' survey.id %}" class="btn btn-outline-primary rounded-pill btn-sm">
+                    <a href="{% url 'survey_responses' survey.id %}"
+                        class="btn btn-outline-primary rounded-pill btn-sm">
                         View Responses
                     </a>
                 </div>
             </div>
-        {% empty %}
-        <div class="text-center py-5">
-            <h4>No surveys yet</h4>
-            <p class="text-muted">
-                Create your first learning feedback survey.
-            </p>
-            <a href="{% url 'create_learning_survey' %}" class="btn btn-success rounded-pill">
-                Create Survey
-            </a>
-        </div>
-        {% endfor %}
+            {% empty %}
+            <div class="text-center py-5">
+                <h4>No surveys yet</h4>
+                <p class="text-muted">
+                    Create your first learning feedback survey.
+                </p>
+                <a href="{% url 'create_learning_survey' %}" class="btn btn-success rounded-pill">
+                    Create Survey
+                </a>
+            </div>
+            {% endfor %}
         </div>
         {% else %}
         <p>No surveys have been created yet.</p>
