@@ -1,0 +1,73 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Notifications</h1>
+      <!-- <p>Login to your account to access all features.</p> -->
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Notifications</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Add Category Section -->
+  <section id="add-category-section" class="add-category-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Notifications</h2>
+
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+
+      <div>
+        <div>
+          {% if notifications %}
+          <ul class="list-group">
+            {% for notification in notifications %}
+            <div class="card shadow-sm mb-3 {% if not notification.is_read %}fw-bold bg-info-subtle border-success{% endif %}">
+              <div class="card-body">
+                <h6 class="card-title mb-1">
+                  {{ notification.title }}
+                </h6>
+                <p class="card-text mb-1">
+                  {{ notification.message }}
+                </p>
+                <small class="text-muted">
+                  {% if notification.is_completed %}
+                    <span class="badge bg-success">Completed</span>
+                  {% else %}
+                  <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-sm btn-outline-success rounded-pill">
+                    View
+                  </a>
+                  {% endif %}
+                  {{ notification.created_at|date:"M. d, Y, g:i a" }}
+                </small>
+              </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">
+              You don't have any notifications yet.
+            </p>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p>No notifications available.</p>
+          {% endif %}
+        </div>
+      </div>
+
+  </section><!-- /Add Category Section -->
+
+</main>
+{% endblock %}

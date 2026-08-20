@@ -2,6 +2,8 @@ from django.db import models
 from . managers import CustomUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
+from django.conf import settings
+
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -78,3 +80,29 @@ class PlacementQuestion(models.Model):
 
     def __str__(self):
         return f"{self.get_level_display()} - Question {self.order}"
+
+
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    link = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True
+    )
+    is_read = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.title}"

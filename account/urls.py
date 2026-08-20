@@ -73,5 +73,8 @@ urlpatterns = [
         name='add_placement_question'
     ),
     path('placement-test/', views.placement_test, name='placement_test'),
+
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     
 ]

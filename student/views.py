@@ -13,7 +13,11 @@ from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTe
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.db.models import Q
+from django.db.models import Q, Sum
+from account.models import Notification
+from django.urls import reverse
+
+
 
 
 
@@ -174,134 +178,155 @@ def test_list(request):
 
 @login_required(login_url='my_login')
 def take_test(request, test_id):
-            test = get_object_or_404(
-                LanguageTest.objects.filter(
-                    Q(student_group__students=request.user) |
-                    Q(student_group__isnull=True)
+        test = get_object_or_404(
+            LanguageTest.objects.filter(
+                Q(student_group__students=request.user) |
+                Q(student_group__isnull=True)
                 ).distinct(),
                 id=test_id,
                 is_active=True,
                 is_published=True
             )
-            questions = TestQuestion.objects.filter(
+        questions = TestQuestion.objects.filter(
                 test=test
-            ).order_by('order')
-            if request.method == 'POST':
-                submission = StudentTestSubmission.objects.create(
-                    student=request.user,
-                    test=test,
-                    listening_score=0
-                )
-                listening_score = 0
-                listening_total = 0
-                speaking_recordings = []
-                for question in questions:
+        ).order_by('order')
+        if request.method == 'POST':
+            submission = StudentTestSubmission.objects.create(
+                student=request.user,
+                test=test,
+                listening_score=0
+            )
+            listening_score = 0
+            listening_total = 0
+            speaking_recordings = []
+            for question in questions:
                     
-                    if question.question_type in [
-                        'listen_mc',
-                        'listen_text'
-                    ]:
-                        listening_total += question.points
-                        student_answer = request.POST.get(
+                if question.question_type in [
+                    'listen_mc',
+                     'listen_text'
+                ]:
+                    listening_total += question.points
+                    student_answer = request.POST.get(
                             f'answer_{question.id}',
                             ''
-                        ).strip()
-                        correct_answer = (
+                     ).strip()
+                    correct_answer = (
                             question.correct_answer or ''
-                        ).strip()
-                        is_correct = (
+                    ).strip()
+                    is_correct = (
                             student_answer.casefold()
                             == correct_answer.casefold()
-                        )
-                        earned_score = (
+                    )
+                    earned_score = (
                             question.points if is_correct else 0
-                        )
-                        listening_score += earned_score
-                        StudentListeningAnswer.objects.create(
+                    )
+                    listening_score += earned_score
+                    StudentListeningAnswer.objects.create(
                             submission=submission,
                             question=question,
                             answer=student_answer,
                             is_correct=is_correct,
                             score=earned_score
-                        )
+                    )
                     # -------------------------
                     # SPEAKING QUESTIONS
                     # -------------------------
-                    elif question.question_type in [
-                        'speak_read',
-                        'speaking_answer'
-                    ]:
-                        recording = request.FILES.get(
+                elif question.question_type in [
+                    'speak_read',
+                    'speaking_answer'
+                ]:
+                    recording = request.FILES.get(
                             f'recording_{question.id}'
-                        )
-                        if recording:
-                            StudentSpeakingAnswer.objects.create(
+                    )
+                    if recording:
+                        StudentSpeakingAnswer.objects.create(
                                 student=request.user,
                                 question=question
-                            )
-                            speaking_recordings.append(
+                        )
+                        speaking_recordings.append(
                                 (question, recording)
-                            )
-                submission.listening_score = listening_score
-                submission.save(
+                        )
+            submission.listening_score = listening_score
+            submission.save(
                     update_fields=['listening_score']
-                )
+            )
                 # -------------------------
                 # EMAIL SPEAKING RECORDINGS
                 # -------------------------
-                if speaking_recordings:
-                    teacher = test.teacher
-                    student_name = request.user.get_full_name()
-                    if not student_name:
-                        student_name = request.user.email
-                    email = EmailMessage(
-                        subject=f'PandaSpeak Test Submission - {test.title}',
-                        body=f"""
-        Student: {student_name}
-        Student Email: {request.user.email}
-        Test: {test.title}
-        Listening Score:
-        {listening_score} / {listening_total}
-        The student's speaking recordings are attached.
-        Please review and grade the speaking portion.
-        """,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[teacher.email],
-                    )
-                    for question, recording in speaking_recordings:
-                        recording.seek(0)
-                        email.attach(
+            if speaking_recordings:
+                teacher = test.teacher
+                student_name = request.user.get_full_name()
+                if not student_name:
+                    student_name = request.user.email
+                email = EmailMessage(
+                    subject=f'PandaSpeak Test Submission - {test.title}',
+                    body=f"""
+                    Student: {student_name}
+                    Student Email: {request.user.email}
+                    Test: {test.title}
+                    Listening Score:
+                    {listening_score} / {listening_total}
+                    The student's speaking recordings are attached.
+                    Please review and grade the speaking portion.
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[teacher.email],
+                )
+                for question, recording in speaking_recordings:
+                    recording.seek(0)
+                    email.attach(
                             f'question_{question.order}_{recording.name}',
                             recording.read(),
                             recording.content_type
-                        )
-                    email.send(fail_silently=False)
+                    )
+                email.send(fail_silently=False)
                     # Mark speaking answers as emailed
-                    StudentSpeakingAnswer.objects.filter(
+                StudentSpeakingAnswer.objects.filter(
                         student=request.user,
                         question__test=test,
                         email_sent=False
-                    ).update(
+                ).update(
                         email_sent=True
-                    )
-                return render(
-                    request,
-                    'student/test_result.html',
-                    {
-                        'test': test,
-                        'listening_score': listening_score,
-                        'listening_total': listening_total,
-                        'has_speaking': bool(speaking_recordings),
-                    }
                 )
-            return render(
+            else:
+                teacher = test.teacher
+                student_name = request.user.get_full_name() or request.user.email
+                send_mail(
+                    subject=f"PandaSpeak Test Submission - {test.title}",
+                    message=(
+                        f"Student: {student_name}\n"
+                        f"Student Email: {request.user.email}\n"
+                        f"Test: {test.title}\n"
+                        f"Listening Score: {listening_score} / {listening_total}\n\n"
+                        f"The student has completed the test.\n"
+                        f"Please log in to PandaSpeak to review the result.\n\n"
+                        f"Best regards,\n"
+                        f"PandaSpeak Support Team"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[teacher.email],
+                    fail_silently=False
+                )
+
+            teacher = test.teacher
+            Notification.objects.create(
+                user=teacher,
+                title="New Test Submission",
+                message=f"{request.user.get_full_name() or request.user.email} submitted {test.title}.",
+                link=reverse('teacher_student_test_results'),
+            )
+            return redirect(
+                'test_result',
+                submission_id=submission.id
+            )
+        return render(
                 request,
                 'student/take_test.html',
                 {
                     'test': test,
                     'questions': questions,
                 }
-            )
+        )
 
 
 
@@ -389,9 +414,25 @@ def test_result(request, submission_id):
         id=submission_id,
         student=request.user
     )
+    test = submission.test
+    listening_total = TestQuestion.objects.filter(
+        test=test,
+        question_type__in=['listen_mc', 'listen_text']
+    ).aggregate(
+        total=Sum('points')
+    )['total'] or 0
+
+    has_speaking = TestQuestion.objects.filter(
+        test=test,
+        question_type__in=['speak_read', 'speaking_answer']
+    ).exists()
+    
     context = {
         'test': submission.test,
         'submission': submission,
+        'listening_total': listening_total,
+        'has_speaking': has_speaking,
+        'listening_score': submission.listening_score,
     }
     return render(request, 'student/test_result.html', context)
 
@@ -452,7 +493,7 @@ def take_learning_survey(request, survey_id):
                     message=(
                         f"{request.user.get_full_name() or request.user.username} "
                         f"has completed the survey '{survey.title}'."
-                        f"\n\nPlease log in to the PandaSpeak platform to review the responses."
+                        f"\n\nPlease log in to the PandaSpeak platform to review the responses.\n\n"
                         f"Best regards,"
                         f"\nPandaSpeak Support Team"
                     ),
@@ -460,14 +501,17 @@ def take_learning_survey(request, survey_id):
                     recipient_list=[teacher.email],
                     fail_silently=False,
                 )
-
+            Notification.objects.create(
+                user=survey.teacher,
+                title="New Survey Response",
+                message=f"{request.user.get_full_name() or request.user.email} submitted {survey.title}.",
+                link=reverse('survey_responses', args=[survey.id]),
+            )
         messages.success(
             request,
             "Thank you. Your survey has been submitted successfully."
             )
-
         return redirect("student_survey_list")
-
     return render(
         request,
         "student/take_learning_survey.html",
@@ -486,7 +530,7 @@ def student_survey_list(request):
         is_active=True
     ).exclude(
         responses__student=request.user
-    )
+    ).order_by('-created_at')[:5]
     return render(
         request,
         'student/student_survey_list.html',

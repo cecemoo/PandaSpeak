@@ -35,18 +35,14 @@
             <div class="container py-4">
                 <div class="row justify-content-center">
                     <div class="col-lg-9">
-
                         <div class="card shadow-sm border-0">
                             <div class="card-body p-4">
-
                                 <h2 class="mb-2">{{ survey.title }}</h2>
-
                                 {% if survey.description %}
                                 <p class="text-muted mb-4">
                                     {{ survey.description }}
                                 </p>
                                 {% endif %}
-
                                 <form method="POST">
                                     {% csrf_token %}
                                     {% for question in questions %}
@@ -62,7 +58,6 @@
                                                 <input class="form-check-input" type="radio"
                                                     name="question_{{ question.id }}" value="{{ value }}"
                                                     id="q{{ question.id }}_{{ value }}" required>
-
                                                 <label class="form-check-label" for="q{{ question.id }}_{{ value }}">
                                                     {{ value }}
                                                 </label>
@@ -131,10 +126,8 @@
                                     </button>
                                     {% endif %}
                                 </form>
-
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

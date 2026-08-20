@@ -29,29 +29,73 @@
             <p>Here are your test results.</p>
         </div><!-- End Section Title -->
 
-        <div class="card mt-4">
-            <div class="card-body">
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="text-center mb-4">
+                                <h2 class="fw-bold mb-2">
+                                    {{ test.title }}
+                                </h2>
 
-                <h3>{{ test.title }}</h3>
+                                <span class="badge bg-success-subtle text-success px-3 py-2">
+                                    Test Submitted
+                                </span>
+                            </div>
+                            <hr class="mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="border rounded-3 p-3 h-100">
+                                        <small class="text-muted d-block mb-1">
+                                            Listening Score
+                                        </small>
+                                        <h4 class="mb-0">
+                                            {{ listening_score }} / {{ listening_total }}
+                                        </h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border rounded-3 p-3 h-100">
+                                        <small class="text-muted d-block mb-1">
+                                            Speaking Score
+                                        </small>
 
-                <p>
-                    <strong>Listening Score:</strong>
-                    {{ listening_score }} / {{ listening_total }}
-                </p>
+                                        {% if has_speaking %}
+                                        <span class="badge bg-warning text-dark">
+                                            Pending Teacher Review
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            Not Applicable
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
 
-                {% if has_speaking %}
+                            </div>
 
-                <p>
-                    <strong>Speaking Score:</strong>
-                    Pending teacher review
-                </p>
+                            {% if has_speaking %}
+                            <div class="alert alert-info mt-4 mb-0">
+                                Your speaking recording has been submitted successfully.
+                                Your teacher will review it and update your score.
+                            </div>
+                            {% endif %}
 
-                <p class="text-muted">
-                    Your speaking recordings were submitted to the teacher.
-                </p>
+                            <div class="text-center mt-4">
+                                <a href="{% url 'student_test_results' %}"
+                                    class="btn btn-outline-success rounded-pill px-4">
+                                    View Test Results History
+                                </a>
+                                <a href="{% url 'student_dashboard' %}" class="btn btn-success rounded-pill px-4 ms-2">
+                                    Back to Dashboard
+                                </a>
+                            </div>
 
-                {% endif %}
+                        </div>
+                    </div>
 
+                </div>
             </div>
         </div>
 

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Exists, OuterRef
 from teacher.decorators import subscription_required
 from . forms import UpdateUserForm, VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm, LanguageTestForm, TestQuestionForm, LearningSurveyForm, SurveyQuestionForm
-from account.models import CustomUser
+from account.models import CustomUser, Notification
 from subscription.models import Subscription
 from course.models import Course, Booking, StudentGroup
 from . decorators import add_teacher_local_times
@@ -14,7 +14,7 @@ from .models import LearningSurvey, SurveyQuestion
 from django.core.mail import send_mail
 from django.conf import settings
 from course.forms import StudentGroupForm
-
+from django.urls import reverse
 
 
 
@@ -419,6 +419,12 @@ def publish_test(request, test_id):
                         recipient_list=[student.email],
                         fail_silently=False,
                     )
+                Notification.objects.create(
+                    user=student,
+                    title="New Test Available",
+                    message=f"{test.title} has been published by {test.teacher.get_full_name()}. Please log in to take the test.",
+                    link=reverse('take_test', args=[test.id]),
+                )
             test.notification_sent = True
             test.save()
 
@@ -591,6 +597,12 @@ def finish_learning_survey(request,survey_id):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[student.email],
                 fail_silently=False,
+            )
+            Notification.objects.create(
+                user=student,
+                title="New Learning Survey Available",
+                message=f"{survey.title} has been published by {survey.teacher.get_full_name()}. Please log in to complete the survey.",
+                link=reverse('take_learning_survey', args=[survey.id]),
             )
     messages.success(
         request,

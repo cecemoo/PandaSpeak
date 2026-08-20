@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
 from course.models import Course, TimeSlot, Booking
-from .models import TermsOfService, PrivacyPolicy, PlacementQuestion
+from .models import TermsOfService, PrivacyPolicy, PlacementQuestion, Notification
 from datetime import date
 from course.forms import CourseForm
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
@@ -16,6 +16,10 @@ import stripe
 from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.mail import send_mail
+from student.models import LanguageTest, StudentTestSubmission
+from teacher.models import SurveyResponse
+from django.urls import resolve
+
 
 
 
@@ -700,3 +704,66 @@ def placement_test(request):
         'account/placement_test.html',
         {'questions': questions}
     )
+
+
+
+@login_required(login_url='my_login')
+def notifications(request):
+    user_notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:8]
+
+    for notification in user_notifications:
+        notification.is_completed = False
+        # test notification
+        if notification.link and '/student/tests/' in notification.link:
+            try:
+                test_id = notification.link.rstrip('/').split('/')[-1]
+                completed_test = StudentTestSubmission.objects.filter(
+                    student=request.user,
+                    test_id=test_id,
+                ).exists()
+                if completed_test:
+                    notification.is_completed = True
+                    if not notification.is_read:
+                        notification.is_read = True
+                        notification.save(update_fields=['is_read'])
+            except (ValueError, IndexError):
+                pass
+                # survey notification
+        elif notification.link and '/surveys/' in notification.link:
+            try:
+                match = resolve(notification.link)
+                if match.url_name == 'take_learning_survey':
+                    survey_id = match.kwargs.get('survey_id')
+                    completed_survey = SurveyResponse.objects.filter(
+                        student=request.user,
+                        survey_id=survey_id,
+                    ).exists()
+                    if completed_survey:
+                        notification.is_completed = True
+                        if not notification.is_read:
+                            notification.is_read = True
+                            notification.save(update_fields=['is_read'])
+            except Exception:
+                pass
+        
+    return render(
+        request,
+        'account/notifications.html',
+        {'notifications': user_notifications}
+    )
+
+
+@login_required(login_url='my_login')
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(
+        Notification,
+        id=notification_id,
+        user=request.user
+    )
+    notification.is_read = True
+    notification.save()
+    if notification.link:
+        return redirect(notification.link)
+    return redirect('notifications')
