@@ -364,7 +364,7 @@ def delete_sentence(request, sentence_id):
 @login_required(login_url='my_login')
 @user_passes_test(admin_only, login_url='my_login')
 def idioms(request):
-    idioms = Idiom.objects.all()
+    idioms = Idiom.objects.all().order_by('category', 'created_at')
     context = {'idioms': idioms}
     return render(request, 'account/idioms.html', context)
 
