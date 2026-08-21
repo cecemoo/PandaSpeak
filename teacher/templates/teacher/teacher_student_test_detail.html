@@ -1,0 +1,106 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>View Student Test Detail</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">View Student Test Detail</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Teacher Dashboard Section -->
+    <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>View Student Test Detail</h2>
+            <!-- <p>Manage your idiom entries, track student progress, and update your profile.</p> -->
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3>{{ submission.test.title }}</h3>
+                    <p class="mb-1">
+                        <strong>Student:</strong>
+                        {{ submission.student.get_full_name|default:submission.student.username }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Listening Score:</strong>
+                        {{ submission.listening_score|default:"Not available" }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Speaking Score:</strong>
+                        {{ submission.speaking_score|default:"Not graded" }}
+                    </p>
+                </div>
+            </div>
+            <h4 class="mb-3">Speaking Recordings</h4>
+            {% for answer in speaking_answers %}
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5>
+                        Question {{ answer.question.order }}
+                    </h5>
+                    <p>{{ answer.question.prompt }}</p>
+                    {% if answer.audio_file %}
+                    <audio controls class="w-100 mb-3">
+                        <source src="{{ answer.audio_file.url }}">
+                        Your browser does not support audio playback.
+                    </audio>
+                    {% else %}
+                    <p class="text-muted">
+                        No recording submitted.
+                    </p>
+                    {% endif %}
+                    <form method="POST" action="{% url 'grade_speaking_answer' answer.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Score (0 - {{ answer.question.points }})
+                            </label>
+                            <input type="number" name="score" class="form-control" step="0.5" min="0"
+                                value="{{ answer.score|default_if_none:'' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Teacher Feedback
+                            </label>
+                            <textarea name="teacher_feedback" class="form-control" rows="3"
+                                placeholder="Optional feedback for the student">{{ answer.teacher_feedback|default_if_none:'' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            Save Grade
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-secondary">
+               {% if answer.score is not None %}
+               <p class="text-muted">Recording removed after grading.</p>
+               {% else %}
+               <p class="text-muted">No speaking recordings were submitted for this test.</p>
+               {% endif %}
+            </div>
+            {% endfor %}
+            <a href="{% url 'teacher_student_test_results' %}" class="btn btn-outline-secondary mt-3">
+                Back to Test Results
+            </a>
+        </div>
+    </section><!-- /Teacher Dashboard Section -->
+
+</main>
+{% endblock %}

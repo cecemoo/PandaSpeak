@@ -62,9 +62,15 @@
                                         </small>
 
                                         {% if has_speaking %}
+                                        {% if submission.is_graded %}
+                                        <h4 class="mb-0">
+                                            {{ submission.speaking_score }}
+                                        </h4>
+                                        {% else %}
                                         <span class="badge bg-warning text-dark">
                                             Pending Teacher Review
                                         </span>
+                                        {% endif %}
                                         {% else %}
                                         <span class="text-muted">
                                             Not Applicable
@@ -74,12 +80,65 @@
                                 </div>
 
                             </div>
+                            {% if submission.is_graded %}
+                            <div class="border rounded-3 p-3 mt-3 text-center">
+                                <small class="text-muted d-block mb-1">
+                                    Total Score
+                                </small>
+
+                                <h3 class="fw-bold mb-0">
+                                    {{ submission.total_score }}
+                                </h3>
+                            </div>
+                            {% endif %}
+
+                            {% if submission.is_graded and speaking_answers %}
+                            <div class="mt-4">
+                                <h4 class="mb-3">Speaking Feedback</h4>
+
+                                {% for answer in speaking_answers %}
+                                <div class="border rounded-3 p-3 mb-3">
+
+                                    <h6 class="fw-bold mb-2">
+                                        Question {{ answer.question.order }}
+                                    </h6>
+
+                                    <p class="mb-2">
+                                        {{ answer.question.prompt }}
+                                    </p>
+
+                                    <p class="mb-2">
+                                        <strong>Score:</strong>
+                                        {{ answer.score }} / {{ answer.question.points }}
+                                    </p>
+
+                                    {% if answer.teacher_feedback %}
+                                    <p class="mb-0">
+                                        <strong>Teacher Feedback:</strong>
+                                        {{ answer.teacher_feedback }}
+                                    </p>
+                                    {% else %}
+                                    <p class="text-muted mb-0">
+                                        No teacher feedback provided.
+                                    </p>
+                                    {% endif %}
+
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
 
                             {% if has_speaking %}
+                            {% if submission.is_graded %}
+                            <div class="alert alert-success mt-4 mb-0">
+                                Your speaking test has been graded.
+                            </div>
+                            {% else %}
                             <div class="alert alert-info mt-4 mb-0">
                                 Your speaking recording has been submitted successfully.
                                 Your teacher will review it and update your score.
                             </div>
+                            {% endif %}
                             {% endif %}
 
                             <div class="text-center mt-4">

@@ -178,6 +178,12 @@ def test_list(request):
 
 @login_required(login_url='my_login')
 def take_test(request, test_id):
+        if StudentTestSubmission.objects.filter(
+            student=request.user,
+            test_id=test_id
+        ).exists():
+            return redirect('student_test_results')
+
         test = get_object_or_404(
             LanguageTest.objects.filter(
                 Q(student_group__students=request.user) |
@@ -240,8 +246,10 @@ def take_test(request, test_id):
                     )
                     if recording:
                         StudentSpeakingAnswer.objects.create(
+                            submission=submission,
                                 student=request.user,
-                                question=question
+                                question=question,
+                                audio_file=recording
                         )
                         speaking_recordings.append(
                                 (question, recording)
@@ -346,12 +354,26 @@ def submit_speaking_answer(request, question_id):
     ]:
         return JsonResponse({
             'success': False,
-            'message': 'No recording was received.'
+            'message': 'This is not a speaking question.'
         }, status=400)
+    audio_file = request.FILES.get('audio_file')
+    if not audio_file:
+        return JsonResponse({
+            'success': False,
+            'message': 'No recording uploaded.'
+        }, status=400)
+    
+    submission = get_object_or_404(
+        StudentTestSubmission,
+        student=request.user,
+        test=question.test
+    )
 
     answer = StudentSpeakingAnswer.objects.create(
+        submission=submission,
         student=request.user,
-        question=question
+        question=question,
+        audio_file=audio_file
     )
     try:
         student_name = request.user.get_full_name()
@@ -383,7 +405,7 @@ def submit_speaking_answer(request, question_id):
         email.attach(
             answer.audio_file.name,
             answer.audio_file.read(),
-            answer.audio_file.content_type
+            audio_file.content_type
         )
         email.send(fail_silently=False)
         answer.email_sent = True
@@ -426,13 +448,16 @@ def test_result(request, submission_id):
         test=test,
         question_type__in=['speak_read', 'speaking_answer']
     ).exists()
-    
+    speaking_answers = submission.speaking_answers.select_related(
+        'question'
+    ).order_by('question__order')
     context = {
         'test': submission.test,
         'submission': submission,
         'listening_total': listening_total,
         'has_speaking': has_speaking,
         'listening_score': submission.listening_score,
+        'speaking_answers': speaking_answers,
     }
     return render(request, 'student/test_result.html', context)
 
@@ -441,7 +466,12 @@ def test_result(request, submission_id):
 def student_test_results(request):
     results = StudentTestSubmission.objects.filter(
         student=request.user
-    ).select_related('test').order_by('-submitted_at')
+    ).select_related('test').order_by('-submitted_at')[:10]
+    for result in results:
+        result.has_speaking = TestQuestion.objects.filter(
+            test=result.test,
+            question_type__in=['speak_read', 'speaking_answer']
+        ).exists()
     return render(request, 'student/student_test_results.html', {'results': results})
 
 
@@ -489,7 +519,7 @@ def take_learning_survey(request, survey_id):
         teacher = survey.teacher
         if teacher.email:
             send_mail(
-                    subject=f"new Survey Response: {survey.title}",
+                    subject=f"New Survey Response: {survey.title}",
                     message=(
                         f"{request.user.get_full_name() or request.user.username} "
                         f"has completed the survey '{survey.title}'."
@@ -530,7 +560,7 @@ def student_survey_list(request):
         is_active=True
     ).exclude(
         responses__student=request.user
-    ).order_by('-created_at')[:5]
+    ).distinct().order_by('-created_at')[:5]
     return render(
         request,
         'student/student_survey_list.html',

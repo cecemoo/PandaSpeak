@@ -35,7 +35,8 @@
           {% if notifications %}
           <ul class="list-group">
             {% for notification in notifications %}
-            <div class="card shadow-sm mb-3 {% if not notification.is_read %}fw-bold bg-info-subtle border-success{% endif %}">
+            <div
+              class="card shadow-sm mb-3 {% if not notification.is_read %}fw-bold bg-info-subtle border-success{% endif %}">
               <div class="card-body">
                 <h6 class="card-title mb-1">
                   {{ notification.title }}
@@ -44,10 +45,15 @@
                   {{ notification.message }}
                 </p>
                 <small class="text-muted">
-                  {% if notification.is_completed %}
-                    <span class="badge bg-success">Completed</span>
+                  {% if notification.is_read %}
+                  <span class="badge bg-secondary">Read</span>
                   {% else %}
-                  <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-sm btn-outline-success rounded-pill">
+                  <span class="badge bg-success">New</span>
+                  {% endif %}
+
+                  {% if notification.link %}
+                  <a href="{% url 'mark_notification_read' notification.id %}"
+                    class="btn btn-sm btn-outline-success ms-2">
                     View
                   </a>
                   {% endif %}

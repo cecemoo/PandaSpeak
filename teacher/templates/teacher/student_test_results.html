@@ -42,6 +42,7 @@
                             <th>Speaking Score</th>
                             <th>Total Score</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -49,13 +50,10 @@
                         {% for result in results %}
                         <tr>
                             <td>{{ result.student.get_full_name }}</td>
-
                             <td>{{ result.test.title }}</td>
-
                             <td>
                                 {{ result.submitted_at|date:"M d, Y" }}
                             </td>
-
                             <td>
                                 {% if result.listening_score != None %}
                                 {{ result.listening_score }}
@@ -63,7 +61,6 @@
                                 —
                                 {% endif %}
                             </td>
-
                             <td>
                                 {% if result.has_speaking %}
                                 {% if result.speaking_score != None %}
@@ -75,7 +72,6 @@
                                 —
                                 {% endif %}
                             </td>
-
                             <td>
                                 {% if result.has_speaking %}
                                 {% if result.total_score != None %}
@@ -87,7 +83,6 @@
                                 {{ result.listening_score }}
                                 {% endif %}
                             </td>
-
                             <td>
                                 {% if result.has_speaking %}
                                 {% if result.is_graded %}
@@ -99,19 +94,17 @@
                                 Completed
                                 {% endif %}
                             </td>
+                            <td>
+                                <a href="{% url 'teacher_student_test_detail' result.id %}" class="btn btn-primary rounded-pill btn-sm">View / Grade Results</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
             {% else %}
-
             <p>No student test submissions yet.</p>
-
             {% endif %}
-
-
         </div>
 
     </section><!-- /Teacher Dashboard Section -->

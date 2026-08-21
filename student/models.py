@@ -52,17 +52,6 @@ class TestQuestion(models.Model):
         return f"{self.test.title} - Question {self.order}"
 
 
-class StudentSpeakingAnswer(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    email_sent = models.BooleanField(default=False)
-    email_sent_at = models.DateTimeField(blank=True, null=True)
-    score = models.FloatField(blank=True, null=True)
-    teacher_feedback = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.student.email} - {self.question.test.title} - Question {self.question.order}"
 
 
 
@@ -89,3 +78,27 @@ class StudentListeningAnswer(models.Model):
 
     def __str__(self):
         return f"{self.submission.student.email} - {self.question.test.title} - Question {self.question.order}"
+
+
+
+
+
+class StudentSpeakingAnswer(models.Model):
+    submission = models.ForeignKey(
+        StudentTestSubmission,
+        on_delete=models.CASCADE,
+        related_name='speaking_answers',
+        blank=True,
+        null=True
+    )
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    email_sent = models.BooleanField(default=False)
+    email_sent_at = models.DateTimeField(blank=True, null=True)
+    score = models.FloatField(blank=True, null=True)
+    teacher_feedback = models.TextField(blank=True, null=True)
+    audio_file = models.FileField(upload_to='speaking_answers/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.student.email} - {self.question.test.title} - Question {self.question.order}"

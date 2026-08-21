@@ -711,12 +711,17 @@ def placement_test(request):
 def notifications(request):
     user_notifications = Notification.objects.filter(
         user=request.user
-    ).order_by('-created_at')[:8]
+    ).order_by('-created_at')[:5]
 
     for notification in user_notifications:
         notification.is_completed = False
         # test notification
-        if notification.link and '/student/tests/' in notification.link:
+        if (
+            notification.title == "New Test Available"
+            and notification.link
+            and '/student/tests/' in notification.link
+        ):
+
             try:
                 test_id = notification.link.rstrip('/').split('/')[-1]
                 completed_test = StudentTestSubmission.objects.filter(

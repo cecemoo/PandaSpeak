@@ -9,7 +9,7 @@ from course.models import Course, Booking, StudentGroup
 from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from student.models import LanguageTest, TestQuestion, StudentTestSubmission
+from student.models import LanguageTest, TestQuestion, StudentTestSubmission, StudentSpeakingAnswer
 from .models import LearningSurvey, SurveyQuestion
 from django.core.mail import send_mail
 from django.conf import settings
@@ -437,11 +437,17 @@ def publish_test(request, test_id):
 
 @login_required(login_url='my_login')
 def teacher_test_list(request):
-    tests = LanguageTest.objects.filter(teacher=request.user)
+    tests = LanguageTest.objects.filter(teacher=request.user).prefetch_related('student_group__students')
+    for test in tests:
+        test.has_submissions = StudentTestSubmission.objects.filter(
+            test=test
+        ).exists()
     context = {
         'tests': tests,
     }
     return render(request, 'teacher/teacher_test_list.html', context)
+
+
 
 
 @login_required(login_url='my_login')
@@ -473,17 +479,124 @@ def student_test_results(request):
     ).select_related(
         "student",
         "test"
-    ).order_by('-submitted_at')
+    ).order_by('-submitted_at')[:10]
 
     for result in results:
         result.has_speaking = TestQuestion.objects.filter(
             test=result.test,
-            question_type__in=['speaking', 'mixed']
+            question_type__in=['speak_read', 'speaking_answer']
         ).exists()
     context = {
         'results': results,
     }
     return render(request, 'teacher/student_test_results.html', context)
+
+
+
+@login_required(login_url='my_login')
+def teacher_student_test_detail(request, submission_id):
+    submission = get_object_or_404(
+        StudentTestSubmission,
+        id=submission_id,
+        test__teacher=request.user
+    )
+    speaking_answers = StudentSpeakingAnswer.objects.filter(
+        student=submission.student,
+        question__test=submission.test
+    ).select_related(
+        'question'
+    ).order_by(
+        'question__order'
+    )
+
+    context = {
+        'submission': submission,
+        'speaking_answers': speaking_answers,
+    }
+    return render(request, 'teacher/teacher_student_test_detail.html', context)
+
+
+
+@login_required(login_url='my_login')
+def grade_speaking_answer(request, answer_id):
+    answer = get_object_or_404(
+        StudentSpeakingAnswer,
+        id=answer_id,
+        question__test__teacher=request.user
+    )
+    if request.method == 'POST':
+        score = request.POST.get('score')
+        teacher_feedback = request.POST.get('teacher_feedback', '')
+        try:
+            score = float(score)
+            if score < 0 or score > answer.question.points:
+                messages.error(
+                    request,
+                    f"Score must be between 0 and {answer.question.points}." 
+                )
+                return redirect(
+                    'teacher_student_test_detail',
+                    submission_id=answer.submission.id
+                )
+        except (TypeError, ValueError):
+            messages.error(request, "Please enter a valid score.")
+            return redirect('teacher_student_test_detail', submission_id=answer.submission.id)
+        
+        answer.score = score
+        answer.teacher_feedback = teacher_feedback
+        answer.save(update_fields=['score', 'teacher_feedback'])
+        # Delete audio file after grading to save storage space
+        if answer.audio_file:
+            answer.audio_file.delete(save=False)
+            answer.audio_file = None
+            answer.save(update_fields=['audio_file'])
+        submission = answer.submission
+        speaking_answers = submission.speaking_answers.all()
+        speaking_score = sum(
+            speaking_answer.score or 0
+            for speaking_answer in speaking_answers
+        )
+        submission.speaking_score = speaking_score
+        all_speaking_graded = all(
+            speaking_answer.score is not None
+            for speaking_answer in speaking_answers
+        )
+        if all_speaking_graded:
+            submission.total_score = (
+                (submission.listening_score or 0)
+                + (submission.speaking_score or 0)
+            )
+            submission.is_graded = True
+            submission.save(
+                update_fields=[
+                    'speaking_score',
+                    'total_score',
+                    'is_graded'
+                ]
+        )
+        result_link = reverse(
+            'test_result',
+            kwargs={'submission_id': submission.id}
+        )
+        Notification.objects.update_or_create(
+            user=submission.student,
+            title="Test Graded",
+            link=result_link,
+            defaults={
+                'message': (
+                    f'Your test "{submission.test.title}" has been graded. '
+                    f'Your total score is {submission.total_score}.'
+                ),
+                'is_read': False,
+            }
+        )
+    else:
+        submission.save(
+            update_fields=['speaking_score']
+        )
+        messages.success(request, f'Question {answer.question.order} grade saved.')
+        return redirect('teacher_student_test_detail', submission_id=answer.submission.id)
+    return redirect('teacher_student_test_detail', submission_id=answer.submission.id)
 
 
 
@@ -618,7 +731,7 @@ def finish_learning_survey(request,survey_id):
 def teacher_survey_list(request):
     surveys = LearningSurvey.objects.filter(
         teacher=request.user
-    ).order_by("-created_at")
+    ).order_by("-created_at")[:5]
     return render(
         request,
         "teacher/teacher_survey_list.html",

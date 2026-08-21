@@ -73,12 +73,13 @@
                                     class="btn btn-secondary rounded-pill btn-sm">
                                     View
                                 </a>
-
+                                {% if test.has_submissions %}
+                                <span class="badge bg-warning text-dark">Student Submitted</span>
+                                {% else %}
                                 <a href="{% url 'teacher_add_test_questions' test.id %}"
                                     class="btn btn-primary rounded-pill btn-sm">
                                     Edit
                                 </a>
-
                                 <form method="post" action="{% url 'teacher_delete_test' test.id %}"
                                     style="display:inline;">
                                     {% csrf_token %}
@@ -88,6 +89,7 @@
                                         Delete
                                     </button>
                                 </form>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
