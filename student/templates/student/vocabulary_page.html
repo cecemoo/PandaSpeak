@@ -135,7 +135,11 @@
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.meaning }}</p>
-                <p><strong>Example Sentence:</strong> {{ item.example_sentence }}</p>
+                <p><strong>Example Sentence:</strong><br> 
+                  {{ item.example_sentence }}<br>
+                  {{ item.example_pinyin }}<br>
+                  {{ item.example_translation }}
+                </p>
 
                 {% if item.audio_file %}
                 <audio id="audio{{ item.id }}">

@@ -274,7 +274,9 @@
                     <p>{{ today_vocabulary.word}}&nbsp; <inline>{{ today_vocabulary.pinyin }}&nbsp;</inline>
                       <inline>{{ today_vocabulary.meaning }}</inline>
                     </p>
-                    <p>{{ today_vocabulary.example_sentence }}</p>
+                    <p>{{ today_vocabulary.example_sentence }}</p><br>
+                    <p>{{ today_vocabulary.example_pinyin }}</p><br>
+                    <p>{{ today_vocabulary.example_translation }}</p>
                     {% if today_vocabulary.audio_file %}
                     <audio id="vocabularyAudio">
                       <source src="{{ today_vocabulary.audio_file.url }}">
