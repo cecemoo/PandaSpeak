@@ -26,9 +26,25 @@ def split_example(text):
 
     text = text.strip()
 
-    # Find the end of the Chinese sentence.
+    # FIRST: handle examples already separated by line breaks
 
-    # Supports common Chinese punctuation.
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+
+    if len(lines) >= 3:
+
+        chinese = lines[0]
+
+        pinyin = lines[1]
+
+        english = " ".join(lines[2:])
+
+        # Confirm first line contains Chinese characters
+
+        if re.search(r"[\u4e00-\u9fff]", chinese):
+
+            return chinese, pinyin, english
+
+    # SECOND: handle examples stored on one line
 
     chinese_match = re.match(
 
@@ -46,15 +62,9 @@ def split_example(text):
 
     remainder = chinese_match.group(2).strip()
 
-    # Make sure the first section actually contains Chinese.
-
     if not re.search(r"[\u4e00-\u9fff]", chinese):
 
         return None
-
-    # Find the end of the pinyin sentence.
-
-    # Pinyin is normally followed by ., !, or ? before English begins.
 
     pinyin_match = re.match(
 
