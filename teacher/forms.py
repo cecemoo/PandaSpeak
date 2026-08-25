@@ -4,6 +4,22 @@ from account.models import CustomUser
 from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, LearningSurvey, SurveyQuestion
 from student.models import LanguageTest, TestQuestion
 from course.models import StudentGroup
+from opencc import OpenCC
+
+traditional_converter = OpenCC('s2t')
+
+def validate_traditional_chinese(value):
+    if not value:
+        return value
+    converted = traditional_converter.convert(value)
+    if converted != value:
+        raise forms.ValidationError(
+            f"Please use Traditional Chinese only. "
+            f"Traditional Chinese suggested: {converted}"
+        )
+    return value
+
+
 
 
 
@@ -16,12 +32,24 @@ class UpdateUserForm(ModelForm):
 
 
 class VocabularyForm(ModelForm):
+    def clean_word(self):
+        return validate_traditional_chinese(
+            self.cleaned_data.get('word')
+        )
+    def clean_example_sentence(self):
+        return validate_traditional_chinese(
+            self.cleaned_data.get('example_sentence')
+        )
     class Meta:
         model = Vocabulary
         fields = '__all__'
 
 
 class SentenceForm(ModelForm):
+    def clean_text(self):
+        return validate_traditional_chinese(
+            self.cleaned_data.get('text')
+        )
     class Meta:
         model = Sentence
         fields = '__all__'
@@ -34,6 +62,14 @@ class PronunciationForm(ModelForm):
 
 
 class IdiomForm(ModelForm):
+    def clean_idiom(self):
+        return validate_traditional_chinese(
+            self.cleaned_data.get('idiom')
+        )
+    def clean_example_sentence(self):
+        return validate_traditional_chinese(
+            self.cleaned_data.get('example_sentence')
+        )
     class Meta:
         model = Idiom
         fields = '__all__'
