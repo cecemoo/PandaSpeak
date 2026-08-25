@@ -181,7 +181,6 @@
     <div id="bopomofo" class="container section-title" data-aos="fade-up">
       <h2>BoPoMoFo</h2>
     </div><!-- End Section Title -->
-
     <div class="container" data-aos="fade-up">
       <div class="word-container">
         {% for item in pronunciations %}
@@ -205,7 +204,7 @@
 
                 {% if item.audio_file %}
                 <audio id="tone{{ forloop.counter }}" onclick="event.stopPropagation()" controls>
-                  <source src="{{ item.audio_file.url }}" >
+                  <source src="{{ item.audio_file.url }}">
                 </audio>
 
                 <!-- <button type="button" class="btn btn-secondary" onclick="selectTone('{{ forloop.counter }}')">
@@ -222,6 +221,166 @@
         {% empty %}
         <p>No vocabulary added yet.</p>
         {% endfor %}
+      </div>
+    </div>
+    <div class="container mb-5" data-aos="fade-up">
+<!-- BoPoMoFo & Pinyin Reference -->
+      <div class="tone-learning-section">
+        <h3>BoPoMoFo & Pinyin Reference</h3>
+        <p>
+          Use this table to match BoPoMoFo symbols with their corresponding Pinyin.
+        </p>
+        <h4 class="mt-4 mb-3 text-center">Initials</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center align-middle">
+            <thead>
+              <tr>
+                <th>BoPoMoFo</th>
+                <th>Pinyin</th>
+                <th>BoPoMoFo</th>
+                <th>Pinyin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fs-3">ㄅ</td>
+                <td>b</td>
+                <td class="fs-3">ㄆ</td>
+                <td>p</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄇ</td>
+                <td>m</td>
+                <td class="fs-3">ㄈ</td>
+                <td>f</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄉ</td>
+                <td>d</td>
+                <td class="fs-3">ㄊ</td>
+                <td>t</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄋ</td>
+                <td>n</td>
+                <td class="fs-3">ㄌ</td>
+                <td>l</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄍ</td>
+                <td>g</td>
+                <td class="fs-3">ㄎ</td>
+                <td>k</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄏ</td>
+                <td>h</td>
+                <td class="fs-3">ㄐ</td>
+                <td>j</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄑ</td>
+                <td>q</td>
+                <td class="fs-3">ㄒ</td>
+                <td>x</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄓ</td>
+                <td>zh</td>
+                <td class="fs-3">ㄔ</td>
+                <td>ch</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄕ</td>
+                <td>sh</td>
+                <td class="fs-3">ㄖ</td>
+                <td>r</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄗ</td>
+                <td>z</td>
+                <td class="fs-3">ㄘ</td>
+                <td>c</td>
+              </tr>
+              <tr>
+                <td class="fs-3">ㄙ</td>
+                <td>s</td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 class="mt-5 mb-3 text-center">Finals</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center align-middle">
+            <thead>
+              <tr>
+                <th>BoPoMoFo</th>
+                <th>Pinyin</th>
+                <th>BoPoMoFo</th>
+                <th>Pinyin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fs-3">ㄚ</td>
+                <td>a</td>
+                <td class="fs-3">ㄛ</td>
+                <td>o</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄜ</td>
+                <td>e</td>
+                <td class="fs-3">ㄝ</td>
+                <td>ê</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄞ</td>
+                <td>ai</td>
+                <td class="fs-3">ㄟ</td>
+                <td>ei</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄠ</td>
+                <td>ao</td>
+                <td class="fs-3">ㄡ</td>
+                <td>ou</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄢ</td>
+                <td>an</td>
+                <td class="fs-3">ㄣ</td>
+                <td>en</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄤ</td>
+                <td>ang</td>
+                <td class="fs-3">ㄥ</td>
+                <td>eng</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄦ</td>
+                <td>er</td>
+                <td class="fs-3">ㄧ</td>
+                <td>i / yi</td>
+              </tr>
+
+              <tr>
+                <td class="fs-3">ㄨ</td>
+                <td>u / wu</td>
+                <td class="fs-3">ㄩ</td>
+                <td>ü / yu</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section><!-- End Pronunciation Section Section -->
