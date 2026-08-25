@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.db.models import Q, Sum
 from account.models import Notification
 from django.urls import reverse
-
+from django.conf import settings
 
 
 
@@ -43,7 +43,8 @@ def student_dashboard(request):
     context = {
         'has_subscription': sub is not None,
         'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
-        'available_surveys': available_surveys
+        'available_surveys': available_surveys,
+        'VAPID_PUBLIC_KEY': settings.VAPID_PUBLIC_KEY,
     }
     return render(request, 'student/student_dashboard.html', context)
 

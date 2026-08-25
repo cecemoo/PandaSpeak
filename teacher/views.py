@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from course.forms import StudentGroupForm
 from django.urls import reverse
-
+from account.push import send_push_to_user
 
 
 
@@ -425,6 +425,12 @@ def publish_test(request, test_id):
                     message=f"{test.title} has been published by {test.teacher.get_full_name()}. Please log in to take the test.",
                     link=reverse('take_test', args=[test.id]),
                 )
+                send_push_to_user(
+                    student,
+                    "New Test Available",
+                    test.title,
+                    "/student/student_dashboard/"
+                )
             test.notification_sent = True
             test.save()
 
@@ -551,6 +557,7 @@ def grade_speaking_answer(request, answer_id):
             answer.audio_file = None
             answer.save(update_fields=['audio_file'])
         submission = answer.submission
+        was_already_graded = submission.is_graded
         speaking_answers = submission.speaking_answers.all()
         speaking_score = sum(
             speaking_answer.score or 0
@@ -590,6 +597,13 @@ def grade_speaking_answer(request, answer_id):
                 'is_read': False,
             }
         )
+        if not was_already_graded:
+            send_push_to_user(
+                submission.student,
+                "Test Graded",
+                f"Your results for {submission.test.title} are ready.",
+                "/student/test-results/"
+            )
     else:
         submission.save(
             update_fields=['speaking_score']
@@ -716,6 +730,12 @@ def finish_learning_survey(request,survey_id):
                 title="New Learning Survey Available",
                 message=f"{survey.title} has been published by {survey.teacher.get_full_name()}. Please log in to complete the survey.",
                 link=reverse('take_learning_survey', args=[survey.id]),
+            )
+            send_push_to_user(
+                student,
+                    "New Learning Survey Available",
+                    survey.title,
+                    "/student/student_dashboard/"
             )
     messages.success(
         request,

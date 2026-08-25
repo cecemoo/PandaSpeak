@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
 from course.models import Course, TimeSlot, Booking
-from .models import TermsOfService, PrivacyPolicy, PlacementQuestion, Notification
+from .models import TermsOfService, PrivacyPolicy, PlacementQuestion, Notification, PushSubscription
 from datetime import date
 from course.forms import CourseForm
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
@@ -20,8 +20,13 @@ from student.models import LanguageTest, StudentTestSubmission
 from teacher.models import SurveyResponse
 from django.urls import resolve
 from django.db.models import Q
-
-
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.http import HttpResponse
+from django.contrib.staticfiles import finders
+from .push import send_push_to_user
 
 
 def admin_only(user):
@@ -853,3 +858,53 @@ def mark_notification_read(request, notification_id):
     if notification.link:
         return redirect(notification.link)
     return redirect('notifications')
+
+
+
+@login_required(login_url='my_login')
+@require_POST
+def save_push_subscription(request):
+    try:
+        data = json.loads(request.body)
+        endpoint = data.get("endpoint")
+        keys = data.get("keys", {})
+        p256dh = keys.get("p256dh")
+        auth = keys.get("auth")
+
+        if not endpoint or not p256dh or not auth:
+            return JsonResponse(
+                {"success": False, "error": "Invalid subscription data."},
+                status=400
+            )
+        PushSubscription.objects.update_or_create(
+            endpoint=endpoint,
+            defaults={
+                "p256dh": p256dh,
+                "auth": auth,
+                "user": request.user
+            }
+        )
+        return JsonResponse({"success": True})
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON data."},
+            status=400
+        )
+
+
+
+@never_cache
+def service_worker(request):
+    service_worker_path = finders.find(
+        'assets/js/service-worker.js'
+    )
+    with open(service_worker_path, 'r') as file:
+        response = HttpResponse(
+            file.read(),
+            content_type='application/javascript'
+        )
+    return response
+
+
+
+

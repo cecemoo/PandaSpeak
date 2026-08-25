@@ -12,3 +12,5 @@ staticfiles/
 *.log
 *.bak
 .vscode/
+vapid_private.pem
+vapid_public.pem

@@ -41,7 +41,11 @@
       <nav class="breadcrumbs">
         <ol>
           <li><a href="{% url 'home' %}">Home</a></li>
-          <li class="current">Student Dashboard</li>
+          <li class="current">Student Dashboard
+            <button type="button" class="btn btn-primary rounded-pill" onclick="enablePushNotifications()">
+              Enable Notifications
+            </button>
+          </li>
         </ol>
       </nav>
     </div>
@@ -101,9 +105,9 @@
         <div class="dashboard-card">
           <h4>Learning Feedback Survey</h4>
           <p>Provide feedback on your learning experience.</p>
-           <a href="{% url 'student_survey_list' %}" class="btn btn-success rounded-pill">
-              View Surveys
-            </a>
+          <a href="{% url 'student_survey_list' %}" class="btn btn-success rounded-pill">
+            View Surveys
+          </a>
 
         </div>
       </div>
@@ -111,4 +115,9 @@
   </section><!-- /Dashboard Section Section -->
 
 </main>
+<script>
+  window.VAPID_PUBLIC_KEY = "{{ VAPID_PUBLIC_KEY }}";
+</script>
+
+<script src="{% static 'assets/js/push-notifications.js' %}"></script>
 {% endblock %}
