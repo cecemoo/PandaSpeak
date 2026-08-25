@@ -19,7 +19,7 @@ from django.core.mail import send_mail
 from student.models import LanguageTest, StudentTestSubmission
 from teacher.models import SurveyResponse
 from django.urls import resolve
-
+from django.db.models import Q
 
 
 
@@ -150,26 +150,107 @@ def privacy(request):
 @user_passes_test(admin_only, login_url='my_login')
 def manager_dashboard(request):
     vocabulary_category_count = VocabularyCategory.objects.all().count()
+
     sentence_category_count = SentenceCategory.objects.all().count()
+
     idiom_category_count = IdiomCategory.objects.all().count()
+
     course_count = Course.objects.all().count()
+
     vocabulary_count = Vocabulary.objects.all().count()
+
     sentence_count = Sentence.objects.all().count()
+
     idiom_count = Idiom.objects.all().count()
+
     pronunciation_count = Pronunciation.objects.all().count()
+
     tone_count = Tone.objects.all().count()
 
+    query = request.GET.get('q', '').strip()
+
+    vocabulary_results = Vocabulary.objects.none()
+
+    sentence_results = Sentence.objects.none()
+
+    idiom_results = Idiom.objects.none()
+
+    if query:
+
+        vocabulary_results = Vocabulary.objects.filter(
+
+            Q(word__icontains=query) |
+
+            Q(pinyin__icontains=query) |
+
+            Q(english_translation__icontains=query) |
+
+            Q(meaning__icontains=query) |
+
+            Q(example_sentence__icontains=query) |
+
+            Q(category__category_name__icontains=query)
+
+        ).distinct()
+
+        sentence_results = Sentence.objects.filter(
+
+            Q(text__icontains=query) |
+
+            Q(pinyin__icontains=query) |
+
+            Q(translation__icontains=query) |
+
+            Q(category__category_name__icontains=query)
+
+        ).distinct()
+
+        idiom_results = Idiom.objects.filter(
+
+            Q(idiom__icontains=query) |
+
+            Q(pinyin__icontains=query) |
+
+            Q(english_translation__icontains=query) |
+
+            Q(meaning__icontains=query) |
+
+            Q(example_sentence__icontains=query) |
+
+            Q(category__category_name__icontains=query)
+
+        ).distinct()
+
     context = {
+
         'vocabulary_category_count': vocabulary_category_count,
+
         'sentence_category_count': sentence_category_count,
+
         'idiom_category_count': idiom_category_count,
+
         'course_count': course_count,
+
         'vocabulary_count': vocabulary_count,
+
         'sentence_count': sentence_count,
+
         'idiom_count': idiom_count,
+
         'pronunciation_count': pronunciation_count,
+
         'tone_count': tone_count,
+
+        'query': query,
+
+        'vocabulary_results': vocabulary_results,
+
+        'sentence_results': sentence_results,
+
+        'idiom_results': idiom_results,
+
     }
+
     return render(request, 'account/manager_dashboard.html', context)
 
 

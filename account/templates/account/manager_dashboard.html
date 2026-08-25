@@ -37,6 +37,211 @@
 
                 <!-- right side content -->
                 <div class="col-md-9">
+                    <!-- Search -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">
+                                <i class="bi bi-search me-2"></i>
+                                Search Learning Materials
+                            </h5>
+
+                            <form method="GET" action="{% url 'manager_dashboard' %}">
+                                <div class="input-group">
+                                    <input type="text" name="q" class="form-control"
+                                        placeholder="Search Chinese, pinyin, English, category..." value="{{ query }}">
+
+                                    <button class="btn btn-primary" type="submit">
+                                        Search
+                                    </button>
+
+                                    {% if query %}
+                                    <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary">
+                                        Clear
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% if query %}
+                    <h5 class="mb-3">
+                        Search results for:
+                        <strong>{{ query }}</strong>
+                    </h5>
+                    <!-- Vocabulary Results -->
+                    {% if vocabulary_results %}
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header fw-bold">
+                            Vocabulary
+                            <span class="badge bg-primary">
+                                {{ vocabulary_results|length }}
+                            </span>
+                        </div>
+
+                        <div class="list-group list-group-flush">
+                            {% for vocab in vocabulary_results %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ vocab.word }}</strong>
+
+                                        {% if vocab.pinyin %}
+                                        <span class="text-muted ms-2">
+                                            {{ vocab.pinyin }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% if vocab.english_translation %}
+                                        <div>
+                                            {{ vocab.english_translation }}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if vocab.category %}
+                                        <small class="text-muted">
+                                            Category: {{ vocab.category.category_name }}
+                                            · {{ vocab.get_level_display }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'edit_vocabulary' vocab.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_vocabulary' vocab.id %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to delete {{ vocab.word|escapejs }}?');">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Sentence Results -->
+                    {% if sentence_results %}
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header fw-bold">
+                            Sentences
+                            <span class="badge bg-success">
+                                {{ sentence_results|length }}
+                            </span>
+                        </div>
+
+                        <div class="list-group list-group-flush">
+                            {% for sentence in sentence_results %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ sentence.text }}</strong>
+
+                                        {% if sentence.pinyin %}
+                                        <div class="text-muted">
+                                            {{ sentence.pinyin }}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if sentence.translation %}
+                                        <div>
+                                            {{ sentence.translation }}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if sentence.category %}
+                                        <small class="text-muted">
+                                            Category: {{ sentence.category.category_name }}
+                                            · {{ sentence.get_level_display }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'edit_sentence' sentence.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_sentence' sentence.id %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to delete this sentence?');">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Chinese Expression Results -->
+                    {% if idiom_results %}
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header fw-bold">
+                            Chinese Expressions
+                            <span class="badge bg-warning text-dark">
+                                {{ idiom_results|length }}
+                            </span>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for idiom in idiom_results %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ idiom.idiom }}</strong>
+
+                                        {% if idiom.pinyin %}
+                                        <span class="text-muted ms-2">
+                                            {{ idiom.pinyin }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% if idiom.english_translation %}
+                                        <div>
+                                            {{ idiom.english_translation }}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if idiom.category %}
+                                        <small class="text-muted">
+                                            Category: {{ idiom.category.category_name }}
+                                            · {{ idiom.get_expression_type_display }}
+                                            · {{ idiom.get_level_display }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'edit_idiom' idiom.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_idiom' idiom.id %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to delete {{ idiom.idiom|escapejs }}?');">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not vocabulary_results and not sentence_results and not idiom_results %}
+                    <div class="alert alert-light border">
+                        No learning materials found for
+                        <strong>{{ query }}</strong>.
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    {% endif %}
                     <div class="row g-3">
 
                         <!-- Vocabulary Categories -->
@@ -101,7 +306,8 @@
                                     Booking Management
                                 </div>
                                 <div class="card-body text-dark">
-                                    <a href="{% url 'booking_management'%}" class="btn btn-primary rounded-pill">Manage Bookings</a>
+                                    <a href="{% url 'booking_management'%}" class="btn btn-primary rounded-pill">Manage
+                                        Bookings</a>
                                 </div>
                             </div>
                         </div>
@@ -165,7 +371,7 @@
                         <div class="col-md-3">
                             <div class="card border-default mb-3">
                                 <div class="card-header text-center text-uppercase fw-bold">
-                                   Tones
+                                    Tones
                                 </div>
                                 <div class="card-body text-dark">
                                     <h5 class="card-title text-center">

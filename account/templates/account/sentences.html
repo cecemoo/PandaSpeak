@@ -27,7 +27,7 @@
         <div class="container section-title" data-aos="fade-up">
             <h2>Sentences Section</h2>
             <a href="{% url 'add_sentence' %}" class="btn btn-primary round">Add Sentence</a>
-            
+
         </div><!-- End Section Title -->
 
         <div class="container" data-aos="fade-up">
@@ -60,13 +60,19 @@
                                 <td>{{ s.category.category_name }}</td>
                                 <td>{{ s.text }}</td>
                                 <td>{{ s.created_at }}</td>
-                               <td>
-                                   <a href="{% url 'edit_sentence' sentence_id=s.id %}">
-                                        <i class="fa-solid fa-pen-to-square" style="color: rgb(116, 192, 252);"></i>
-                                    </a>
-                                    <a href="{% url 'delete_sentence' sentence_id=s.id %}">
-                                        <i class="fa-solid fa-trash" style="color: rgb(210, 59, 22);"></i>
-                                    </a>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'edit_sentence' s.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_sentence' s.id %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to delete this sentence?');">
+                                            Delete
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

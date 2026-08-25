@@ -27,7 +27,7 @@
         <div class="container section-title" data-aos="fade-up">
             <h2>Chinese Expressions Section</h2>
             <a href="{% url 'add_idiom' %}" class="btn btn-primary round">Add Chinese Expression</a>
-            
+
         </div><!-- End Section Title -->
 
         <div class="container" data-aos="fade-up">
@@ -62,13 +62,19 @@
                                 <td>{{ i.get_expression_type_display }}</td>
                                 <td>{{ i.idiom }}</td>
                                 <td>{{ i.created_at }}</td>
-                               <td>
-                                   <a href="{% url 'edit_idiom' idiom_id=i.id %}">
-                                        <i class="fa-solid fa-pen-to-square" style="color: rgb(116, 192, 252);"></i>
-                                    </a>
-                                    <a href="{% url 'delete_idiom' idiom_id=i.id %}">
-                                        <i class="fa-solid fa-trash" style="color: rgb(210, 59, 22);"></i>
-                                    </a>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'edit_idiom' i.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_idiom' i.id %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to delete {{ i.idiom|escapejs }}?');">
+                                            Delete
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
