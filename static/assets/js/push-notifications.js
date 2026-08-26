@@ -138,41 +138,87 @@ async function togglePushNotifications() {
 
         }
 
-        const registration = await navigator.serviceWorker.ready;
+        // Check whether a service worker is already registered
+
+        let registration =
+
+            await navigator.serviceWorker.getRegistration("/");
+
+        // First-time user: register and enable notifications
+
+        if (!registration) {
+
+            await enablePushNotifications();
+
+            return;
+
+        }
 
         const subscription =
 
             await registration.pushManager.getSubscription();
 
         if (subscription) {
+
+            // Remove subscription from PandaSpeak database
+
             const response = await fetch("/push/unsubscribe/", {
+
                 method: "POST",
+
                 headers: {
+
                     "Content-Type": "application/json",
+
                     "X-CSRFToken": getCookie("csrftoken")
+
                 },
+
                 body: JSON.stringify({
+
                     endpoint: subscription.endpoint
+
                 })
+
             });
+
             const result = await response.json();
+
             if (!result.success) {
+
                 alert("Unable to disable notifications.");
+
                 return;
+
             }
+
+            // Remove browser subscription
+
             await subscription.unsubscribe();
+
             alert("PandaSpeak notifications are disabled.");
+
             await updateNotificationButton();
+
         } else {
+
+            // Service worker exists, but notifications are not subscribed
+
             await enablePushNotifications();
+
         }
 
     } catch (error) {
+
         console.error(error);
+
         alert("Unable to change notification settings.");
+
     }
 
 }
+
+
 
 
 
