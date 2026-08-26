@@ -892,6 +892,31 @@ def save_push_subscription(request):
         )
 
 
+@login_required(login_url='my_login')
+
+@require_POST
+
+def delete_push_subscription(request):
+    try:
+        data = json.loads(request.body)
+        endpoint = data.get("endpoint")
+        if not endpoint:
+            return JsonResponse(
+                {"success": False, "error": "Endpoint is required."},
+                status=400
+            )
+        PushSubscription.objects.filter(
+            user=request.user,
+            endpoint=endpoint
+        ).delete()
+        return JsonResponse({"success": True})
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON data."},
+            status=400
+        )
+
+
 
 @never_cache
 def service_worker(request):

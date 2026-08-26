@@ -78,6 +78,7 @@ urlpatterns = [
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
 
     path('push/subscribe/', views.save_push_subscription, name='save_push_subscription'),
+    path('push/unsubscribe/', views.delete_push_subscription, name='delete_push_subscription'),
     path('service-worker.js', views.service_worker, name='service_worker'),
 
 ]
