@@ -6,7 +6,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, VocabularyCategory, SentenceCategory, IdiomCategory, Tone
 from course.models import Course, TimeSlot, Booking
-from .models import TermsOfService, PrivacyPolicy, PlacementQuestion, Notification, PushSubscription
+from .models import (
+    TermsOfService, 
+    PrivacyPolicy, 
+    PlacementQuestion, 
+    Notification, 
+    PushSubscription,
+    PushSubscription,
+    CustomUser
+)
 from datetime import date
 from course.forms import CourseForm
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
@@ -18,7 +26,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.core.mail import send_mail
 from student.models import LanguageTest, StudentTestSubmission
 from teacher.models import SurveyResponse
-from django.urls import resolve
+from django.urls import resolve, reverse
 from django.db.models import Q
 import json
 from django.http import JsonResponse
@@ -102,6 +110,29 @@ def register(request):
                 recipient_list=["pandaspeaksupport@gmail.com"],
                 fail_silently=False,
             )
+
+            managers = CustomUser.objects.filter(
+                is_staff=True,
+                is_active=True,
+            )
+            registration_message = (
+                f"{new_user.get_full_name() or new_user.email} "
+                f"registered a new {user_type.lower()} account."
+            )
+            for manager in managers:
+                Notification.objects.create(
+                    user=manager,
+                    title="New Account Registration",
+                    message=registration_message,
+                    link=reverse('manager_dashboard'),
+                )
+                send_push_to_user(
+                    manager,
+                    "New Account Registration",
+                    registration_message,
+                    reverse('manager_dashboard'),
+                )
+                
             return redirect('my_login')
     context = {'RegisterForm': form}
     return render(request, 'account/register.html', context)
