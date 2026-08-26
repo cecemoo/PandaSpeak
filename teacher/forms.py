@@ -6,7 +6,7 @@ from student.models import LanguageTest, TestQuestion
 from course.models import StudentGroup
 from opencc import OpenCC
 
-traditional_converter = OpenCC('s2t')
+traditional_converter = OpenCC('s2tw')
 
 def validate_traditional_chinese(value):
     if not value:
