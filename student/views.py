@@ -74,6 +74,49 @@ def access_learning_materials(request):
 
 @login_required(login_url='my_login')
 @subscription_required
+def learning_material_search(request):
+    query = request.GET.get('q', '').strip()
+    vocabularies = Vocabulary.objects.none()
+    sentences = Sentence.objects.none()
+    idioms = Idiom.objects.none()
+    if query:
+        vocabularies = Vocabulary.objects.filter(
+            Q(word__icontains=query) |
+            Q(pinyin__icontains=query) |
+            Q(meaning__icontains=query) |
+            Q(example_sentence__icontains=query) |
+            Q(example_translation__icontains=query)
+        ).select_related('category')
+        sentences = Sentence.objects.filter(
+            Q(text__icontains=query) |
+            Q(pinyin__icontains=query) |
+            Q(translation__icontains=query)
+        ).select_related('category')
+        idioms = Idiom.objects.filter(
+            Q(idiom__icontains=query) |
+            Q(pinyin__icontains=query) |
+            Q(meaning__icontains=query) |
+            Q(example_sentence__icontains=query) |
+            Q(example_translation__icontains=query)
+        ).select_related('category')
+    context = {
+        'query': query,
+        'vocabularies': vocabularies,
+        'sentences': sentences,
+        'idioms': idioms,
+    }
+    return render(
+        request,
+        'student/learning_material_search.html',
+        context
+    )
+
+
+
+
+
+@login_required(login_url='my_login')
+@subscription_required
 def vocabulary_category_page(request, category_id):
     category = VocabularyCategory.objects.get(id=category_id)
     vocabularies = Vocabulary.objects.filter(category=category)

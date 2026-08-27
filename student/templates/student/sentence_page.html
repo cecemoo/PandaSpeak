@@ -147,5 +147,21 @@
   </section><!-- End Sentence Section Section -->
 
 </main>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const itemId = params.get("item");
 
+    if (itemId) {
+      const modalElement = document.getElementById(
+        "vocabModal" + itemId
+      );
+
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
+    }
+  });
+</script>
 {% endblock %}

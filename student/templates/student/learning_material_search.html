@@ -1,0 +1,154 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Search Learning Materials</h1>
+      <p>Welcome, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Search Learning Materials</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <!-- Register Section Section -->
+  <section id="register-section" class="register-section section">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Search Learning Materials</h2>
+      <p>Browse and search for available learning materials.</p>
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+      <form method="get" action="{% url 'learning_material_search' %}" class="mb-5">
+        <div class="input-group">
+          <input type="text" name="q" value="{{ query }}" class="form-control"
+            placeholder="Search Chinese, Pinyin, or English...">
+          <button class="btn btn-success" type="submit">
+            Search
+          </button>
+        </div>
+      </form>
+
+      {% if query %}
+      <h3 class="mb-4">
+        Results for "{{ query }}"
+      </h3>
+      <!-- Vocabulary -->
+      <div class="mb-5">
+        <h4>Vocabulary</h4>
+        {% for item in vocabularies %}
+        <div class="card mb-3">
+          <div class="card-body text-dark">
+            <h5>
+              {{ item.word }}
+            </h5>
+            <p>
+              <strong>Pinyin:</strong>
+              {{ item.pinyin }}
+            </p>
+            <p>
+              <strong>Meaning:</strong>
+              {{ item.meaning }}
+            </p>
+            <p>
+              <strong>Category:</strong>
+              {{ item.category.category_name }}
+            </p>
+            <a href="{% url 'vocabulary_category_page' item.category.id %}?level=all&item={{ item.id }}"
+              class="btn btn-outline-success btn-sm">
+              View Word
+            </a>
+
+          </div>
+        </div>
+        {% empty %}
+        <p>No matching vocabulary.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Sentences -->
+      <div class="mb-5">
+        <h4>Sentences</h4>
+        {% for item in sentences %}
+        <div class="card mb-3">
+          <div class="card-body text-dark">
+            <h5>
+              {{ item.text }}
+            </h5>
+            <p>
+              <strong>Pinyin:</strong>
+              {{ item.pinyin }}
+            </p>
+            <p>
+              <strong>Translation:</strong>
+              {{ item.translation }}
+            </p>
+            <p>
+              <strong>Category:</strong>
+              {{ item.category.category_name }}
+            </p>
+            <a href="{% url 'sentence_category_page' item.category.id %}?level=all&item={{ item.id }}"
+              class="btn btn-outline-success btn-sm">
+              View Sentence
+            </a>
+
+          </div>
+        </div>
+        {% empty %}
+        <p>No matching sentences.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Chinese Expressions -->
+      <div class="mb-5">
+        <h4>Chinese Expressions</h4>
+        {% for item in idioms %}
+        <div class="card mb-3">
+          <div class="card-body text-dark">
+            <h5>
+              {{ item.idiom }}
+            </h5>
+            <p>
+              <strong>Pinyin:</strong>
+              {{ item.pinyin }}
+            </p>
+            <p>
+              <strong>Meaning:</strong>
+              {{ item.meaning }}
+            </p>
+            <p>
+              <strong>Category:</strong>
+              {{ item.category.category_name }}
+            </p>
+            <a href="{% url 'idiom_category_page' item.category.id %}?level=all&item={{ item.id }}" class="btn btn-outline-success btn-sm">
+              View Expression
+            </a>
+          </div>
+        </div>
+        {% empty %}
+        <p>No matching Chinese expressions.</p>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-center">
+        Enter a Chinese word, Pinyin, or English meaning above.
+      </p>
+      {% endif %}
+    </div>
+  </section><!-- /Register Section Section -->
+
+</main>
+
+
+{% endblock %}

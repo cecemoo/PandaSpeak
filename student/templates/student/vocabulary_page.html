@@ -135,7 +135,7 @@
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.meaning }}</p>
-                <p><strong>Example Sentence:</strong><br> 
+                <p><strong>Example Sentence:</strong><br>
                   {{ item.example_sentence }}<br>
                   {{ item.example_pinyin }}<br>
                   {{ item.example_translation }}
@@ -167,5 +167,21 @@
   </section><!-- End Vocabulary Section -->
 
 </main>
+<script>
+  window.addEventListener("load", function () {
+    const params = new URLSearchParams(window.location.search);
+    const itemId = params.get("item");
+
+    if (itemId) {
+      const button = document.querySelector(
+        '[data-bs-target="#vocabModal' + itemId + '"]'
+      );
+
+      if (button) {
+        button.click();
+      }
+    }
+  });
+</script>
 
 {% endblock %}
