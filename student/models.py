@@ -1,7 +1,8 @@
 from django.db import models
 from account.models import CustomUser
 from course.models import StudentGroup
-
+from django.conf import settings
+from teacher.models import Vocabulary, Sentence, Idiom
 
 
 class LanguageTest(models.Model):
@@ -102,3 +103,36 @@ class StudentSpeakingAnswer(models.Model):
 
     def __str__(self):
         return f"{self.student.email} - {self.question.test.title} - Question {self.question.order}"
+
+
+
+
+
+class Favorite(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
+    vocabulary = models.ForeignKey(
+        Vocabulary,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    sentence = models.ForeignKey(
+        Sentence,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    idiom = models.ForeignKey(
+        Idiom,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student} - Favorite"

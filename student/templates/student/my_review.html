@@ -1,0 +1,134 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>My Review</h1>
+            <p>Welcome, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">My Review</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>My Review</h2>
+            <p>Browse and manage your favorite learning materials.</p>
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="container">
+                <h2 class="mb-4">Vocabulary</h2>
+                {% for favorite in vocabulary_favorites %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong style="font-size: 1.2rem;">
+                            {{ favorite.vocabulary.word }}
+                        </strong>
+                        <span class="ms-2 text-muted">
+                            {{ favorite.vocabulary.pinyin }}
+                        </span>
+                        <span class="ms-2">
+                            {{ favorite.vocabulary.english_translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'vocabulary_category_page' favorite.vocabulary.category.id %}?level=all&item={{ favorite.vocabulary.id }}"
+                            class="btn btn-success btn-sm">
+                            Open
+                        </a>
+                        <form method="post" action="{% url 'toggle_favorite' 'vocabulary' favorite.vocabulary.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                ★ Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved vocabulary yet.</p>
+                {% endfor %}
+
+                <hr class="my-5">
+                <h2 class="mb-4">Sentences</h2>
+                {% for favorite in sentence_favorites %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong>{{ favorite.sentence.text }}</strong>
+                        <span class="ms-2 text-muted">
+                            {{ favorite.sentence.translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'sentence_category_page' favorite.sentence.category.id %}?level=all&item={{ favorite.sentence.id }}"
+                            class="btn btn-success btn-sm">
+                            Open
+                        </a>
+                        <form method="post" action="{% url 'toggle_favorite' 'sentence' favorite.sentence.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                ★ Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved sentences yet.</p>
+                {% endfor %}
+
+                <hr class="my-5">
+                <h2 class="mb-4">Chinese Expressions</h2>
+                {% for favorite in idiom_favorites %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong style="font-size: 1.2rem;">
+                            {{ favorite.idiom.idiom }}
+                        </strong>
+                        <span class="ms-2 text-muted">
+                            {{ favorite.idiom.pinyin }}
+                        </span>
+                        <span class="ms-2">
+                            {{ favorite.idiom.english_translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'idiom_category_page' favorite.idiom.category.id %}?level=all&item={{ favorite.idiom.id }}"
+                            class="btn btn-success btn-sm">
+                            Open
+                        </a>
+                        <form method="post" action="{% url 'toggle_favorite' 'idiom' favorite.idiom.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                ★ Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved Chinese expressions yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </section><!-- /Register Section Section -->
+
+</main>
+
+
+{% endblock %}

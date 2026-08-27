@@ -16,6 +16,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=timezone.now)
 
     is_teacher = models.BooleanField(default=False, verbose_name="Are you a teacher?")
+    LEARNING_LEVEL_CHOICES = [
+        ('level1', 'Level I'),
+        ('level2', 'Level II'),
+        ('level3', 'Level III'),
+    ]
+    learning_level = models.CharField(
+        max_length=10,
+        choices=LEARNING_LEVEL_CHOICES,
+        default='level1',
+    )
+    
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
 
     def get_full_name(self):

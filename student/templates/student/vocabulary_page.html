@@ -52,6 +52,8 @@
 
   <!-- Page Title -->
   <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <!-- <div class="page-title dark-background"
+style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %}');"> -->
     <div class="container position-relative">
       <h1>Category: {{ category.category_name }}</h1>
       <p>Explore and learn new vocabulary words with their meanings, pronunciations, and example sentences.</p>
@@ -140,6 +142,17 @@
                   {{ item.example_pinyin }}<br>
                   {{ item.example_translation }}
                 </p>
+                <!-- Favorite form -->
+                <form method="post" action="{% url 'toggle_favorite' 'vocabulary' item.id %}" class="mb-3">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-warning">
+                    {% if item.id in favorite_vocabulary_ids %}
+                    ★ Remove from My Review
+                    {% else %}
+                    ☆ Add to My Review
+                    {% endif %}
+                  </button>
+                </form>
 
                 {% if item.audio_file %}
                 <audio id="audio{{ item.id }}">
@@ -154,11 +167,9 @@
                 <p>No audio available.</p>
                 {% endif %}
               </div>
-
             </div>
           </div>
         </div>
-
         {% empty %}
         <p>No vocabulary added yet.</p>
         {% endfor %}

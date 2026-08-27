@@ -23,5 +23,9 @@ urlpatterns = [
     path('surveys/<int:survey_id>/take/', views.take_learning_survey, name='take_learning_survey'),
     path('surveys/', views.student_survey_list, name='student_survey_list'),
 
+    path('learning-materials/change-level/', views.change_learning_level, name='change_learning_level'),
+    path('favorites/toggle/<str:item_type>/<int:item_id>/', views.toggle_favorite, name='toggle_favorite'),
+    path('my-review/', views.my_review, name='my_review'),
+
     
 ]

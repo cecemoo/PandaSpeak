@@ -80,6 +80,61 @@
     </form>
   </div>
 
+  <div class="container mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <h5 class="mb-1">Your Learning Level</h5>
+            <small class="text-muted">
+              PandaSpeak will automatically show materials
+              appropriate for your level.
+            </small>
+          </div>
+          <form method="post" action="{% url 'change_learning_level' %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <select name="learning_level" class="form-select" onchange="this.form.submit()">
+              <option value="level1" {% if request.user.learning_level == 'level1' %}selected{% endif %}>
+                Level I
+              </option>
+              <option value="level2" {% if request.user.learning_level == 'level2' %}selected{% endif %}>
+                Level II
+              </option>
+              <option value="level3" {% if request.user.learning_level == 'level3' %}selected{% endif %}>
+                Level III
+              </option>
+            </select>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mb-4">
+    <a href="{% url 'my_review' %}" class="btn btn-outline-warning">
+      ★ My Review
+    </a>
+  </div>
+
+  {% if last_learning %}
+  <div class="container mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="mb-2">
+          Continue Learning
+        </h4>
+        <p class="mb-3">
+          Pick up where you left off:
+          <strong>{{ last_learning.title }}</strong>
+        </p>
+        <a href="{{ last_learning.url }}" class="btn btn-success rounded-pill">
+          Continue Learning
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Vocabulary Section -->
   <section id="vocabulary-section" class="vocabulary-section section">
 

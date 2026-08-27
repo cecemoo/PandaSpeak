@@ -38,6 +38,9 @@
 
   <!-- Page Title -->
   <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+
+    <!-- <div class="page-title dark-background"
+style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %}');"> -->
     <div class="container position-relative">
       <h1>Category: {{ category.category_name }}</h1>
       <p>Explore and learn new Chinese expressions with their meanings and pronunciations.</p>
@@ -128,6 +131,17 @@
                   {{ item.example_translation }}
                 </p>
 
+                <form method="post" action="{% url 'toggle_favorite' 'idiom' item.id %}" class="mb-3">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-warning">
+                    {% if item.id in favorite_idiom_ids %}
+                    ★ Remove from My Review
+                    {% else %}
+                    ☆ Add to My Review
+                    {% endif %}
+                  </button>
+                </form>
+
                 {% if item.audio_scenario_file %}
                 <audio id="audio{{ item.id }}">
                   <source src="{{ item.audio_scenario_file.url }}">
@@ -156,20 +170,20 @@
 
 </main>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  window.addEventListener("load", function () {
     const params = new URLSearchParams(window.location.search);
     const itemId = params.get("item");
 
     if (itemId) {
-      const modalElement = document.getElementById(
-        "vocabModal" + itemId
+      const button = document.querySelector(
+        '[data-bs-target="#vocabModal' + itemId + '"]'
       );
 
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
+      if (button) {
+        button.click();
       }
     }
   });
 </script>
+
 {% endblock %}

@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
-from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer
+from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -63,10 +63,12 @@ def access_learning_materials(request):
     vocabulary_categories = VocabularyCategory.objects.prefetch_related('vocabularies').all()
     sentence_categories = SentenceCategory.objects.prefetch_related('sentences').all()
     idiom_categories = IdiomCategory.objects.prefetch_related('idioms').all()
+    last_learning = request.session.get('last_learning')
     context = {
         'vocabulary_categories': vocabulary_categories,
         'sentence_categories': sentence_categories,
         'idiom_categories': idiom_categories,
+        'last_learning': last_learning,
     }
     return render(request, 'student/access_learning_materials.html', context)
 
@@ -110,6 +112,7 @@ def learning_material_search(request):
         'student/learning_material_search.html',
         context
     )
+       
 
 
 
@@ -119,8 +122,15 @@ def learning_material_search(request):
 @subscription_required
 def vocabulary_category_page(request, category_id):
     category = VocabularyCategory.objects.get(id=category_id)
+    request.session['last_learning'] = {
+        'title': f'Vocabulary: {category.category_name}',
+        'url': reverse(
+            'vocabulary_category_page',
+            args=[category.id]
+        )
+    }
     vocabularies = Vocabulary.objects.filter(category=category)
-    selected_level = request.GET.get('level')
+    selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         vocabularies = vocabularies.filter(level='level1')
     elif selected_level == 'level2':
@@ -131,7 +141,13 @@ def vocabulary_category_page(request, category_id):
         vocabularies = vocabularies.filter(
             level__in=['level1', 'level2', 'level3']
         )
-    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies, 'selected_level': selected_level})
+    favorite_vocabulary_ids = set(
+        Favorite.objects.filter(
+            student=request.user,
+            vocabulary__isnull=False
+        ).values_list('vocabulary_id', flat=True)
+    )
+    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies, 'selected_level': selected_level, 'favorite_vocabulary_ids': favorite_vocabulary_ids})
 
 
 
@@ -162,8 +178,15 @@ def pronunciation_page(request):
 @subscription_required
 def sentence_category_page(request, category_id):
     category = SentenceCategory.objects.get(id=category_id)
+    request.session['last_learning'] = {
+        'title': f'Sentences: {category.category_name}',
+        'url': reverse(
+            'sentence_category_page',
+            args=[category.id]
+        )
+    }
     sentences = Sentence.objects.filter(category=category)
-    selected_level = request.GET.get('level')
+    selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         sentences = sentences.filter(level='level1')
     elif selected_level == 'level2':
@@ -174,7 +197,13 @@ def sentence_category_page(request, category_id):
         sentences = sentences.filter(
             level__in=['level1', 'level2', 'level3']
         )
-    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences, 'selected_level': selected_level})
+    favorite_sentence_ids = set(
+        Favorite.objects.filter(
+            student=request.user,
+            sentence__isnull=False
+        ).values_list('sentence_id', flat=True)
+    )
+    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences, 'selected_level': selected_level, 'favorite_sentence_ids': favorite_sentence_ids})
 
 
    
@@ -183,8 +212,15 @@ def sentence_category_page(request, category_id):
 @subscription_required
 def idiom_category_page(request, category_id):
     category = IdiomCategory.objects.get(id=category_id)
+    request.session['last_learning'] = {
+        'title': f'Chinese Expressions: {category.category_name}',
+        'url': reverse(
+            'idiom_category_page',
+            args=[category.id]
+        )
+    }
     idioms = Idiom.objects.filter(category=category)
-    selected_level = request.GET.get('level')
+    selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         idioms = idioms.filter(level='level1')
     elif selected_level == 'level2':
@@ -195,7 +231,13 @@ def idiom_category_page(request, category_id):
         idioms = idioms.filter(
             level__in=['level1', 'level2', 'level3']
         )
-    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level})
+    favorite_idiom_ids = set(
+        Favorite.objects.filter(
+            student=request.user,
+            idiom__isnull=False
+        ).values_list('idiom_id', flat=True)
+    )
+    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids})
    
 
 
@@ -636,3 +678,84 @@ def student_survey_list(request):
             'available_surveys': available_surveys
         }
     )
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def change_learning_level(request):
+    if request.method == 'POST':
+        level = request.POST.get('learning_level')
+        valid_levels = ['level1', 'level2', 'level3']
+        if level in valid_levels:
+            request.user.learning_level = level
+            request.user.save(update_fields=['learning_level'])
+            messages.success(
+                request,
+                'Your learning level has been updated.'
+            )
+    return redirect('access_learning_materials')
+
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def toggle_favorite(request, item_type, item_id):
+    if request.method != 'POST':
+        return redirect('access_learning_materials')
+
+    if item_type == 'vocabulary':
+        item = get_object_or_404(Vocabulary, id=item_id)
+        favorite, created = Favorite.objects.get_or_create(
+            student=request.user,
+            vocabulary=item
+        )
+    elif item_type == 'sentence':
+        item = get_object_or_404(Sentence, id=item_id)
+        favorite, created = Favorite.objects.get_or_create(
+            student=request.user,
+            sentence=item
+        )
+    elif item_type == 'idiom':
+        item = get_object_or_404(Idiom, id=item_id)
+        favorite, created = Favorite.objects.get_or_create(
+            student=request.user,
+            idiom=item
+        )
+    else:
+        return redirect('access_learning_materials')
+    if not created:
+        favorite.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'access_learning_materials'))
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def my_review(request):
+    favorites = Favorite.objects.filter(
+        student=request.user
+    ).select_related(
+        'vocabulary',
+        'vocabulary__category',
+        'sentence',
+        'sentence__category',
+        'idiom',
+        'idiom__category',
+    ).order_by('-created_at')
+    vocabulary_favorites = [
+        favorite for favorite in favorites
+        if favorite.vocabulary
+    ]
+    sentence_favorites = [
+        favorite for favorite in favorites
+        if favorite.sentence
+    ]
+    idiom_favorites = [
+        favorite for favorite in favorites
+        if favorite.idiom
+    ]
+    return render(request, 'student/my_review.html', {
+        'vocabulary_favorites': vocabulary_favorites,
+        'sentence_favorites': sentence_favorites,
+        'idiom_favorites': idiom_favorites,
+    })
+
