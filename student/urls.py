@@ -26,6 +26,7 @@ urlpatterns = [
     path('learning-materials/change-level/', views.change_learning_level, name='change_learning_level'),
     path('favorites/toggle/<str:item_type>/<int:item_id>/', views.toggle_favorite, name='toggle_favorite'),
     path('my-review/', views.my_review, name='my_review'),
+    path('learned/toggle/<str:item_type>/<int:item_id>/', views.toggle_learned, name='toggle_learned'),
 
-    
+    path('learned/', views.learned_items, name='learned_items'),
 ]

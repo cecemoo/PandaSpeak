@@ -142,6 +142,17 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
                   </button>
                 </form>
 
+                <form method="post" action="{% url 'toggle_learned' 'idiom' item.id %}" class="mb-2">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-success">
+                    {% if item.id in learned_idiom_ids %}
+                    ✓ Learned
+                    {% else %}
+                    Mark as Learned
+                    {% endif %}
+                  </button>
+                </form>
+
                 {% if item.audio_scenario_file %}
                 <audio id="audio{{ item.id }}">
                   <source src="{{ item.audio_scenario_file.url }}">

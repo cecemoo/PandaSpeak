@@ -133,6 +133,19 @@
                   </button>
                 </form>
 
+                <!-- Learning tracking -->
+                <form method="post" action="{% url 'toggle_learned' 'sentence' item.id %}" class="mb-2">
+                  {% csrf_token %}
+
+                  <button type="submit" class="btn btn-outline-success">
+                    {% if item.id in learned_sentence_ids %}
+                    ✓ Learned
+                    {% else %}
+                    Mark as Learned
+                    {% endif %}
+                  </button>
+                </form>
+
                 {% if item.audio_file %}
                 <audio id="audio{{ item.id }}">
                   <source src="{{ item.audio_file.url }}">

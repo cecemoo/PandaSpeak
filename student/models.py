@@ -136,3 +136,34 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.student} - Favorite"
+
+
+
+class LearnedItem(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='learned_items'
+    )
+    vocabulary = models.ForeignKey(
+        Vocabulary,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    sentence = models.ForeignKey(
+        Sentence,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    idiom = models.ForeignKey(
+        Idiom,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    learned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student} - Learned Item"

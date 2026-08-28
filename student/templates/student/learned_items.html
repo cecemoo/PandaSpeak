@@ -1,0 +1,279 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Learned Items</h1>
+            <p>Welcome, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li class="current">Learned Items</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <!-- Register Section Section -->
+    <section id="register-section" class="register-section section">
+
+        <!-- Section Title -->
+        <div class="container section-title" data-aos="fade-up">
+            <h2>Learned Items</h2>
+            <p>View and manage the learning materials you have completed.</p>
+        </div><!-- End Section Title -->
+
+        <div class="container" data-aos="fade-up">
+            <div class="container">
+                <div class="mb-4">
+                    <a href="{% url 'access_learning_materials' %}" class="btn btn-outline-success">
+                        ← Back to Learning Materials
+                    </a>
+                </div>
+                <h2 class="mb-4">Vocabulary</h2>
+                {% for learned_item in learned_vocabularies %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong style="font-size: 1.2rem;">
+                            {{ learned_item.vocabulary.word }}
+                        </strong>
+                        <span class="ms-2 text-muted">
+                            {{ learned_item.vocabulary.pinyin }}
+                        </span>
+                        <span class="ms-2">
+                            {{ learned_item.vocabulary.english_translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#learnedVocabModal{{ learned_item.vocabulary.id }}">
+                            Open
+                        </button>
+                        <form method="post" action="{% url 'toggle_learned' 'vocabulary' learned_item.vocabulary.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                Move Back to Learning Materials
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal fade" id="learnedVocabModal{{ learned_item.vocabulary.id }}" tabindex="-1">
+
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ learned_item.vocabulary.word }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ learned_item.vocabulary.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ learned_item.vocabulary.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Meaning:</strong>
+                                    {{ learned_item.vocabulary.meaning }}
+                                </p>
+                                <p>
+                                    <strong>Example Sentence:</strong><br>
+                                    {{ learned_item.vocabulary.example_sentence }}<br>
+                                    {{ learned_item.vocabulary.example_pinyin }}<br>
+                                    {{ learned_item.vocabulary.example_translation }}
+                                </p>
+
+                                {% if learned_item.vocabulary.audio_file %}
+                                <audio id="learnedVocabAudio{{ learned_item.vocabulary.id }}">
+                                    <source src="{{ learned_item.vocabulary.audio_file.url }}">
+                                </audio>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('learnedVocabAudio{{ learned_item.vocabulary.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved vocabulary yet.</p>
+                {% endfor %}
+
+
+
+
+                <hr class="my-5">
+                <h2 class="mb-4">Sentences</h2>
+                {% for learned_item in learned_sentences %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong>{{ learned_item.sentence.text }}</strong>
+                        <span class="ms-2 text-muted">
+                            {{ learned_item.sentence.translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#learnedSentenceModal{{ learned_item.sentence.id }}">
+                            Open
+                        </button>
+
+                        <form method="post" action="{% url 'toggle_learned' 'sentence' learned_item.sentence.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                Move Back to Learning Materials
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal fade" id="learnedSentenceModal{{ learned_item.sentence.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ learned_item.sentence.text }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ learned_item.sentence.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ learned_item.sentence.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Translation:</strong>
+                                    {{ learned_item.sentence.translation }}
+                                </p>
+                                {% if learned_item.sentence.audio_file %}
+                                <audio id="learnedSentenceAudio{{ learned_item.sentence.id }}">
+                                    <source src="{{ learned_item.sentence.audio_file.url }}">
+                                </audio>
+
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('learnedSentenceAudio{{ learned_item.sentence.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved sentences yet.</p>
+                {% endfor %}
+
+                <hr class="my-5">
+                <h2 class="mb-4">Chinese Expressions</h2>
+                {% for learned_item in learned_idioms %}
+                <div
+                    class="review-item d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 p-3 bg-white rounded">
+                    <div class="text-dark">
+                        <strong style="font-size: 1.2rem;">
+                            {{ learned_item.idiom.idiom }}
+                        </strong>
+                        <span class="ms-2 text-muted">
+                            {{ learned_item.idiom.pinyin }}
+                        </span>
+                        <span class="ms-2">
+                            {{ learned_item.idiom.english_translation }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#learnedIdiomModal{{ learned_item.idiom.id }}">
+                            Open
+                        </button>
+                        <form method="post" action="{% url 'toggle_learned' 'idiom' learned_item.idiom.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                Move Back to Learning Materials
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal fade" id="learnedIdiomModal{{ learned_item.idiom.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ learned_item.idiom.idiom }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ learned_item.idiom.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ learned_item.idiom.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Meaning:</strong>
+                                    {{ learned_item.idiom.meaning }}
+                                </p>
+                                <p>
+                                    <strong>English:</strong>
+                                    {{ learned_item.idiom.english_translation }}
+                                </p>
+                                <p>
+                                    <strong>Example Sentence:</strong><br>
+                                    {{ learned_item.idiom.example_sentence }}<br>
+                                    {{ learned_item.idiom.example_pinyin }}<br>
+                                    {{ learned_item.idiom.example_translation }}
+                                </p>
+                                {% if learned_item.idiom.audio_scenario_file %}
+                                <audio id="learnedIdiomAudio{{ learned_item.idiom.id }}">
+                                    <source src="{{ learned_item.idiom.audio_scenario_file.url }}">
+                                </audio>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('learnedIdiomAudio{{ learned_item.idiom.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No saved Chinese expressions yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </section><!-- /Register Section Section -->
+
+</main>
+
+
+{% endblock %}

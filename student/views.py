@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
 from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite
+from .models import LearnedItem
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -147,7 +148,14 @@ def vocabulary_category_page(request, category_id):
             vocabulary__isnull=False
         ).values_list('vocabulary_id', flat=True)
     )
-    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies, 'selected_level': selected_level, 'favorite_vocabulary_ids': favorite_vocabulary_ids})
+    learned_vocabulary_ids = set(
+        LearnedItem.objects.filter(
+            student=request.user,
+            vocabulary__isnull=False
+        ).values_list('vocabulary_id', flat=True)
+    )
+    vocabularies = vocabularies.exclude(id__in=learned_vocabulary_ids)
+    return render(request, 'student/vocabulary_page.html', {'category': category, 'vocabularies': vocabularies, 'selected_level': selected_level, 'favorite_vocabulary_ids': favorite_vocabulary_ids, 'learned_vocabulary_ids': learned_vocabulary_ids})
 
 
 
@@ -203,7 +211,14 @@ def sentence_category_page(request, category_id):
             sentence__isnull=False
         ).values_list('sentence_id', flat=True)
     )
-    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences, 'selected_level': selected_level, 'favorite_sentence_ids': favorite_sentence_ids})
+    learned_sentence_ids = set(
+        LearnedItem.objects.filter(
+            student=request.user,
+            sentence__isnull=False
+        ).values_list('sentence_id', flat=True)
+    )
+    sentences = sentences.exclude(id__in=learned_sentence_ids)
+    return render(request, 'student/sentence_page.html', {'category': category, 'sentences': sentences, 'selected_level': selected_level, 'favorite_sentence_ids': favorite_sentence_ids, 'learned_sentence_ids': learned_sentence_ids})
 
 
    
@@ -237,7 +252,14 @@ def idiom_category_page(request, category_id):
             idiom__isnull=False
         ).values_list('idiom_id', flat=True)
     )
-    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids})
+    learned_idiom_ids = set(
+        LearnedItem.objects.filter(
+            student=request.user,
+            idiom__isnull=False
+        ).values_list('idiom_id', flat=True)
+    )
+    idioms = idioms.exclude(id__in=learned_idiom_ids)
+    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids})
    
 
 
@@ -759,3 +781,62 @@ def my_review(request):
         'idiom_favorites': idiom_favorites,
     })
 
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def toggle_learned(request, item_type, item_id):
+    if request.method != 'POST':
+        return redirect('access_learning_materials')
+    if item_type == 'vocabulary':
+        item = get_object_or_404(Vocabulary, id=item_id)
+        learned, created = LearnedItem.objects.get_or_create(
+            student=request.user,
+            vocabulary=item
+        )
+    elif item_type == 'sentence':
+        item = get_object_or_404(Sentence, id=item_id)
+        learned, created = LearnedItem.objects.get_or_create(
+            student=request.user,
+            sentence=item
+        )
+    elif item_type == 'idiom':
+        item = get_object_or_404(Idiom, id=item_id)
+        learned, created = LearnedItem.objects.get_or_create(
+            student=request.user,
+            idiom=item
+        )
+    else:
+        return redirect('access_learning_materials')
+    if not created:
+        learned.delete()
+    return redirect(
+        request.META.get(
+            'HTTP_REFERER',
+            'access_learning_materials'
+        )
+    )
+
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def learned_items(request):
+    learned_vocabularies = LearnedItem.objects.filter(
+        student=request.user,
+        vocabulary__isnull=False
+    ).select_related('vocabulary')
+    learned_sentences = LearnedItem.objects.filter(
+        student=request.user,
+        sentence__isnull=False
+    ).select_related('sentence')
+    learned_idioms = LearnedItem.objects.filter(
+        student=request.user,
+        idiom__isnull=False
+    ).select_related('idiom')
+    context = {
+        'learned_vocabularies': learned_vocabularies,
+        'learned_sentences': learned_sentences,
+        'learned_idioms': learned_idioms,
+    }
+    return render(request, 'student/learned_items.html', context)

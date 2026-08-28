@@ -31,6 +31,11 @@
 
         <div class="container" data-aos="fade-up">
             <div class="container">
+                <div class="mb-4">
+                    <a href="{% url 'access_learning_materials' %}" class="btn btn-outline-success">
+                        ← Back to Learning Materials
+                    </a>
+                </div>
                 <h2 class="mb-4">Vocabulary</h2>
                 {% for favorite in vocabulary_favorites %}
                 <div
