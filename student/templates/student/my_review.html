@@ -52,10 +52,10 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{% url 'vocabulary_category_page' favorite.vocabulary.category.id %}?level=all&item={{ favorite.vocabulary.id }}"
-                            class="btn btn-success btn-sm">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#reviewVocabModal{{ favorite.vocabulary.id }}">
                             Open
-                        </a>
+                        </button>
                         <form method="post" action="{% url 'toggle_favorite' 'vocabulary' favorite.vocabulary.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-warning btn-sm">
@@ -64,6 +64,77 @@
                         </form>
                     </div>
                 </div>
+
+                <div class="modal fade" id="reviewVocabModal{{ favorite.vocabulary.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ favorite.vocabulary.word }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ favorite.vocabulary.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ favorite.vocabulary.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Meaning:</strong>
+                                    {{ favorite.vocabulary.meaning }}
+                                </p>
+                                <p>
+                                    <strong>Example Sentence:</strong><br>
+                                    {{ favorite.vocabulary.example_sentence }}<br>
+                                    {{ favorite.vocabulary.example_pinyin }}<br>
+                                    {{ favorite.vocabulary.example_translation }}
+                                </p>
+                                <!-- Remove from My Review -->
+                                <form method="post"
+                                    action="{% url 'toggle_favorite' 'vocabulary' favorite.vocabulary.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="btn btn-outline-warning">
+                                        ★ Remove from My Review
+                                    </button>
+                                </form>
+
+                                <!-- Learned status -->
+                                <form method="post"
+                                    action="{% url 'toggle_learned' 'vocabulary' favorite.vocabulary.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="btn btn-outline-success">
+                                        {% if favorite.vocabulary.id in learned_vocabulary_ids %}
+                                        ✓ Move Back to Learning Materials
+                                        {% else %}
+                                        Mark as Learned
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                {% if favorite.vocabulary.audio_file %}
+                                <audio id="reviewVocabAudio{{ favorite.vocabulary.id }}">
+                                    <source src="{{ favorite.vocabulary.audio_file.url }}">
+                                </audio>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('reviewVocabAudio{{ favorite.vocabulary.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {% empty %}
                 <p>No saved vocabulary yet.</p>
                 {% endfor %}
@@ -80,16 +151,76 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{% url 'sentence_category_page' favorite.sentence.category.id %}?level=all&item={{ favorite.sentence.id }}"
-                            class="btn btn-success btn-sm">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#reviewSentenceModal{{ favorite.sentence.id }}">
                             Open
-                        </a>
+                        </button>
                         <form method="post" action="{% url 'toggle_favorite' 'sentence' favorite.sentence.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-warning btn-sm">
                                 ★ Remove
                             </button>
                         </form>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="reviewSentenceModal{{ favorite.sentence.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ favorite.sentence.text }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ favorite.sentence.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ favorite.sentence.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Translation:</strong>
+                                    {{ favorite.sentence.translation }}
+                                </p>
+
+                                <form method="post" action="{% url 'toggle_favorite' 'sentence' favorite.sentence.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning">
+                                        ★ Remove from My Review
+                                    </button>
+                                </form>
+
+                                <form method="post" action="{% url 'toggle_learned' 'sentence' favorite.sentence.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success">
+                                        {% if favorite.sentence.id in learned_sentence_ids %}
+                                        ✓ Move Back to Learning Materials
+                                        {% else %}
+                                        Mark as Learned
+                                        {% endif %}
+                                    </button>
+                                </form>
+
+                                {% if favorite.sentence.audio_file %}
+                                <audio id="reviewSentenceAudio{{ favorite.sentence.id }}">
+                                    <source src="{{ favorite.sentence.audio_file.url }}">
+                                </audio>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('reviewSentenceAudio{{ favorite.sentence.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% empty %}
@@ -113,16 +244,86 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{% url 'idiom_category_page' favorite.idiom.category.id %}?level=all&item={{ favorite.idiom.id }}"
-                            class="btn btn-success btn-sm">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#reviewIdiomModal{{ favorite.idiom.id }}">
                             Open
-                        </a>
+                        </button>
                         <form method="post" action="{% url 'toggle_favorite' 'idiom' favorite.idiom.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-warning btn-sm">
                                 ★ Remove
                             </button>
                         </form>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="reviewIdiomModal{{ favorite.idiom.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-dark">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ favorite.idiom.idiom }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Pinyin:</strong>
+                                    {{ favorite.idiom.pinyin }}
+                                </p>
+                                <p>
+                                    <strong>Level:</strong>
+                                    {{ favorite.idiom.get_level_display }}
+                                </p>
+                                <p>
+                                    <strong>Meaning:</strong>
+                                    {{ favorite.idiom.meaning }}
+                                </p>
+                                <p>
+                                    <strong>English:</strong>
+                                    {{ favorite.idiom.english_translation }}
+                                </p>
+                                <p>
+                                    <strong>Example Sentence:</strong><br>
+                                    {{ favorite.idiom.example_sentence }}<br>
+                                    {{ favorite.idiom.example_pinyin }}<br>
+                                    {{ favorite.idiom.example_translation }}
+                                </p>
+
+                                <form method="post" action="{% url 'toggle_favorite' 'idiom' favorite.idiom.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning">
+                                        ★ Remove from My Review
+                                    </button>
+                                </form>
+
+                                <form method="post" action="{% url 'toggle_learned' 'idiom' favorite.idiom.id %}"
+                                    class="mb-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success">
+                                        {% if favorite.idiom.id in learned_idiom_ids %}
+                                        ✓ Move Back to Learning Materials
+                                        {% else %}
+                                        Mark as Learned
+                                        {% endif %}
+                                    </button>
+                                </form>
+
+                                {% if favorite.idiom.audio_scenario_file %}
+                                <audio id="reviewIdiomAudio{{ favorite.idiom.id }}">
+                                    <source src="{{ favorite.idiom.audio_scenario_file.url }}">
+                                </audio>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('reviewIdiomAudio{{ favorite.idiom.id }}').play();">
+                                    ▶ Play Audio
+                                </button>
+                                {% else %}
+                                <p>No audio available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% empty %}

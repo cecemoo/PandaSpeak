@@ -28,8 +28,12 @@
       <h2>Search Learning Materials</h2>
       <p>Browse and search for available learning materials.</p>
     </div><!-- End Section Title -->
-
     <div class="container" data-aos="fade-up">
+      <div class="mb-4">
+        <a href="{% url 'access_learning_materials' %}" class="btn btn-outline-success">
+          ← Back to Learning Materials
+        </a>
+      </div>
       <form method="get" action="{% url 'learning_material_search' %}" class="mb-5">
         <div class="input-group">
           <input type="text" name="q" value="{{ query }}" class="form-control"
@@ -131,7 +135,8 @@
               <strong>Category:</strong>
               {{ item.category.category_name }}
             </p>
-            <a href="{% url 'idiom_category_page' item.category.id %}?level=all&item={{ item.id }}" class="btn btn-outline-success btn-sm">
+            <a href="{% url 'idiom_category_page' item.category.id %}?level=all&item={{ item.id }}"
+              class="btn btn-outline-success btn-sm">
               View Expression
             </a>
           </div>

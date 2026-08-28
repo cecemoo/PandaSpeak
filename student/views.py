@@ -775,10 +775,32 @@ def my_review(request):
         favorite for favorite in favorites
         if favorite.idiom
     ]
+    learned_vocabulary_ids = set(
+        LearnedItem.objects.filter(
+        student=request.user,
+        vocabulary__isnull=False
+        ).values_list('vocabulary_id', flat=True)
+    )
+    learned_sentence_ids = set(
+        LearnedItem.objects.filter(
+            student=request.user,
+            sentence__isnull=False
+        ).values_list('sentence_id', flat=True)
+    )
+    learned_idiom_ids = set(
+        LearnedItem.objects.filter(
+            student=request.user,
+            idiom__isnull=False
+        ).values_list('idiom_id', flat=True)
+    )
+
     return render(request, 'student/my_review.html', {
         'vocabulary_favorites': vocabulary_favorites,
         'sentence_favorites': sentence_favorites,
         'idiom_favorites': idiom_favorites,
+        'learned_vocabulary_ids': learned_vocabulary_ids,
+        'learned_sentence_ids': learned_sentence_ids,
+        'learned_idiom_ids': learned_idiom_ids,
     })
 
 
