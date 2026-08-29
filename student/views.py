@@ -111,6 +111,14 @@ def student_dashboard(request):
         responses__student=request.user
     ).distinct()
 
+    recently_learned = LearnedItem.objects.filter(
+    student=request.user
+    ).select_related(
+        'vocabulary',
+        'sentence',
+        'idiom'
+    ).order_by('-learned_at')[:5]
+
     context = {
         'has_subscription': sub is not None,
         'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
@@ -128,6 +136,7 @@ def student_dashboard(request):
         'vocabulary_progress': vocabulary_progress,
         'sentence_progress': sentence_progress,
         'expression_progress': expression_progress,
+        'recently_learned': recently_learned,
 
 
 
