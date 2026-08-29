@@ -15,9 +15,26 @@ TRADITIONAL_CHINESE_EXCEPTIONS = {
 def validate_traditional_chinese(value):
     if not value:
         return value
-    if value in TRADITIONAL_CHINESE_EXCEPTIONS:
-        return value
-    converted = traditional_converter.convert(value)
+    # Temporarily protect valid expressions that OpenCC would change
+    protected_value = value
+    placeholders = {}
+    for index, phrase in enumerate(TRADITIONAL_CHINESE_EXCEPTIONS):
+        placeholder = f"__TRAD_EXCEPTION_{index}__"
+        if phrase in protected_value:
+            protected_value = protected_value.replace(
+                phrase,
+                placeholder
+            )
+            placeholders[placeholder] = phrase
+    # Convert everything else
+    converted = traditional_converter.convert(protected_value)
+    # Put the protected expressions back
+    for placeholder, phrase in placeholders.items():
+        converted = converted.replace(
+            placeholder,
+            phrase
+        )
+
     if converted != value:
         raise forms.ValidationError(
             f"Please use Traditional Chinese only. "
