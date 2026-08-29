@@ -56,9 +56,21 @@ class UpdateUserForm(ModelForm):
 
 class VocabularyForm(ModelForm):
     def clean_word(self):
-        return validate_traditional_chinese(
+        word = validate_traditional_chinese(
             self.cleaned_data.get('word')
         )
+        existing = Vocabulary.objects.filter(
+            word__iexact=word.strip()
+        )
+        # Allow editing the current item without
+        # thinking it is a duplicate of itself
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError(
+                f'"{word}" is already in the vocabulary materials.'
+            )
+        return word
     def clean_example_sentence(self):
         return validate_traditional_chinese(
             self.cleaned_data.get('example_sentence')
@@ -68,11 +80,22 @@ class VocabularyForm(ModelForm):
         fields = '__all__'
 
 
+
 class SentenceForm(ModelForm):
     def clean_text(self):
-        return validate_traditional_chinese(
+        text = validate_traditional_chinese(
             self.cleaned_data.get('text')
         )
+        existing = Sentence.objects.filter(
+            text__iexact=text.strip()
+        )
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError(
+                "This sentence is already in the learning materials."
+            )
+        return text
     class Meta:
         model = Sentence
         fields = '__all__'
@@ -86,9 +109,19 @@ class PronunciationForm(ModelForm):
 
 class IdiomForm(ModelForm):
     def clean_idiom(self):
-        return validate_traditional_chinese(
+        idiom = validate_traditional_chinese(
             self.cleaned_data.get('idiom')
         )
+        existing = Idiom.objects.filter(
+            idiom__iexact=idiom.strip()
+        )
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError(
+                f'"{idiom}" is already in the Chinese Expression materials.'
+            )
+        return idiom
     def clean_example_sentence(self):
         return validate_traditional_chinese(
             self.cleaned_data.get('example_sentence')
@@ -99,6 +132,8 @@ class IdiomForm(ModelForm):
         labels = {
             'idiom': 'Chinese Expression',
         }
+
+
 
 
 class ToneForm(ModelForm):
