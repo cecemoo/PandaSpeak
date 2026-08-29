@@ -62,27 +62,77 @@
     </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
-      <div class="dashboard-grid">
 
+      <div class="dashboard-card mb-4">
+        <h4>Learning Progress</h4>
+        <p class="mb-2">
+          Overall Progress:
+          <strong>{{ total_learned }} / {{ total_materials }}</strong>
+          ({{ overall_progress }}%)
+        </p>
+        <div class="progress mb-4" style="height: 22px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ overall_progress }}%;"
+            aria-valuenow="{{ overall_progress }}" aria-valuemin="0" aria-valuemax="100">
+            {{ overall_progress }}%
+          </div>
+        </div>
+        <p class="mb-1">
+          Vocabulary:
+          <strong>
+            {{ learned_vocabulary }} / {{ total_vocabulary }}
+            ({{ vocabulary_progress }}%)
+          </strong>
+        </p>
+
+        <div class="progress mb-3" style="height: 18px;">
+          <div class="progress-bar" role="progressbar" style="width: {{ vocabulary_progress }}%;"
+            aria-valuenow="{{ vocabulary_progress }}" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+        <p class="mb-1">
+          Sentences:
+          <strong>
+            {{ learned_sentences }} / {{ total_sentences }}
+            ({{ sentence_progress }}%)
+          </strong>
+        </p>
+
+        <div class="progress mb-3" style="height: 18px;">
+          <div class="progress-bar" role="progressbar" style="width: {{ sentence_progress }}%;"
+            aria-valuenow="{{ sentence_progress }}" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+        <p class="mb-1">
+          Chinese Expressions:
+          <strong>
+            {{ learned_expressions }} / {{ total_expressions }}
+            ({{ expression_progress }}%)
+          </strong>
+        </p>
+
+        <div class="progress" style="height: 18px;">
+          <div class="progress-bar" role="progressbar" style="width: {{ expression_progress }}%;"
+            aria-valuenow="{{ expression_progress }}" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+      <div class="dashboard-grid">
         <div class="dashboard-card">
           <h4>Learning Materials</h4>
           <p>Practice vocabulary, sentences, idioms, and pronunciation.</p>
           <a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">Start Learning</a>
         </div>
-
         <div class="dashboard-card">
           <h4>My Classes</h4>
           <p>View your booked tutoring classes and schedule.</p>
           <a href="{% url 'course:my_bookings' %}" class="btn btn-info rounded-pill">View Classes</a>
         </div>
-
         <div class="dashboard-card">
           <h4>Subscription</h4>
           <p>Manage your account subscription settings.</p>
           <a href="{% url 'account_management_student' %}" class="btn btn-secondary rounded-pill">Manage
             Subscription</a>
         </div>
-
         {% if not has_subscription %}
         <div class="dashboard-card">
           <h4>Subscription</h4>
@@ -90,26 +140,22 @@
           <a href="{% url 'subscription_plans' %}" class="btn btn-primary rounded-pill">View Plans</a>
         </div>
         {% endif %}
-
         <div class="dashboard-card">
           <h4>View Tests</h4>
           <p>View and take your tests.</p>
           <a href="{% url 'test_list' %}" class="btn btn-secondary rounded-pill">View Tests</a>
         </div>
-
         <div class="dashboard-card">
           <h4>View My Test Results</h4>
           <p>View your test results.</p>
           <a href="{% url 'student_test_results' %}" class="btn btn-secondary rounded-pill">View My Test Results</a>
         </div>
-
         <div class="dashboard-card">
           <h4>Learning Feedback Survey</h4>
           <p>Provide feedback on your learning experience.</p>
           <a href="{% url 'student_survey_list' %}" class="btn btn-success rounded-pill">
             View Surveys
           </a>
-
         </div>
       </div>
 

@@ -32,6 +32,76 @@ def student_dashboard(request):
         user=request.user,
         is_active=True
     ).first()
+
+    student_level = request.user.learning_level
+    if student_level == 'level1':
+        allowed_levels = ['level1', 'all']
+    elif student_level == 'level2':
+        allowed_levels = ['level1', 'level2', 'all']
+    elif student_level == 'level3':
+        allowed_levels = ['level1', 'level2', 'level3', 'all']
+    else:
+        allowed_levels = ['level1', 'level2', 'level3', 'all']
+    total_vocabulary = Vocabulary.objects.filter(
+        level__in=allowed_levels
+    ).count()
+    total_sentences = Sentence.objects.filter(
+        level__in=allowed_levels
+    ).count()
+    total_expressions = Idiom.objects.filter(
+        level__in=allowed_levels
+    ).count()
+    learned_vocabulary = LearnedItem.objects.filter(
+        student=request.user,
+        vocabulary__isnull=False,
+        vocabulary__level__in=allowed_levels
+    ).count()
+    learned_sentences = LearnedItem.objects.filter(
+        student=request.user,
+        sentence__isnull=False,
+        sentence__level__in=allowed_levels
+    ).count()
+    learned_expressions = LearnedItem.objects.filter(
+        student=request.user,
+        idiom__isnull=False,
+        idiom__level__in=allowed_levels
+    ).count()
+    total_materials = (
+        total_vocabulary
+        + total_sentences
+        + total_expressions
+    )
+    total_learned = (
+        learned_vocabulary
+        + learned_sentences
+        + learned_expressions
+    )
+    if total_materials > 0:
+        overall_progress = round(
+            (total_learned / total_materials) * 100
+        )
+    else:
+        overall_progress = 0
+
+    if total_vocabulary > 0:
+        vocabulary_progress = round(
+            (learned_vocabulary / total_vocabulary) * 100
+        )
+    else:
+        vocabulary_progress = 0
+    if total_sentences > 0:
+        sentence_progress = round(
+            (learned_sentences / total_sentences) * 100
+        )
+    else:
+        sentence_progress = 0
+    if total_expressions > 0:
+        expression_progress = round(
+            (learned_expressions / total_expressions) * 100
+        )
+    else:
+         expression_progress = 0
+
     available_surveys = LearningSurvey.objects.filter(
         is_active=True
     ).filter(
@@ -46,6 +116,21 @@ def student_dashboard(request):
         'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
         'available_surveys': available_surveys,
         'VAPID_PUBLIC_KEY': settings.VAPID_PUBLIC_KEY,
+        'learned_vocabulary': learned_vocabulary,
+        'total_vocabulary': total_vocabulary,
+        'learned_sentences': learned_sentences,
+        'total_sentences': total_sentences,
+        'learned_expressions': learned_expressions,
+        'total_expressions': total_expressions,
+        'total_learned': total_learned,
+        'total_materials': total_materials,
+        'overall_progress': overall_progress,
+        'vocabulary_progress': vocabulary_progress,
+        'sentence_progress': sentence_progress,
+        'expression_progress': expression_progress,
+
+
+
     }
     return render(request, 'student/student_dashboard.html', context)
 
