@@ -8,8 +8,14 @@ from opencc import OpenCC
 
 traditional_converter = OpenCC('s2tw')
 
+TRADITIONAL_CHINESE_EXCEPTIONS = {
+    "出么蛾子",
+}
+
 def validate_traditional_chinese(value):
     if not value:
+        return value
+    if value in TRADITIONAL_CHINESE_EXCEPTIONS:
         return value
     converted = traditional_converter.convert(value)
     if converted != value:
