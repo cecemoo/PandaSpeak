@@ -16,6 +16,8 @@ class LanguageTest(models.Model):
     level = models.CharField(max_length=50)
     test_type = models.CharField(max_length=20, choices=TEST_TYPES)
     description = models.TextField(blank=True)
+    available_from = models.DateTimeField(blank=True, null=True)
+    available_until = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_published = models.BooleanField(default=False)
     notification_sent = models.BooleanField(default=False)

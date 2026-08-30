@@ -169,6 +169,8 @@ class LearningSurvey(models.Model):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    availability_days = models.PositiveIntegerField(default=7, help_text="Number of days students can access this survey after it becomes available")
+    published_at = models.DateTimeField(blank=True, null=True)
     student_group = models.ForeignKey(
         StudentGroup,
         on_delete=models.SET_NULL,

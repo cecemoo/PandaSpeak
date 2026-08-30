@@ -16,6 +16,7 @@ from django.conf import settings
 from course.forms import StudentGroupForm
 from django.urls import reverse
 from account.push import send_push_to_user
+from django.utils import timezone
 
 
 
@@ -622,6 +623,8 @@ def create_learning_survey(request):
         if form.is_valid():
             survey = form.save(commit=False)
             survey.teacher = request.user
+            if survey.is_active and not survey.published_at:
+                survey.published_at = timezone.now()
             survey.save()
             messages.success(
                 request,
@@ -689,6 +692,8 @@ def finish_learning_survey(request,survey_id):
             survey_id=survey.id
         )
     survey.is_active = True
+    if not survey.published_at:
+        survey.published_at = timezone.now()
     survey.save()
     if survey.student_group:
         students = survey.student_group.students.filter(

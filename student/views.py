@@ -18,8 +18,11 @@ from django.db.models import Q, Sum
 from account.models import Notification
 from django.urls import reverse
 from django.conf import settings
+from datetime import timedelta
 
 
+
+now = timezone.now()
 
 
 @login_required(login_url='my_login')
@@ -102,14 +105,21 @@ def student_dashboard(request):
     else:
          expression_progress = 0
 
+    now = timezone.now()
+
     available_surveys = LearningSurvey.objects.filter(
-        is_active=True
+        is_active=True,
+        published_at__isnull=False
     ).filter(
         Q(student_group__students=request.user) |
         Q(student_group__isnull=True)
     ).exclude(
         responses__student=request.user
     ).distinct()
+    available_surveys = [
+        survey for survey in available_surveys
+        if now < survey.published_at + timedelta(days=survey.availability_days)
+    ]
 
     recently_learned = LearnedItem.objects.filter(
     student=request.user
@@ -392,9 +402,11 @@ def test_list(request):
         is_published=True
     ).filter(
         Q(student_group__students=request.user) | Q(student_group__isnull=True)
-    ).exclude(
-        id__in=completed_test_ids
-    ).distinct()
+    ).filter(
+        Q(available_from__isnull=True) | Q(available_from__lte=now)
+    ).filter(
+        Q(available_until__isnull=True) | Q(available_until__gte=now)
+    ).exclude(id__in=completed_test_ids).distinct()
 
     context = {
         'tests': tests
@@ -411,14 +423,22 @@ def take_test(request, test_id):
             return redirect('student_test_results')
 
         test = get_object_or_404(
-            LanguageTest.objects.filter(
-                Q(student_group__students=request.user) |
-                Q(student_group__isnull=True)
-                ).distinct(),
-                id=test_id,
-                is_active=True,
-                is_published=True
-            )
+
+        LanguageTest.objects.filter(
+            Q(student_group__students=request.user) |
+            Q(student_group__isnull=True)
+        ).filter(
+            Q(available_from__isnull=True) |
+            Q(available_from__lte=now)
+        ).filter(
+            Q(available_until__isnull=True) |
+            Q(available_until__gte=now)
+        ).distinct(),
+        id=test_id,
+        is_active=True,
+        is_published=True
+    )
+
         questions = TestQuestion.objects.filter(
                 test=test
         ).order_by('order')
@@ -713,7 +733,17 @@ def take_learning_survey(request, survey_id):
     id=survey_id,
     is_active=True
     )
-
+    # Prevent access to expired surveys
+    if (
+        not survey.published_at
+        or timezone.now() >= survey.published_at + timedelta(days=survey.availability_days)
+    ):
+        messages.warning(
+            request,
+            "This survey is no longer available."
+        )
+        return redirect("student_survey_list")
+        
     # Prevent duplicate submission
     if SurveyResponse.objects.filter(
         survey=survey,
@@ -782,11 +812,18 @@ def take_learning_survey(request, survey_id):
 
 @login_required(login_url='my_login')
 def student_survey_list(request):
+    now = timezone.now()
     available_surveys = LearningSurvey.objects.filter(
-        is_active=True
+        is_active=True,
+        published_at__isnull=False
     ).exclude(
         responses__student=request.user
-    ).distinct().order_by('-created_at')[:5]
+    ).distinct().order_by('-created_at')
+    available_surveys = [
+        survey for survey in available_surveys
+        if now < survey.published_at + timedelta(days=survey.availability_days)
+    ][:5]
+
     return render(
         request,
         'student/student_survey_list.html',

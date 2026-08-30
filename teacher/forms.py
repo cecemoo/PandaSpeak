@@ -150,6 +150,8 @@ class LanguageTestForm(forms.ModelForm):
             'level',
             'test_type',
             'description',
+            'available_from',
+            'available_until',
             'is_active',
             'student_group',
         ]
@@ -167,15 +169,43 @@ class LanguageTestForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 4
             }),
+            'available_from': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M',
+            ),
+            'available_until': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M',
+            ),
         }
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
+        self.fields['available_from'].input_formats = [
+            '%Y-%m-%dT%H:%M',
+        ]
+        self.fields['available_until'].input_formats = [
+            '%Y-%m-%dT%H:%M',
+        ]
+        
         if teacher:
             self.fields["student_group"].queryset = StudentGroup.objects.filter(
                 teacher=teacher,
                 is_active=True
             ).order_by("name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        available_from = cleaned_data.get("available_from")
+        available_until = cleaned_data.get("available_until")
+
+        if available_from and available_until and available_until <= available_from:
+            self.add_error("available_until", "Available until must be later than available from.")
+        return cleaned_data
 
 
 
@@ -249,7 +279,7 @@ class TestQuestionForm(forms.ModelForm):
 class LearningSurveyForm(forms.ModelForm):
     class Meta:
         model = LearningSurvey
-        fields = ["title", "description", "student_group", "is_active"]
+        fields = ["title", "description", "student_group", "is_active", "availability_days"]
         widgets = {
             "title": forms.TextInput(attrs={
                 "class": "form-control",
@@ -265,6 +295,11 @@ class LearningSurveyForm(forms.ModelForm):
             }),
             "is_active": forms.CheckboxInput(attrs={
                 "class": "form-check-input"
+            }),
+            "availability_days": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 1,
+                "placeholder": "Enter number of days survey is available"
             }),
         }
 
