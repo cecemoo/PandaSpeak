@@ -22,7 +22,7 @@ from datetime import timedelta
 
 
 
-now = timezone.now()
+
 
 
 @login_required(login_url='my_login')
@@ -394,6 +394,7 @@ def subscription_locked(request):
 
 @login_required(login_url='my_login')
 def test_list(request):
+    now = timezone.now()
     completed_test_ids = StudentTestSubmission.objects.filter(
         student=request.user
     ).values_list('test_id', flat=True)
@@ -416,6 +417,7 @@ def test_list(request):
 
 @login_required(login_url='my_login')
 def take_test(request, test_id):
+        now = timezone.now()
         if StudentTestSubmission.objects.filter(
             student=request.user,
             test_id=test_id
