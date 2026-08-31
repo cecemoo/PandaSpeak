@@ -35,6 +35,23 @@ class Vocabulary(models.Model):
     category = models.ForeignKey(VocabularyCategory, on_delete=models.CASCADE, related_name='vocabularies', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
+    VISIBILITY_CHOICES = [
+    ('all', 'All Students'),
+    ('groups', 'Selected Groups'),
+    ]
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='all',
+    )
+    allowed_groups = models.ManyToManyField(
+        StudentGroup,
+        blank=True,
+        related_name='vocabulary_materials',
+    )
+
+
+
     level =models.CharField(
         max_length=20,
         choices = LEVEL_CHOICES,
@@ -87,6 +104,22 @@ class Sentence(models.Model):
         choices = LEVEL_CHOICES,
         default = 'unclassified'
         )
+    VISIBILITY_CHOICES = [
+    ('all', 'All Students'),
+    ('groups', 'Selected Groups'),
+    ]
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='all',
+    )
+    allowed_groups = models.ManyToManyField(
+        StudentGroup,
+        blank=True,
+        related_name='sentence_materials',
+    )
+
+
 
     def __str__(self):
         return self.text[:50]  
@@ -128,6 +161,23 @@ class Idiom(models.Model):
         choices = LEVEL_CHOICES,
         default = 'unclassified'
         )
+        
+    VISIBILITY_CHOICES = [
+    ('all', 'All Students'),
+    ('groups', 'Selected Groups'),
+    ]
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='all',
+    )
+    allowed_groups = models.ManyToManyField(
+        StudentGroup,
+        blank=True,
+        related_name='idiom_materials',
+    )
+
+
 
     def __str__(self):
         return self.idiom

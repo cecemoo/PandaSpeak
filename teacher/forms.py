@@ -75,6 +75,16 @@ class VocabularyForm(ModelForm):
         return validate_traditional_chinese(
             self.cleaned_data.get('example_sentence')
         )
+    def __init__(self, *args, **kwargs):
+        teacher = kwargs.pop("teacher", None)
+        super().__init__(*args, **kwargs)
+        self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
+        if teacher:
+            self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(
+                teacher=teacher,
+                is_active=True
+            ).order_by("name")
+
     class Meta:
         model = Vocabulary
         fields = '__all__'
@@ -96,6 +106,16 @@ class SentenceForm(ModelForm):
                 "This sentence is already in the learning materials."
             )
         return text
+    def __init__(self, *args, **kwargs):
+        teacher = kwargs.pop("teacher", None)
+        super().__init__(*args, **kwargs)
+        self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
+        if teacher:
+            self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(
+                teacher=teacher,
+                is_active=True
+            ).order_by("name")
+
     class Meta:
         model = Sentence
         fields = '__all__'
@@ -126,6 +146,16 @@ class IdiomForm(ModelForm):
         return validate_traditional_chinese(
             self.cleaned_data.get('example_sentence')
         )
+    def __init__(self, *args, **kwargs):
+        teacher = kwargs.pop("teacher", None)
+        super().__init__(*args, **kwargs)
+        self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
+        if teacher:
+            self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(
+                teacher=teacher,
+                is_active=True
+            ).order_by("name")
+
     class Meta:
         model = Idiom
         fields = '__all__'

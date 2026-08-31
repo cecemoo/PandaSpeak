@@ -47,13 +47,34 @@ def student_dashboard(request):
         allowed_levels = ['level1', 'level2', 'level3', 'all']
     total_vocabulary = Vocabulary.objects.filter(
         level__in=allowed_levels
-    ).count()
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct().count()
+
     total_sentences = Sentence.objects.filter(
         level__in=allowed_levels
-    ).count()
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct().count()
+    
     total_expressions = Idiom.objects.filter(
         level__in=allowed_levels
-    ).count()
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct().count()
+
     learned_vocabulary = LearnedItem.objects.filter(
         student=request.user,
         vocabulary__isnull=False,
@@ -193,19 +214,41 @@ def learning_material_search(request):
             Q(meaning__icontains=query) |
             Q(example_sentence__icontains=query) |
             Q(example_translation__icontains=query)
-        ).select_related('category')
+        ).filter(
+            Q(visibility='all') |
+            Q(
+                visibility='groups',
+                allowed_groups__students=request.user
+            )
+        ).distinct().select_related('category')
+
         sentences = Sentence.objects.filter(
             Q(text__icontains=query) |
             Q(pinyin__icontains=query) |
             Q(translation__icontains=query)
-        ).select_related('category')
+        ).filter(
+            Q(visibility='all') |
+            Q(
+                visibility='groups',
+                allowed_groups__students=request.user
+            )
+        ).distinct().select_related('category')
+
+
         idioms = Idiom.objects.filter(
             Q(idiom__icontains=query) |
             Q(pinyin__icontains=query) |
             Q(meaning__icontains=query) |
             Q(example_sentence__icontains=query) |
             Q(example_translation__icontains=query)
-        ).select_related('category')
+        ).filter(
+            Q(visibility='all') |
+            Q(
+                visibility='groups',
+                allowed_groups__students=request.user
+            )
+        ).distinct().select_related('category')
+
     context = {
         'query': query,
         'vocabularies': vocabularies,
@@ -234,7 +277,15 @@ def vocabulary_category_page(request, category_id):
             args=[category.id]
         )
     }
-    vocabularies = Vocabulary.objects.filter(category=category)
+    vocabularies = Vocabulary.objects.filter(
+        category=category
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct()
     selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         vocabularies = vocabularies.filter(level='level1')
@@ -297,7 +348,15 @@ def sentence_category_page(request, category_id):
             args=[category.id]
         )
     }
-    sentences = Sentence.objects.filter(category=category)
+    sentences = Sentence.objects.filter(
+        category=category
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct()
     selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         sentences = sentences.filter(level='level1')
@@ -338,7 +397,17 @@ def idiom_category_page(request, category_id):
             args=[category.id]
         )
     }
-    idioms = Idiom.objects.filter(category=category)
+    idioms = Idiom.objects.filter(
+        category=category
+    ).filter(
+        Q(visibility='all') |
+        Q(
+            visibility='groups',
+            allowed_groups__students=request.user
+        )
+    ).distinct()
+
+
     selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
         idioms = idioms.filter(level='level1')

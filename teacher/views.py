@@ -163,7 +163,7 @@ def account_management(request):
 
 def add_vocabulary(request):
     if request.method == 'POST':
-        form = VocabularyForm(request.POST, request.FILES)
+        form = VocabularyForm(request.POST, request.FILES, teacher=request.user)
         
         if form.is_valid():
             vocabulary = form.save(commit=False)
@@ -171,13 +171,14 @@ def add_vocabulary(request):
             if hasattr(vocabulary, "teacher"):
                 vocabulary.teacher = request.user
             vocabulary.save()
+            form.save_m2m()
 
             if request.user.is_staff:
                 return redirect('vocabularies')
             else:
                 return redirect('teacher_dashboard')
     else:
-        form = VocabularyForm()
+        form = VocabularyForm(teacher=request.user)
     context = {'form': form}
     return render(request, 'teacher/add_vocabulary.html', context)
 
@@ -185,20 +186,21 @@ def add_vocabulary(request):
 
 def add_sentence(request):
     if request.method == 'POST':
-        form = SentenceForm(request.POST, request.FILES)
+        form = SentenceForm(request.POST, request.FILES, teacher=request.user)
         if form.is_valid():
             sentence = form.save(commit=False)
 
             if hasattr(sentence, "teacher"):
                 sentence.teacher = request.user
             sentence.save()
+            form.save_m2m()
 
             if request.user.is_staff:
                 return redirect('sentences')
             else:
                 return redirect('teacher_dashboard')
     else:
-        form = SentenceForm()
+        form = SentenceForm(teacher=request.user)
     context = {'form': form}
     return render(request, 'teacher/add_sentence.html', context)
 
@@ -208,20 +210,21 @@ def add_sentence(request):
 
 def add_idiom(request):
     if request.method == 'POST':
-        form = IdiomForm(request.POST, request.FILES)
+        form = IdiomForm(request.POST, request.FILES, teacher=request.user)
         if form.is_valid():
             idiom = form.save(commit=False)
 
             if hasattr(idiom, "teacher"):
                 idiom.teacher = request.user
             idiom.save()
+            form.save_m2m()
 
             if request.user.is_staff:
                 return redirect('idioms')
             else:
                 return redirect('teacher_dashboard')
     else:
-        form = IdiomForm()
+        form = IdiomForm(teacher=request.user)
     return render(request, 'teacher/add_idiom.html', {'form': form})
 
 
