@@ -205,7 +205,23 @@ TimeSlotFormSet = inlineformset_factory(
 
 
 
+class StudentChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, student):
+        full_name = student.get_full_name().strip()
+        if full_name:
+            return f"{full_name} — {student.email}"
+        return student.email
+
+
 class StudentGroupForm(forms.ModelForm):
+    students = StudentChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            "class": "form-check-input",
+        }),
+    )
+
     class Meta:
         model = StudentGroup
         fields = ["name", "students"]
@@ -214,10 +230,8 @@ class StudentGroupForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "Enter group name",
             }),
-            "students": forms.SelectMultiple(attrs={
-                "class": "form-control",
-            }),
         }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["students"].queryset = User.objects.filter(

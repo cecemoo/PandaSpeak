@@ -60,7 +60,7 @@
                                 {% for student in group.students.all %}
                                 <li>
                                     {% if student.get_full_name %}
-                                    {{ student.get_full_name }}
+                                    {{ student.get_full_name }} — {{ student.email }}
                                     {% else %}
                                     {{ student.email }}
                                     {% endif %}
