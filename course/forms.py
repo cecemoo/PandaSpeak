@@ -237,4 +237,6 @@ class StudentGroupForm(forms.ModelForm):
         self.fields["students"].queryset = User.objects.filter(
             is_teacher=False,
             is_active=True,
+            is_staff=False,
+            is_superuser=False,
         ).order_by("first_name", "last_name", "email")

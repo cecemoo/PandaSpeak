@@ -41,6 +41,37 @@ class StudentGroupFormTests(TestCase):
             'Amy Chen — amy@example.com',
         )
 
+    def test_student_choices_exclude_managers_admins_and_teachers(self):
+        manager = CustomUser.objects.create_user(
+            email='manager@example.com',
+            password='test-password',
+            first_name='Site',
+            last_name='Manager',
+            is_staff=True,
+        )
+        admin = CustomUser.objects.create_superuser(
+            email='admin@example.com',
+            password='test-password',
+            first_name='Site',
+            last_name='Admin',
+        )
+        other_teacher = CustomUser.objects.create_user(
+            email='other-teacher@example.com',
+            password='test-password',
+            first_name='Other',
+            last_name='Teacher',
+            is_teacher=True,
+        )
+
+        available_students = StudentGroupForm().fields['students'].queryset
+
+        self.assertIn(self.student_one, available_students)
+        self.assertIn(self.student_two, available_students)
+        self.assertNotIn(manager, available_students)
+        self.assertNotIn(admin, available_students)
+        self.assertNotIn(self.teacher, available_students)
+        self.assertNotIn(other_teacher, available_students)
+
     def test_students_can_be_deselected_and_reselected(self):
         group = StudentGroup.objects.create(
             name='Saturday Class',
