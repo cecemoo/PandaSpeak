@@ -33,6 +33,11 @@
                 <div class="col-lg-8">
                     <div class="card shadow-sm border-0">
                         <div class="card-body text-center p-5">
+                            {% if already_completed %}
+                            <div class="alert alert-info" role="alert">
+                                You have already completed the free placement test. Here is your previous result.
+                            </div>
+                            {% endif %}
                             <h2 class="mb-3">Your Placement Test Result</h2>
                             <p class="text-muted mb-4">
                                 Based on your answers, we recommend:
@@ -54,6 +59,45 @@
                             <p class="fs-5">
                                 {{ recommendation }}
                             </p>
+
+                            <div class="border rounded p-4 mt-4 text-start">
+                                <h4 class="text-center mb-2">Email My Result</h4>
+                                <p class="text-muted text-center mb-3">
+                                    Enter your email address and we will send you a copy of this result.
+                                </p>
+                                {% if email_sent %}
+                                <div class="alert alert-success text-center" role="alert">
+                                    Your placement test result was emailed successfully.
+                                </div>
+                                {% endif %}
+                                <form method="post" action="{% url 'email_placement_test_result' %}">
+                                    {% csrf_token %}
+                                    {% if email_form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ email_form.non_field_errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="row g-2 justify-content-center">
+                                        <div class="col-md-8">
+                                            <label for="{{ email_form.email.id_for_label }}" class="visually-hidden">
+                                                Email address
+                                            </label>
+                                            {{ email_form.email }}
+                                            {% if email_form.email.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ email_form.email.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-auto d-grid">
+                                            <button type="submit" class="btn btn-primary">
+                                                Email My Result
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
                             <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
 
                                 {% if user.is_authenticated %}
@@ -71,7 +115,6 @@
                                     Log In
                                 </a>
                                 {% endif %}
-                                <a href="{% url 'course:course_list' %}" class="btn btn-success rounded-pill">Book a Tutoring Session</a>
                                 <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill">
                                     Return Home
                                 </a>

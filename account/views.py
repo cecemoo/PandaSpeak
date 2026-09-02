@@ -1,5 +1,5 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm
+from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm, PlacementResultEmailForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -13,9 +13,10 @@ from .models import (
     Notification, 
     PushSubscription,
     PushSubscription,
-    CustomUser
+    CustomUser,
+    PlacementTestAttempt,
 )
-from datetime import date
+from datetime import date, timedelta
 from course.forms import CourseForm
 from teacher.forms import VocabularyForm, SentenceForm, IdiomForm, PronunciationForm, ToneForm
 from django.utils import timezone
@@ -35,6 +36,7 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponse
 from django.contrib.staticfiles import finders
 from .push import send_push_to_user
+from django.utils.crypto import salted_hmac
 
 
 def admin_only(user):
@@ -743,8 +745,86 @@ def manage_placement_questions(request):
     )
 
 
+def _placement_request_hashes(request):
+    if not request.session.session_key:
+        request.session.create()
+
+    session_hash = salted_hmac(
+        'placement-test-session',
+        request.session.session_key,
+    ).hexdigest()
+    ip_address = (
+        request.META.get('HTTP_X_REAL_IP')
+        or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        or request.META.get('REMOTE_ADDR')
+        or ''
+    )
+    ip_hash = (
+        salted_hmac('placement-test-ip', ip_address).hexdigest()
+        if ip_address else ''
+    )
+    return session_hash, ip_hash
+
+
+def _placement_recommendation(level):
+    if level == 'level1':
+        return (
+            'We recommend starting with Level I materials '
+            'to build a strong foundation in Chinese.'
+        )
+    if level == 'level2':
+        return (
+            'You have a good foundation in Chinese. '
+            'Level II materials are recommended to continue developing your skills.'
+        )
+    return (
+        'You demonstrate strong foundational Chinese skills. '
+        'Level III materials are recommended for more advanced practice.'
+    )
+
+
+def _placement_result_context(attempt, **extra):
+    context = {
+        'attempt': attempt,
+        'recommended_level': attempt.get_recommended_level_display(),
+        'total_correct': attempt.total_correct,
+        'total_questions': attempt.total_questions,
+        'overall_percentage': attempt.overall_percentage,
+        'recommendation': _placement_recommendation(attempt.recommended_level),
+        'email_form': extra.pop(
+            'email_form',
+            PlacementResultEmailForm(initial={'email': attempt.result_email}),
+        ),
+    }
+    context.update(extra)
+    return context
+
+
+def _previous_placement_attempt(request):
+    session_hash, ip_hash = _placement_request_hashes(request)
+    attempt = PlacementTestAttempt.objects.filter(
+        session_key_hash=session_hash
+    ).first()
+    if not attempt and ip_hash:
+        attempt = PlacementTestAttempt.objects.filter(
+            ip_address_hash=ip_hash,
+            created_at__gte=timezone.now() - timedelta(days=30),
+        ).first()
+    return attempt, session_hash, ip_hash
+
+
 def placement_test(request):
     questions = PlacementQuestion.objects.all().order_by('level', 'order')
+    previous_attempt, session_hash, ip_hash = _previous_placement_attempt(request)
+
+    if previous_attempt:
+        request.session['placement_test_attempt_id'] = previous_attempt.pk
+        return render(
+            request,
+            'account/placement_test_result.html',
+            _placement_result_context(previous_attempt, already_completed=True),
+        )
+
     if request.method == 'POST':
         level_scores = {
             'level1': {'correct': 0, 'total': 0},
@@ -768,29 +848,13 @@ def placement_test(request):
             else:
                 percentages[level] = 0
         if percentages['level1'] < 70:
-            recommended_level = 'level I - Beginner'
-            recommendation = (
-                'We recommend starting with Level I materials '
-                'to build a strong foundation in Chinese.'
-            )
+            recommended_level = 'level1'
         elif percentages['level2'] < 70:
-            recommended_level = 'Level II - intermediate'
-            recommendation = (
-                'You have a good foundation in Chinese. '
-                'Level II materials are recommended to continue developing your skills.'
-            )
+            recommended_level = 'level2'
         elif percentages['level3'] < 60:
-            recommended_level = 'Level II - Intermediate'
-            recommendation = (
-                'You have a good foundation in Chinese. '
-                'Level II materials are recommended to continue developing your skills.'
-            )
+            recommended_level = 'level2'
         else:
-            recommended_level = 'Level III - Advanced'
-            recommendation = (
-                'You demonstrate strong foundational Chinese skills. '
-                'Level III materials are recommended for more advanced practice.'
-            )
+            recommended_level = 'level3'
 
         total_correct = sum(
             score['correct'] for score in level_scores.values()
@@ -805,21 +869,72 @@ def placement_test(request):
         else:
             overall_percentage = 0
 
+        attempt = PlacementTestAttempt.objects.create(
+            session_key_hash=session_hash,
+            ip_address_hash=ip_hash,
+            total_correct=total_correct,
+            total_questions=total_questions,
+            overall_percentage=overall_percentage,
+            recommended_level=recommended_level,
+        )
+        request.session['placement_test_attempt_id'] = attempt.pk
+
         return render(
             request,
             'account/placement_test_result.html',
-            {
-                'recommended_level': recommended_level,
-                'total_correct': total_correct,
-                'total_questions': total_questions,
-                'overall_percentage': overall_percentage,
-                'recommendation': recommendation,
-            }
+            _placement_result_context(attempt),
         )
     return render(
         request,
         'account/placement_test.html',
         {'questions': questions}
+    )
+
+
+@require_POST
+def email_placement_test_result(request):
+    attempt_id = request.session.get('placement_test_attempt_id')
+    attempt = get_object_or_404(PlacementTestAttempt, pk=attempt_id)
+    form = PlacementResultEmailForm(request.POST)
+
+    if form.is_valid():
+        email = form.cleaned_data['email']
+        subject = 'Your PandaSpeak Placement Test Result'
+        message = (
+            'Thank you for taking the PandaSpeak Chinese Placement Test.\n\n'
+            f'Score: {attempt.total_correct} / {attempt.total_questions} '
+            f'({attempt.overall_percentage}%)\n'
+            f'Recommended level: {attempt.get_recommended_level_display()}\n\n'
+            f'{_placement_recommendation(attempt.recommended_level)}\n\n'
+            'Visit PandaSpeak: https://pandaspeak.org/'
+        )
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+        except Exception:
+            form.add_error(
+                None,
+                'We could not send the email right now. Please try again later.',
+            )
+        else:
+            attempt.result_email = email
+            attempt.emailed_at = timezone.now()
+            attempt.save(update_fields=['result_email', 'emailed_at'])
+            return render(
+                request,
+                'account/placement_test_result.html',
+                _placement_result_context(attempt, email_sent=True),
+            )
+
+    return render(
+        request,
+        'account/placement_test_result.html',
+        _placement_result_context(attempt, email_form=form),
     )
 
 
@@ -960,7 +1075,4 @@ def service_worker(request):
             content_type='application/javascript'
         )
     return response
-
-
-
 

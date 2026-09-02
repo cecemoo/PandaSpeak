@@ -93,6 +93,30 @@ class PlacementQuestion(models.Model):
         return f"{self.get_level_display()} - Question {self.order}"
 
 
+class PlacementTestAttempt(models.Model):
+    LEVEL_CHOICES = [
+        ('level1', 'Level I - Beginner'),
+        ('level2', 'Level II - Intermediate'),
+        ('level3', 'Level III - Advanced'),
+    ]
+
+    session_key_hash = models.CharField(max_length=64, db_index=True)
+    ip_address_hash = models.CharField(max_length=64, db_index=True)
+    total_correct = models.PositiveIntegerField()
+    total_questions = models.PositiveIntegerField()
+    overall_percentage = models.PositiveSmallIntegerField()
+    recommended_level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
+    result_email = models.EmailField(blank=True)
+    emailed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Placement attempt {self.pk} - {self.get_recommended_level_display()}"
+
+
 
 
 class Notification(models.Model):
@@ -135,5 +159,4 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - Push Subscription"
-
 

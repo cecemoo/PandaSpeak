@@ -30,3 +30,14 @@ class PlacementQuestionForm(forms.ModelForm):
     class Meta:
         model = PlacementQuestion
         fields = '__all__'
+
+
+class PlacementResultEmailForm(forms.Form):
+    email = forms.EmailField(
+        label='Email address',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'you@example.com',
+            'autocomplete': 'email',
+        }),
+    )

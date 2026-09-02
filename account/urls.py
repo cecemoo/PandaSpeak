@@ -73,6 +73,7 @@ urlpatterns = [
         name='add_placement_question'
     ),
     path('placement-test/', views.placement_test, name='placement_test'),
+    path('placement-test/email-result/', views.email_placement_test_result, name='email_placement_test_result'),
 
     path('notifications/', views.notifications, name='notifications'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
