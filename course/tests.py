@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 
 from account.models import CustomUser
 
@@ -70,4 +71,17 @@ class StudentGroupFormTests(TestCase):
         self.assertQuerySetEqual(
             group.students.order_by('pk'),
             [self.student_one, self.student_two],
+        )
+
+    def test_create_page_places_buttons_after_the_student_list(self):
+        self.client.force_login(self.teacher)
+
+        response = self.client.get(reverse('create_student_group'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'student-checkbox-list')
+        content = response.content.decode()
+        self.assertLess(
+            content.index('amy@example.com'),
+            content.index('Create Group'),
         )

@@ -40,19 +40,33 @@
 
         <div class="mb-3">
           <label class="form-label">Students</label>
-          {{ form.students }}
-          <div class="form-text">
+          <div class="student-checkbox-list border rounded p-3">
+            {% for checkbox in form.students %}
+            <div class="d-flex align-items-start gap-2 mb-3">
+              {{ checkbox.tag }}
+              <label for="{{ checkbox.id_for_label }}" class="lh-sm">
+                {{ checkbox.choice_label }}
+              </label>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0">No active students are available.</p>
+            {% endfor %}
+          </div>
+          {{ form.students.errors }}
+          <div class="form-text mt-2">
             Check or uncheck students, then save your changes. You can reselect them later.
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary rounded-pill">
-          Save Changes
-        </button>
+        <div class="d-flex gap-2 flex-wrap mt-4">
+          <button type="submit" class="btn btn-primary rounded-pill">
+            Save Changes
+          </button>
 
-        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary rounded-pill">
-          Cancel
-        </a>
+          <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary rounded-pill">
+            Cancel
+          </a>
+        </div>
 
       </form>
 
