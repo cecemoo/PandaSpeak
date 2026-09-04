@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django.contrib.humanize',
+    'django.contrib.sitemaps',
 ]
 
 # allow popups to access the opener window
