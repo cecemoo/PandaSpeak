@@ -85,11 +85,17 @@ def create_bingo_game(request):
                 )
             else:
                 game.save()
-                _notify_students_about_bingo(game)
-                messages.success(
-                    request,
-                    'Bingo game created. Students in the selected group were notified by PandaSpeak and email.'
-                )
+                if game.is_active:
+                    _notify_students_about_bingo(game)
+                    messages.success(
+                        request,
+                        'Bingo game created. Students in the selected group were notified by PandaSpeak and email.'
+                    )
+                else:
+                    messages.success(
+                        request,
+                        'Bingo game saved as inactive. Students were not notified yet.'
+                    )
                 return redirect('teacher_bingo_list')
     else:
         form = BingoGameForm(teacher=request.user)
