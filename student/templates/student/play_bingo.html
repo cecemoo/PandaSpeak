@@ -5,7 +5,11 @@
   <div class="page-title dark-background">
     <div class="container position-relative">
       <h1>{{ game.title }}</h1>
-      <p>Tap a square when you correctly hear, say, or identify the Chinese item.</p>
+      {% if game.game_mode == 'listening' %}
+        <p>Listen to the audio, then choose the matching Chinese square.</p>
+      {% else %}
+        <p>Arrange the shuffled Chinese characters into the correct sentence.</p>
+      {% endif %}
     </div>
   </div>
 
@@ -21,31 +25,75 @@
           Difficulty:
           {% if card.assigned_level == 'level1' %}Level I{% elif card.assigned_level == 'level2' %}Level II{% elif card.assigned_level == 'level3' %}Level III{% else %}All Levels{% endif %}
         </span>
-        {% if game.adaptive_difficulty %}
-          <span class="badge text-bg-info px-3 py-2">Adaptive</span>
-        {% endif %}
+        <span class="badge text-bg-primary px-3 py-2">{{ game.get_game_mode_display }}</span>
+        {% if game.adaptive_difficulty %}<span class="badge text-bg-info px-3 py-2">Adaptive</span>{% endif %}
       </div>
 
       {% if card.has_bingo %}
         <div class="alert alert-success text-center fs-4 fw-bold">🎉 BINGO! 賓果！</div>
+      {% elif challenge %}
+        {% if game.game_mode == 'listening' %}
+          <div class="challenge-card text-center mb-4">
+            <h4 class="mb-3">🔊 Listen carefully</h4>
+            <audio controls class="mb-2">
+              <source src="{{ challenge.audio }}">
+            </audio>
+            <p class="text-muted mb-0">Choose the square that matches what you hear.</p>
+          </div>
+        {% else %}
+          <div class="challenge-card mb-4">
+            <h4 class="text-center mb-2">Make the sentence</h4>
+            {% if challenge.translation %}
+              <p class="text-center mb-3"><strong>Meaning:</strong> {{ challenge.translation }}</p>
+            {% endif %}
+            <div id="sentence-answer" class="sentence-answer mb-3">Tap the characters below in the correct order.</div>
+            <div id="sentence-tiles" class="sentence-tiles mb-3">
+              {% for tile in sentence_tiles %}
+                <button type="button" class="btn btn-outline-primary sentence-tile" data-char="{{ tile }}">{{ tile }}</button>
+              {% endfor %}
+            </div>
+            <form method="post" id="sentence-form" class="text-center">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="sentence_submit">
+              <input type="hidden" name="target_position" value="{{ target_position }}">
+              <input type="hidden" name="candidate" id="sentence-candidate" value="">
+              <button type="button" class="btn btn-outline-secondary rounded-pill" id="sentence-reset">Reset</button>
+              <button type="submit" class="btn btn-primary rounded-pill">Check Sentence</button>
+            </form>
+          </div>
+        {% endif %}
       {% endif %}
 
       <div class="bingo-board" style="--bingo-size: {{ game.card_size }};">
         {% for row in rows %}
           {% for entry in row %}
-            <form method="post" class="bingo-cell-form">
-              {% csrf_token %}
-              <input type="hidden" name="position" value="{{ entry.position }}">
-              <button
-                type="submit"
-                class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}"
-                {% if entry.cell.free %}disabled{% endif %}
-                aria-pressed="{% if entry.marked %}true{% else %}false{% endif %}">
-                <span class="bingo-chinese">{{ entry.cell.text }}</span>
-                {% if entry.cell.pinyin %}<span class="bingo-pinyin">{{ entry.cell.pinyin }}</span>{% endif %}
-                {% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}
-              </button>
-            </form>
+            {% if game.game_mode == 'listening' and not card.has_bingo %}
+              <form method="post" class="bingo-cell-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="listening_guess">
+                <input type="hidden" name="target_position" value="{{ target_position }}">
+                <input type="hidden" name="position" value="{{ entry.position }}">
+                <button type="submit"
+                  class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}"
+                  {% if entry.cell.free or entry.marked %}disabled{% endif %}>
+                  <span class="bingo-chinese">{{ entry.cell.text }}</span>
+                  {% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}
+                </button>
+              </form>
+            {% else %}
+              <div class="bingo-cell-form">
+                <div class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}">
+                  {% if entry.cell.free %}
+                    <span class="bingo-chinese">FREE</span>
+                  {% elif game.game_mode == 'make_sentence' %}
+                    <span class="bingo-chinese">{% if entry.marked %}✓{% else %}句子{% endif %}</span>
+                  {% else %}
+                    <span class="bingo-chinese">{{ entry.cell.text }}</span>
+                  {% endif %}
+                  {% if entry.marked and not entry.cell.free %}<span class="bingo-check">✓</span>{% endif %}
+                </div>
+              </div>
+            {% endif %}
           {% endfor %}
         {% endfor %}
       </div>
@@ -56,40 +104,50 @@
 </main>
 
 <style>
-  .bingo-board {
-    display: grid;
-    grid-template-columns: repeat(var(--bingo-size), minmax(0, 1fr));
-    gap: 8px;
-    max-width: 760px;
-    margin: 0 auto;
-  }
+  .challenge-card { max-width: 760px; margin: 0 auto; padding: 22px; border: 1px solid #ddd; border-radius: 14px; background: #fff; color: #212529; }
+  .bingo-board { display: grid; grid-template-columns: repeat(var(--bingo-size), minmax(0, 1fr)); gap: 8px; max-width: 760px; margin: 0 auto; }
   .bingo-cell-form { margin: 0; min-width: 0; }
-  .bingo-cell {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    min-height: 86px;
-    border: 2px solid #d7d7d7;
-    border-radius: 12px;
-    background: #fff;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    position: relative;
-    transition: transform .12s ease, background-color .12s ease, border-color .12s ease;
-  }
-  .bingo-cell:not(:disabled):hover { transform: translateY(-1px); }
+  .bingo-cell { width: 100%; aspect-ratio: 1 / 1; min-height: 86px; border: 2px solid #d7d7d7; border-radius: 12px; background: #fff; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; position: relative; color: #212529; }
+  button.bingo-cell:not(:disabled):hover { transform: translateY(-1px); }
   .bingo-cell-marked { background: #e7f4ff; border-color: #0d6efd; }
   .bingo-cell-free { background: #f3f3f3; }
   .bingo-chinese { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
-  .bingo-pinyin { font-size: clamp(.68rem, 1.5vw, .9rem); color: #666; line-height: 1.1; overflow-wrap: anywhere; }
   .bingo-check { position: absolute; top: 4px; right: 8px; font-weight: 800; color: #0d6efd; }
-  @media (max-width: 576px) {
-    .bingo-board { gap: 4px; }
-    .bingo-cell { min-height: 62px; border-radius: 8px; padding: 4px; }
-    .bingo-pinyin { display: none; }
-  }
+  .sentence-answer { min-height: 58px; padding: 12px; border: 2px dashed #bbb; border-radius: 10px; font-size: 1.5rem; text-align: center; }
+  .sentence-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .sentence-tile { min-width: 48px; font-size: 1.25rem; }
+  @media (max-width: 576px) { .bingo-board { gap: 4px; } .bingo-cell { min-height: 62px; border-radius: 8px; padding: 4px; } }
 </style>
+
+{% if game.game_mode == 'make_sentence' and challenge and not card.has_bingo %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tiles = document.querySelectorAll('.sentence-tile');
+    const answer = document.getElementById('sentence-answer');
+    const candidate = document.getElementById('sentence-candidate');
+    const reset = document.getElementById('sentence-reset');
+    let built = '';
+
+    function refreshAnswer() {
+      answer.textContent = built || 'Tap the characters below in the correct order.';
+      candidate.value = built;
+    }
+
+    tiles.forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        if (tile.disabled) return;
+        built += tile.dataset.char;
+        tile.disabled = true;
+        refreshAnswer();
+      });
+    });
+
+    reset.addEventListener('click', function () {
+      built = '';
+      tiles.forEach(function (tile) { tile.disabled = false; });
+      refreshAnswer();
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}
