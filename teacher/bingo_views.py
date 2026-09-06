@@ -6,29 +6,70 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from account.models import Notification
+from account.models import CustomUser, Notification
 from account.push import send_push_to_user
+from course.models import StudentGroup
+from subscription.models import Subscription
 
 from .bingo_forms import BingoGameForm
 from .bingo_models import BingoGame
 from .models import Idiom, Sentence, Vocabulary
 
 
-def _eligible_materials(content_type, level, group):
-    visibility_filter = Q(visibility='all') | Q(allowed_groups=group)
-    level_filter = Q()
-    if level != 'all':
-        level_filter = Q(level=level) | Q(level='all')
+def _audience_students(game):
+    if game.audience == 'subscribers':
+        return CustomUser.objects.filter(
+            is_active=True,
+            is_teacher=False,
+            is_staff=False,
+            subscription__is_active=True,
+        ).distinct()
 
-    if content_type == 'sentence':
+    if game.audience == 'my_students':
+        return CustomUser.objects.filter(
+            is_active=True,
+            groups_joined__teacher=game.teacher,
+            groups_joined__is_active=True,
+        ).distinct()
+
+    if game.student_group:
+        return game.student_group.students.filter(is_active=True).distinct()
+
+    return CustomUser.objects.none()
+
+
+def _visibility_filter_for_game(game):
+    if game.audience == 'subscribers':
+        return Q(visibility='all')
+
+    if game.audience == 'my_students':
+        teacher_groups = StudentGroup.objects.filter(
+            teacher=game.teacher,
+            is_active=True,
+        )
+        return Q(visibility='all') | Q(allowed_groups__in=teacher_groups)
+
+    if game.student_group:
+        return Q(visibility='all') | Q(allowed_groups=game.student_group)
+
+    return Q(visibility='all')
+
+
+def _eligible_materials(game):
+    visibility_filter = _visibility_filter_for_game(game)
+    level_filter = Q()
+    if game.level != 'all':
+        level_filter = Q(level=game.level) | Q(level='all')
+
+    if game.content_type == 'sentence':
         return Sentence.objects.filter(visibility_filter, level_filter).distinct()
-    if content_type == 'expression':
+    if game.content_type == 'expression':
         return Idiom.objects.filter(visibility_filter, level_filter).distinct()
     return Vocabulary.objects.filter(visibility_filter, level_filter).distinct()
 
 
 def _notify_students_about_bingo(game):
-    students = game.student_group.students.filter(is_active=True)
+    students = _audience_students(game)
     play_link = reverse('play_bingo', args=[game.id])
 
     for student in students:
@@ -71,11 +112,7 @@ def create_bingo_game(request):
             game.teacher = request.user
 
             required = game.required_item_count
-            available = _eligible_materials(
-                game.content_type,
-                game.level,
-                game.student_group,
-            ).count()
+            available = _eligible_materials(game).count()
 
             if available < required:
                 form.add_error(
@@ -89,7 +126,7 @@ def create_bingo_game(request):
                     _notify_students_about_bingo(game)
                     messages.success(
                         request,
-                        'Bingo game created. Students in the selected group were notified by PandaSpeak and email.'
+                        'Bingo game created. The selected audience was notified by PandaSpeak and email.'
                     )
                 else:
                     messages.success(
