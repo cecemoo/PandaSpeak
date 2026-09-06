@@ -14,6 +14,7 @@ class BingoGameForm(forms.ModelForm):
             'level',
             'card_size',
             'use_free_center',
+            'adaptive_difficulty',
             'is_active',
         ]
         widgets = {
@@ -23,11 +24,17 @@ class BingoGameForm(forms.ModelForm):
             'level': forms.Select(attrs={'class': 'form-select'}),
             'card_size': forms.Select(attrs={'class': 'form-select'}),
             'use_free_center': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'adaptive_difficulty': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'use_free_center': 'Use FREE center square (odd-sized cards only)',
+            'adaptive_difficulty': 'Adjust each student’s difficulty from recent Bingo performance',
             'is_active': 'Available to students',
+        }
+        help_texts = {
+            'level': 'Starting difficulty. Adaptive Bingo may move an individual student up or down one level later.',
+            'adaptive_difficulty': 'Strong recent performance raises the next card one level; repeated difficulty lowers it one level.',
         }
 
     def __init__(self, *args, **kwargs):
