@@ -17,10 +17,11 @@
         <span class="badge text-bg-secondary px-3 py-2">Difficulty: {% if card.assigned_level == 'level1' %}Level I{% elif card.assigned_level == 'level2' %}Level II{% elif card.assigned_level == 'level3' %}Level III{% else %}All Levels{% endif %}</span>
         <span class="badge text-bg-primary px-3 py-2">{{ game.get_game_mode_display }}</span>
         {% if game.adaptive_difficulty %}<span class="badge text-bg-info px-3 py-2">Adaptive</span>{% endif %}
+        <button type="button" id="bingo-sound-toggle" class="btn btn-sm btn-outline-light rounded-pill ms-1" aria-pressed="false">🔊 Sound On</button>
       </div>
 
       {% if card.has_bingo %}
-        <div class="bingo-complete-card text-center">
+        <div class="bingo-complete-card text-center" data-bingo-complete="true">
           <div class="display-5 mb-2">🎉</div>
           <h2>BINGO! 賓果！</h2>
           <p class="mb-1">You completed Round {{ card.round_number }}.</p>
@@ -41,12 +42,12 @@
           {% endif %}
         {% endif %}
 
-        <div class="bingo-board" style="--bingo-size: {{ game.card_size }};">
+        <div class="bingo-board" style="--bingo-size: {{ game.card_size }};" data-card-size="{{ game.card_size }}">
           {% for row in rows %}{% for entry in row %}
             {% if game.game_mode == 'listening' %}
-              <form method="post" class="bingo-cell-form">{% csrf_token %}<input type="hidden" name="action" value="listening_guess"><input type="hidden" name="target_position" value="{{ target_position }}"><input type="hidden" name="position" value="{{ entry.position }}"><button type="submit" class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}" {% if entry.cell.free or entry.marked %}disabled{% endif %}><span class="bingo-chinese">{{ entry.cell.text }}</span>{% if entry.cell.pinyin %}<span class="bingo-pinyin">{{ entry.cell.pinyin }}</span>{% endif %}{% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}</button></form>
+              <form method="post" class="bingo-cell-form" data-position="{{ entry.position }}">{% csrf_token %}<input type="hidden" name="action" value="listening_guess"><input type="hidden" name="target_position" value="{{ target_position }}"><input type="hidden" name="position" value="{{ entry.position }}"><button type="submit" class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}" data-position="{{ entry.position }}" data-marked="{% if entry.marked %}1{% else %}0{% endif %}" {% if entry.cell.free or entry.marked %}disabled{% endif %}><span class="bingo-chinese">{{ entry.cell.text }}</span>{% if entry.cell.pinyin %}<span class="bingo-pinyin">{{ entry.cell.pinyin }}</span>{% endif %}{% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}</button></form>
             {% else %}
-              <div class="bingo-cell-form"><div class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}"><span class="bingo-chinese">{% if entry.cell.free %}FREE{% elif entry.marked %}✓{% else %}句子{% endif %}</span>{% if entry.marked and not entry.cell.free %}<span class="bingo-check">✓</span>{% endif %}</div></div>
+              <div class="bingo-cell-form"><div class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}" data-position="{{ entry.position }}" data-marked="{% if entry.marked %}1{% else %}0{% endif %}"><span class="bingo-chinese">{% if entry.cell.free %}FREE{% elif entry.marked %}✓{% else %}句子{% endif %}</span>{% if entry.marked and not entry.cell.free %}<span class="bingo-check">✓</span>{% endif %}</div></div>
             {% endif %}
           {% endfor %}{% endfor %}
         </div>
@@ -58,5 +59,32 @@
 <style>
 .challenge-card{max-width:650px;margin:0 auto;padding:15px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#212529}.bingo-complete-card{max-width:560px;margin:30px auto;padding:32px;border-radius:18px;background:#fff;color:#212529;box-shadow:0 8px 28px rgba(0,0,0,.12)}.bingo-board{display:grid;grid-template-columns:repeat(var(--bingo-size),minmax(0,1fr));gap:5px;max-width:650px;margin:0 auto}.bingo-cell-form{margin:0;min-width:0}.bingo-cell{width:100%;aspect-ratio:1.28/1;min-height:64px;border:1.5px solid #d7d7d7;border-radius:9px;background:#fff;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;color:#212529;transition:transform .12s ease}.bingo-cell:not(:disabled):hover{transform:translateY(-1px)}.bingo-cell-marked{background:#e7f4ff;border-color:#0d6efd}.bingo-cell-free{background:#e8f8ef}.bingo-chinese{font-size:clamp(.95rem,2vw,1.35rem);font-weight:700;line-height:1.1;overflow-wrap:anywhere}.bingo-pinyin{font-size:clamp(.62rem,1.1vw,.78rem);color:#666;line-height:1}.bingo-check{position:absolute;top:2px;right:6px;font-weight:800;color:#0d6efd}.sentence-answer{min-height:52px;padding:10px;border:2px dashed #bbb;border-radius:10px;font-size:1.35rem;text-align:center}.sentence-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sentence-tile{min-width:44px;font-size:1.15rem}@media(max-width:576px){.bingo-board{gap:3px;max-width:100%}.bingo-cell{min-height:48px;border-radius:6px;padding:3px}.bingo-chinese{font-size:clamp(.72rem,4vw,1rem)}.bingo-pinyin{display:none}.bingo-complete-card{padding:24px 16px}}
 </style>
-{% if game.game_mode == 'make_sentence' and challenge and not card.has_bingo %}<script>document.addEventListener('DOMContentLoaded',function(){const tiles=document.querySelectorAll('.sentence-tile'),answer=document.getElementById('sentence-answer'),candidate=document.getElementById('sentence-candidate'),reset=document.getElementById('sentence-reset');let built='';function refresh(){answer.textContent=built||'Tap the characters below in the correct order.';candidate.value=built}tiles.forEach(function(tile){tile.addEventListener('click',function(){if(tile.disabled)return;built+=tile.dataset.char;tile.disabled=true;refresh()})});reset.addEventListener('click',function(){built='';tiles.forEach(function(tile){tile.disabled=false});refresh()})});</script>{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const soundToggle=document.getElementById('bingo-sound-toggle');
+  let soundEnabled=localStorage.getItem('pandaspeakBingoSound')!=='off';
+  let audioContext=null;
+  let fanfarePlayed=false;
+
+  function updateSoundButton(){if(!soundToggle)return;soundToggle.textContent=soundEnabled?'🔊 Sound On':'🔇 Sound Off';soundToggle.setAttribute('aria-pressed',soundEnabled?'false':'true')}
+  function getAudioContext(){if(!audioContext){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;audioContext=new AC()}if(audioContext.state==='suspended'){audioContext.resume().catch(function(){})}return audioContext}
+  function tone(freq,start,duration,volume,type){if(!soundEnabled)return;const ctx=getAudioContext();if(!ctx)return;const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=type||'sine';osc.frequency.setValueAtTime(freq,ctx.currentTime+start);gain.gain.setValueAtTime(0.0001,ctx.currentTime+start);gain.gain.exponentialRampToValueAtTime(volume||0.08,ctx.currentTime+start+0.01);gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+start+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+duration+0.02)}
+  function playDot(){tone(520,0,.07,.055,'sine');tone(720,.035,.06,.035,'sine')}
+  function playFanfare(){if(!soundEnabled||fanfarePlayed)return;fanfarePlayed=true;tone(523,0,.18,.08,'triangle');tone(659,.18,.18,.08,'triangle');tone(784,.36,.22,.09,'triangle');tone(1047,.58,.45,.11,'triangle');tone(784,.58,.45,.04,'triangle')}
+  function wouldWin(position){const board=document.querySelector('.bingo-board');if(!board)return false;const size=parseInt(board.dataset.cardSize||'0',10);if(!size)return false;const marked=new Set();document.querySelectorAll('.bingo-cell[data-position]').forEach(function(cell){if(cell.dataset.marked==='1')marked.add(parseInt(cell.dataset.position,10))});marked.add(position);const lines=[];for(let r=0;r<size;r++){const line=[];for(let c=0;c<size;c++)line.push(r*size+c);lines.push(line)}for(let c=0;c<size;c++){const line=[];for(let r=0;r<size;r++)line.push(r*size+c);lines.push(line)}const d1=[],d2=[];for(let i=0;i<size;i++){d1.push(i*size+i);d2.push(i*size+(size-1-i))}lines.push(d1,d2);return lines.some(function(line){return line.every(function(p){return marked.has(p)})})}
+
+  updateSoundButton();
+  if(soundToggle){soundToggle.addEventListener('click',function(){soundEnabled=!soundEnabled;localStorage.setItem('pandaspeakBingoSound',soundEnabled?'on':'off');updateSoundButton();if(soundEnabled)playDot()})}
+
+  document.querySelectorAll('form.bingo-cell-form').forEach(function(form){form.addEventListener('submit',function(event){const button=form.querySelector('.bingo-cell');if(!button||button.disabled)return;playDot();const position=parseInt(form.querySelector('input[name="position"]').value,10);const target=parseInt(form.querySelector('input[name="target_position"]').value,10);if(position===target&&wouldWin(position)&&soundEnabled){event.preventDefault();playFanfare();setTimeout(function(){form.submit()},850)}})});
+
+  document.querySelectorAll('.sentence-tile').forEach(function(tile){tile.addEventListener('click',playDot)});
+  const complete=document.querySelector('[data-bingo-complete="true"]');
+  if(complete){setTimeout(function(){playFanfare()},180);document.addEventListener('pointerdown',function(){playFanfare()},{once:true})}
+
+  {% if game.game_mode == 'make_sentence' and challenge and not card.has_bingo %}
+  const tiles=document.querySelectorAll('.sentence-tile'),answer=document.getElementById('sentence-answer'),candidate=document.getElementById('sentence-candidate'),reset=document.getElementById('sentence-reset');let built='';function refresh(){answer.textContent=built||'Tap the characters below in the correct order.';candidate.value=built}tiles.forEach(function(tile){tile.addEventListener('click',function(){if(tile.disabled)return;built+=tile.dataset.char;tile.disabled=true;refresh()})});reset.addEventListener('click',function(){built='';tiles.forEach(function(tile){tile.disabled=false});refresh()});
+  {% endif %}
+});
+</script>
 {% endblock %}
