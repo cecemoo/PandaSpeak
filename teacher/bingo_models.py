@@ -28,20 +28,10 @@ class BingoGame(models.Model):
         ("subscribers", "All PandaSpeak Subscribers"),
     ]
 
-    teacher = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="created_bingo_games",
-    )
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_bingo_games")
     title = models.CharField(max_length=200)
     audience = models.CharField(max_length=20, choices=AUDIENCE_CHOICES, default="group")
-    student_group = models.ForeignKey(
-        "course.StudentGroup",
-        on_delete=models.SET_NULL,
-        related_name="bingo_games",
-        blank=True,
-        null=True,
-    )
+    student_group = models.ForeignKey("course.StudentGroup", on_delete=models.SET_NULL, related_name="bingo_games", blank=True, null=True)
     game_mode = models.CharField(max_length=20, choices=GAME_MODE_CHOICES, default="listening")
     content_type = models.CharField(max_length=20, choices=CONTENT_CHOICES, default="vocabulary")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="level1")
@@ -69,11 +59,8 @@ class BingoGame(models.Model):
 
 class BingoCard(models.Model):
     game = models.ForeignKey(BingoGame, on_delete=models.CASCADE, related_name="cards")
-    student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="bingo_cards",
-    )
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bingo_cards")
+    round_number = models.PositiveIntegerField(default=1)
     cells = models.JSONField(default=list)
     marked_positions = models.JSONField(default=list)
     assigned_level = models.CharField(max_length=20, default="level1")
@@ -87,10 +74,11 @@ class BingoCard(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.game.title} - {self.student}"
+        return f"{self.game.title} - {self.student} - Round {self.round_number}"
 
     class Meta:
         app_label = "teacher"
+        ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint(fields=["game", "student"], name="unique_bingo_card_per_student")
+            models.UniqueConstraint(fields=["game", "student", "round_number"], name="unique_bingo_round_per_student")
         ]
