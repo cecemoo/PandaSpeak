@@ -1,0 +1,38 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>Chinese Bingo</h1>
+      <p>Practice your Chinese by playing Bingo with your class materials.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="mb-4">
+        <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
+      </div>
+
+      <div class="row g-4">
+        {% for game in games %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 p-4">
+              <h3 class="h5">{{ game.title }}</h3>
+              <p class="mb-2"><strong>Content:</strong> {{ game.get_content_type_display }}</p>
+              <p class="mb-2"><strong>Level:</strong> {{ game.get_level_display }}</p>
+              <p class="mb-3"><strong>Card:</strong> {{ game.card_size }} × {{ game.card_size }}</p>
+              <a href="{% url 'play_bingo' game.id %}" class="btn btn-primary rounded-pill mt-auto">Play Bingo</a>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12">
+            <div class="alert alert-info">There are no Bingo games available for your group right now.</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
