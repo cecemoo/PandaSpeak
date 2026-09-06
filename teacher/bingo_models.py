@@ -19,6 +19,11 @@ class BingoGame(models.Model):
         ("level3", "Level III"),
         ("all", "All Levels"),
     ]
+    AUDIENCE_CHOICES = [
+        ("group", "One Student Group"),
+        ("my_students", "All My Students"),
+        ("subscribers", "All PandaSpeak Subscribers"),
+    ]
 
     teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -26,10 +31,13 @@ class BingoGame(models.Model):
         related_name="created_bingo_games",
     )
     title = models.CharField(max_length=200)
+    audience = models.CharField(max_length=20, choices=AUDIENCE_CHOICES, default="group")
     student_group = models.ForeignKey(
         "course.StudentGroup",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="bingo_games",
+        blank=True,
+        null=True,
     )
     content_type = models.CharField(max_length=20, choices=CONTENT_CHOICES, default="vocabulary")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="level1")
