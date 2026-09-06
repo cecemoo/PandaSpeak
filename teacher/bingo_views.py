@@ -9,11 +9,10 @@ from django.urls import reverse
 from account.models import CustomUser, Notification
 from account.push import send_push_to_user
 from course.models import StudentGroup
-from subscription.models import Subscription
 
 from .bingo_forms import BingoGameForm
 from .bingo_models import BingoGame
-from .models import Idiom, Sentence, Vocabulary
+from .models import Sentence, Vocabulary
 
 
 def _audience_students(game):
@@ -61,38 +60,51 @@ def _eligible_materials(game):
     if game.level != 'all':
         level_filter = Q(level=game.level) | Q(level='all')
 
-    if game.content_type == 'sentence':
+    if game.game_mode == 'make_sentence':
         return Sentence.objects.filter(visibility_filter, level_filter).distinct()
-    if game.content_type == 'expression':
-        return Idiom.objects.filter(visibility_filter, level_filter).distinct()
-    return Vocabulary.objects.filter(visibility_filter, level_filter).distinct()
+
+    if game.content_type == 'sentence':
+        return (
+            Sentence.objects
+            .filter(visibility_filter, level_filter, audio_file__isnull=False)
+            .exclude(audio_file='')
+            .distinct()
+        )
+
+    return (
+        Vocabulary.objects
+        .filter(visibility_filter, level_filter, audio_file__isnull=False)
+        .exclude(audio_file='')
+        .distinct()
+    )
 
 
 def _notify_students_about_bingo(game):
     students = _audience_students(game)
     play_link = reverse('play_bingo', args=[game.id])
+    mode_name = game.get_game_mode_display()
 
     for student in students:
         Notification.objects.create(
             user=student,
-            title='New Chinese Bingo Available',
+            title=f'New {mode_name} Available',
             message=f"{game.title} is ready to play. Practice your Chinese and try to get Bingo!",
             link=play_link,
         )
 
         send_push_to_user(
             student,
-            'New Chinese Bingo Available',
+            f'New {mode_name} Available',
             game.title,
             play_link,
         )
 
         if student.email:
             send_mail(
-                subject=f'New PandaSpeak Chinese Bingo: {game.title}',
+                subject=f'New PandaSpeak {mode_name}: {game.title}',
                 message=(
                     f"Hello {student.get_full_name() or student.email},\n\n"
-                    f"A new Chinese Bingo game, '{game.title}', is now available on PandaSpeak.\n\n"
+                    f"A new {mode_name}, '{game.title}', is now available on PandaSpeak.\n\n"
                     f"Log in to PandaSpeak to play and practice your Chinese.\n\n"
                     f"Best regards,\n"
                     f"PandaSpeak Support Team"
@@ -110,15 +122,21 @@ def create_bingo_game(request):
         if form.is_valid():
             game = form.save(commit=False)
             game.teacher = request.user
+            if game.game_mode == 'make_sentence':
+                game.content_type = 'sentence'
 
             required = game.required_item_count
             available = _eligible_materials(game).count()
 
             if available < required:
+                if game.game_mode == 'listening':
+                    detail = 'matching items with audio'
+                else:
+                    detail = 'matching sentences'
                 form.add_error(
                     'card_size',
-                    f'This card needs {required} matching items, but only {available} are currently available. '
-                    'Choose a smaller card, another level/content type, or add more learning materials.'
+                    f'This card needs {required} {detail}, but only {available} are currently available. '
+                    'Choose a smaller card, another level, or add more learning materials.'
                 )
             else:
                 game.save()
