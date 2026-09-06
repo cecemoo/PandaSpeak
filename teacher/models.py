@@ -273,3 +273,7 @@ class SurveyAnswer(models.Model):
 
     def __str__(self):
         return f"{self.response.student} - {self.question.question_text}"
+
+
+# Bingo models live in a separate module to keep this file manageable.
+from .bingo_models import BingoGame, BingoCard
