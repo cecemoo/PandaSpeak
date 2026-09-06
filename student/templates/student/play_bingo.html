@@ -16,6 +16,16 @@
         <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
       </div>
 
+      <div class="text-center mb-3">
+        <span class="badge text-bg-secondary px-3 py-2">
+          Difficulty:
+          {% if card.assigned_level == 'level1' %}Level I{% elif card.assigned_level == 'level2' %}Level II{% elif card.assigned_level == 'level3' %}Level III{% else %}All Levels{% endif %}
+        </span>
+        {% if game.adaptive_difficulty %}
+          <span class="badge text-bg-info px-3 py-2">Adaptive</span>
+        {% endif %}
+      </div>
+
       {% if card.has_bingo %}
         <div class="alert alert-success text-center fs-4 fw-bold">🎉 BINGO! 賓果！</div>
       {% endif %}
