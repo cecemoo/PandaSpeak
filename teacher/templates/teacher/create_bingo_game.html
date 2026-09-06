@@ -6,7 +6,7 @@
   <div class="page-title dark-background">
     <div class="container position-relative">
       <h1>Create Chinese Bingo</h1>
-      <p>Create a randomized practice game for one of your student groups.</p>
+      <p>Create a randomized Chinese practice game for one group, all of your students, or all PandaSpeak subscribers.</p>
     </div>
   </div>
 
@@ -27,4 +27,27 @@
     </div>
   </section>
 </main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const audience = document.getElementById('id_audience');
+    const group = document.getElementById('id_student_group');
+    if (!audience || !group) return;
+
+    const groupContainer = group.closest('.mb-3') || group.parentElement;
+
+    function updateGroupVisibility() {
+      const showGroup = audience.value === 'group';
+      if (groupContainer) {
+        groupContainer.style.display = showGroup ? '' : 'none';
+      }
+      if (!showGroup) {
+        group.value = '';
+      }
+    }
+
+    audience.addEventListener('change', updateGroupVisibility);
+    updateGroupVisibility();
+  });
+</script>
 {% endblock %}
