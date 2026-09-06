@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from account.models import Notification
 from account.push import send_push_to_user
+from course.models import StudentGroup
+from subscription.models import Subscription
 from teacher.bingo_models import BingoCard, BingoGame
 from teacher.models import Idiom, Sentence, Vocabulary
 
@@ -18,8 +20,45 @@ from teacher.models import Idiom, Sentence, Vocabulary
 LEVEL_ORDER = ['level1', 'level2', 'level3']
 
 
+def _student_can_play(game, student):
+    if game.audience == 'subscribers':
+        return (
+            not student.is_teacher
+            and not student.is_staff
+            and Subscription.objects.filter(user=student, is_active=True).exists()
+        )
+
+    if game.audience == 'my_students':
+        return student.groups_joined.filter(
+            teacher=game.teacher,
+            is_active=True,
+        ).exists()
+
+    return bool(
+        game.student_group
+        and game.student_group.students.filter(pk=student.pk, is_active=True).exists()
+    )
+
+
+def _visibility_filter_for_game(game):
+    if game.audience == 'subscribers':
+        return Q(visibility='all')
+
+    if game.audience == 'my_students':
+        teacher_groups = StudentGroup.objects.filter(
+            teacher=game.teacher,
+            is_active=True,
+        )
+        return Q(visibility='all') | Q(allowed_groups__in=teacher_groups)
+
+    if game.student_group:
+        return Q(visibility='all') | Q(allowed_groups=game.student_group)
+
+    return Q(visibility='all')
+
+
 def _eligible_materials(game, level=None):
-    visibility_filter = Q(visibility='all') | Q(allowed_groups=game.student_group)
+    visibility_filter = _visibility_filter_for_game(game)
     selected_level = level or game.level
     level_filter = Q()
     if selected_level != 'all':
@@ -192,10 +231,10 @@ def _notify_teacher_of_bingo(card):
 
 @login_required
 def bingo_game_list(request):
-    games = BingoGame.objects.filter(
-        is_active=True,
-        student_group__students=request.user,
-    ).select_related('student_group').distinct()
+    games = []
+    for game in BingoGame.objects.filter(is_active=True).select_related('student_group', 'teacher'):
+        if _student_can_play(game, request.user):
+            games.append(game)
 
     cards = {
         card.game_id: card
@@ -207,11 +246,13 @@ def bingo_game_list(request):
 @login_required
 def play_bingo(request, game_id):
     game = get_object_or_404(
-        BingoGame,
+        BingoGame.objects.select_related('student_group', 'teacher'),
         id=game_id,
         is_active=True,
-        student_group__students=request.user,
     )
+    if not _student_can_play(game, request.user):
+        messages.error(request, 'This Bingo game is not assigned to you.')
+        return redirect('student_bingo_list')
 
     card = BingoCard.objects.filter(game=game, student=request.user).first()
     if card is None:
