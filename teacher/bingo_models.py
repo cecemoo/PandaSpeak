@@ -3,10 +3,13 @@ from django.db import models
 
 
 class BingoGame(models.Model):
+    GAME_MODE_CHOICES = [
+        ("listening", "Listening Bingo"),
+        ("make_sentence", "Make-Sentence Bingo"),
+    ]
     CONTENT_CHOICES = [
         ("vocabulary", "Vocabulary"),
         ("sentence", "Sentences"),
-        ("expression", "Chinese Expressions"),
     ]
     CARD_SIZE_CHOICES = [
         (3, "3 x 3"),
@@ -39,6 +42,7 @@ class BingoGame(models.Model):
         blank=True,
         null=True,
     )
+    game_mode = models.CharField(max_length=20, choices=GAME_MODE_CHOICES, default="listening")
     content_type = models.CharField(max_length=20, choices=CONTENT_CHOICES, default="vocabulary")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="level1")
     card_size = models.PositiveSmallIntegerField(choices=CARD_SIZE_CHOICES, default=5)
@@ -74,6 +78,8 @@ class BingoCard(models.Model):
     marked_positions = models.JSONField(default=list)
     assigned_level = models.CharField(max_length=20, default="level1")
     moves_count = models.PositiveIntegerField(default=0)
+    correct_count = models.PositiveIntegerField(default=0)
+    incorrect_count = models.PositiveIntegerField(default=0)
     has_bingo = models.BooleanField(default=False)
     teacher_notified = models.BooleanField(default=False)
     completed_at = models.DateTimeField(blank=True, null=True)
