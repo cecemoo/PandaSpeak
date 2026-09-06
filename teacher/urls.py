@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import bingo_views
 
 
 
@@ -33,6 +34,10 @@ urlpatterns = [
     path("surveys/<int:survey_id>/finish/", views.finish_learning_survey, name="finish_learning_survey"),
     path("surveys/", views.teacher_survey_list, name="teacher_survey_list"),
     path('surveys/<int:survey_id>/responses/', views.survey_responses, name='survey_responses'),
+
+    path('bingo/create/', bingo_views.create_bingo_game, name='teacher_create_bingo'),
+    path('bingo/', bingo_views.bingo_game_list, name='teacher_bingo_list'),
+    path('bingo/<int:game_id>/delete/', bingo_views.delete_bingo_game, name='teacher_delete_bingo'),
     
     path('student-groups/create/', views.create_student_group, name='create_student_group'),
     path('student-groups/', views.student_group_list, name='student_group_list'),
