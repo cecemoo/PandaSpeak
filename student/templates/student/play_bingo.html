@@ -1,0 +1,85 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>{{ game.title }}</h1>
+      <p>Tap a square when you correctly hear, say, or identify the Chinese item.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="mb-4 d-flex gap-2 flex-wrap">
+        <a href="{% url 'student_bingo_list' %}" class="btn btn-outline-secondary rounded-pill">All Bingo Games</a>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
+      </div>
+
+      {% if card.has_bingo %}
+        <div class="alert alert-success text-center fs-4 fw-bold">🎉 BINGO! 賓果！</div>
+      {% endif %}
+
+      <div class="bingo-board" style="--bingo-size: {{ game.card_size }};">
+        {% for row in rows %}
+          {% for entry in row %}
+            <form method="post" class="bingo-cell-form">
+              {% csrf_token %}
+              <input type="hidden" name="position" value="{{ entry.position }}">
+              <button
+                type="submit"
+                class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}"
+                {% if entry.cell.free %}disabled{% endif %}
+                aria-pressed="{% if entry.marked %}true{% else %}false{% endif %}">
+                <span class="bingo-chinese">{{ entry.cell.text }}</span>
+                {% if entry.cell.pinyin %}<span class="bingo-pinyin">{{ entry.cell.pinyin }}</span>{% endif %}
+                {% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}
+              </button>
+            </form>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <p class="text-muted text-center mt-3">Get {{ game.card_size }} squares in a row horizontally, vertically, or diagonally.</p>
+    </div>
+  </section>
+</main>
+
+<style>
+  .bingo-board {
+    display: grid;
+    grid-template-columns: repeat(var(--bingo-size), minmax(0, 1fr));
+    gap: 8px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .bingo-cell-form { margin: 0; min-width: 0; }
+  .bingo-cell {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 86px;
+    border: 2px solid #d7d7d7;
+    border-radius: 12px;
+    background: #fff;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    position: relative;
+    transition: transform .12s ease, background-color .12s ease, border-color .12s ease;
+  }
+  .bingo-cell:not(:disabled):hover { transform: translateY(-1px); }
+  .bingo-cell-marked { background: #e7f4ff; border-color: #0d6efd; }
+  .bingo-cell-free { background: #f3f3f3; }
+  .bingo-chinese { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+  .bingo-pinyin { font-size: clamp(.68rem, 1.5vw, .9rem); color: #666; line-height: 1.1; overflow-wrap: anywhere; }
+  .bingo-check { position: absolute; top: 4px; right: 8px; font-weight: 800; color: #0d6efd; }
+  @media (max-width: 576px) {
+    .bingo-board { gap: 4px; }
+    .bingo-cell { min-height: 62px; border-radius: 8px; padding: 4px; }
+    .bingo-pinyin { display: none; }
+  }
+</style>
+{% endblock %}
