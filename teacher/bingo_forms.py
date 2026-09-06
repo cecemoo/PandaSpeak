@@ -11,6 +11,7 @@ class BingoGameForm(forms.ModelForm):
             'title',
             'audience',
             'student_group',
+            'game_mode',
             'content_type',
             'level',
             'card_size',
@@ -22,6 +23,7 @@ class BingoGameForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'audience': forms.Select(attrs={'class': 'form-select'}),
             'student_group': forms.Select(attrs={'class': 'form-select'}),
+            'game_mode': forms.Select(attrs={'class': 'form-select'}),
             'content_type': forms.Select(attrs={'class': 'form-select'}),
             'level': forms.Select(attrs={'class': 'form-select'}),
             'card_size': forms.Select(attrs={'class': 'form-select'}),
@@ -32,6 +34,8 @@ class BingoGameForm(forms.ModelForm):
         labels = {
             'audience': 'Who can play this Bingo?',
             'student_group': 'Student group (only required for One Student Group)',
+            'game_mode': 'Bingo game mode',
+            'content_type': 'Listening content',
             'use_free_center': 'Use FREE center square (odd-sized cards only)',
             'adaptive_difficulty': 'Adjust each student’s difficulty from recent Bingo performance',
             'is_active': 'Available to students',
@@ -41,6 +45,11 @@ class BingoGameForm(forms.ModelForm):
                 'All My Students means the unique students across every active group you created. '
                 'All PandaSpeak Subscribers means all active student subscribers on PandaSpeak.'
             ),
+            'game_mode': (
+                'Listening Bingo plays an audio item and the student chooses the matching square. '
+                'Make-Sentence Bingo asks the student to arrange shuffled Chinese characters into a sentence.'
+            ),
+            'content_type': 'Used for Listening Bingo. Make-Sentence Bingo always uses PandaSpeak sentences.',
             'level': 'Starting difficulty. Adaptive Bingo may move an individual student up or down one level later.',
             'adaptive_difficulty': 'Strong recent performance raises the next card one level; repeated difficulty lowers it one level.',
         }
@@ -61,10 +70,14 @@ class BingoGameForm(forms.ModelForm):
         cleaned_data = super().clean()
         audience = cleaned_data.get('audience')
         student_group = cleaned_data.get('student_group')
+        game_mode = cleaned_data.get('game_mode')
 
         if audience == 'group' and not student_group:
             self.add_error('student_group', 'Please choose a student group.')
         elif audience != 'group':
             cleaned_data['student_group'] = None
+
+        if game_mode == 'make_sentence':
+            cleaned_data['content_type'] = 'sentence'
 
         return cleaned_data
