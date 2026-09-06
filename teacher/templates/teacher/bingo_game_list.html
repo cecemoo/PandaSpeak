@@ -1,0 +1,59 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>Chinese Bingo Games</h1>
+      <p>Manage Bingo practice activities for your students.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="mb-4 d-flex gap-2 flex-wrap">
+        <a href="{% url 'teacher_create_bingo' %}" class="btn btn-primary rounded-pill">Create Bingo Game</a>
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Teacher Dashboard</a>
+      </div>
+
+      {% if games %}
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Group</th>
+                <th>Content</th>
+                <th>Level</th>
+                <th>Card</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for game in games %}
+              <tr>
+                <td>{{ game.title }}</td>
+                <td>{{ game.student_group.name }}</td>
+                <td>{{ game.get_content_type_display }}</td>
+                <td>{{ game.get_level_display }}</td>
+                <td>{{ game.card_size }} × {{ game.card_size }}</td>
+                <td>{% if game.is_active %}Active{% else %}Inactive{% endif %}</td>
+                <td>
+                  <form method="post" action="{% url 'teacher_delete_bingo' game.id %}" onsubmit="return confirm('Delete this Bingo game?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info">You have not created a Bingo game yet.</div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}
