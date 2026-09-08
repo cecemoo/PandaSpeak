@@ -14,7 +14,6 @@ class BingoGameForm(forms.ModelForm):
             'game_mode',
             'content_type',
             'level',
-            'card_size',
             'use_free_center',
             'adaptive_difficulty',
             'is_active',
@@ -26,7 +25,6 @@ class BingoGameForm(forms.ModelForm):
             'game_mode': forms.Select(attrs={'class': 'form-select'}),
             'content_type': forms.Select(attrs={'class': 'form-select'}),
             'level': forms.Select(attrs={'class': 'form-select'}),
-            'card_size': forms.Select(attrs={'class': 'form-select'}),
             'use_free_center': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'adaptive_difficulty': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -36,7 +34,7 @@ class BingoGameForm(forms.ModelForm):
             'student_group': 'Student group (only required for One Student Group)',
             'game_mode': 'Bingo game mode',
             'content_type': 'Listening content',
-            'use_free_center': 'Use FREE center square (odd-sized cards only)',
+            'use_free_center': 'Use FREE center square (3 x 3 and 5 x 5 cards)',
             'adaptive_difficulty': 'Adjust each student’s difficulty from recent Bingo performance',
             'is_active': 'Available to students',
         }
@@ -50,8 +48,8 @@ class BingoGameForm(forms.ModelForm):
                 'Make-Sentence Bingo asks the student to arrange shuffled Chinese characters into a sentence.'
             ),
             'content_type': 'Used for Listening Bingo. Make-Sentence Bingo always uses PandaSpeak sentences.',
-            'level': 'Starting difficulty. Adaptive Bingo may move an individual student up or down one level later.',
-            'adaptive_difficulty': 'Strong recent performance raises the next card one level; repeated difficulty lowers it one level.',
+            'level': 'Starting difficulty. Adaptive Bingo can move an individual student up or down later.',
+            'adaptive_difficulty': 'Strong Bingo performance raises the next round; difficult rounds keep or lower the learning level.',
         }
 
     def __init__(self, *args, **kwargs):
