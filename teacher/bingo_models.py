@@ -61,6 +61,7 @@ class BingoCard(models.Model):
     game = models.ForeignKey(BingoGame, on_delete=models.CASCADE, related_name="cards")
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bingo_cards")
     round_number = models.PositiveIntegerField(default=1)
+    card_size = models.PositiveSmallIntegerField(choices=BingoGame.CARD_SIZE_CHOICES, default=3)
     cells = models.JSONField(default=list)
     marked_positions = models.JSONField(default=list)
     assigned_level = models.CharField(max_length=20, default="level1")
