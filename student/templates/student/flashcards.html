@@ -24,15 +24,15 @@
           <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
             <div>
               <span class="badge text-bg-primary px-3 py-2">{{ deck_name }}</span>
-              <span id="flashcard-progress" class="ms-2 text-muted"></span>
+              <span id="flashcard-progress" class="ms-2 flashcard-progress"></span>
             </div>
             <button type="button" id="shuffle-cards" class="btn btn-outline-secondary rounded-pill">🔀 Shuffle</button>
           </div>
 
-          <button type="button" id="flashcard" class="flashcard" aria-label="Flip flash card">
+          <button type="button" id="flashcard" class="flashcard" aria-label="Flip flash card" aria-pressed="false">
             <div class="flashcard-inner" id="flashcard-inner">
               <div class="flashcard-face flashcard-front">
-                <div class="small text-muted mb-3">Tap to reveal</div>
+                <div class="flashcard-reveal-hint mb-3">Tap to reveal</div>
                 <div id="card-front-text" class="flashcard-chinese"></div>
               </div>
               <div class="flashcard-face flashcard-back">
@@ -49,6 +49,11 @@
             </div>
           </button>
 
+          <div id="review-actions" class="review-actions mt-3" hidden>
+            <button type="button" id="review-again" class="btn btn-outline-warning rounded-pill px-4">↻ Review Again</button>
+            <button type="button" id="know-card" class="btn btn-success rounded-pill px-4">✓ I Know This</button>
+          </div>
+
           <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
             <button type="button" id="prev-card" class="btn btn-outline-primary rounded-pill px-4">← Previous</button>
             <button type="button" id="play-card-audio" class="btn btn-outline-secondary rounded-pill px-4">🔊 Play Audio</button>
@@ -64,7 +69,7 @@
 </main>
 
 <style>
-  .flashcard-shell{max-width:760px;margin:0 auto}.flashcard{display:block;width:100%;border:0;background:transparent;padding:0;perspective:1200px;text-align:inherit}.flashcard-inner{position:relative;width:100%;min-height:360px;transform-style:preserve-3d;transition:transform .45s ease}.flashcard.is-flipped .flashcard-inner{transform:rotateY(180deg)}.flashcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid #ddd;border-radius:20px;background:#fff;color:#212529;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 28px;box-shadow:0 10px 30px rgba(0,0,0,.10)}.flashcard-back{transform:rotateY(180deg);overflow:auto}.flashcard-chinese{font-size:clamp(2rem,7vw,4rem);font-weight:700;line-height:1.2;text-align:center}.flashcard-chinese-small{font-size:clamp(1.6rem,5vw,2.7rem);margin-bottom:12px}.flashcard-pinyin{font-size:1.25rem;color:#666;text-align:center;margin-bottom:14px}.flashcard-meaning{font-size:1.2rem;font-weight:600;text-align:center}.flashcard-secondary{text-align:center;margin-top:6px;color:#555}.flashcard-example{text-align:center;max-width:620px;line-height:1.55}.flashcard:focus-visible{outline:3px solid rgba(13,110,253,.35);outline-offset:5px}.flashcard button{pointer-events:none}@media(max-width:576px){.flashcard-inner{min-height:330px}.flashcard-face{padding:26px 18px}.flashcard-chinese{font-size:clamp(1.8rem,12vw,3rem)}}@media(prefers-reduced-motion:reduce){.flashcard-inner{transition:none}}
+  .flashcard-shell{max-width:760px;margin:0 auto}.flashcard-progress{color:#f8f9fa;font-weight:700;font-size:1rem}.flashcard-reveal-hint{color:#495057;font-weight:600;font-size:1rem}.flashcard{display:block;width:100%;border:0;background:transparent;padding:0;perspective:1200px;text-align:inherit}.flashcard-inner{position:relative;width:100%;min-height:360px;transform-style:preserve-3d;transition:transform .45s ease}.flashcard.is-flipped .flashcard-inner{transform:rotateY(180deg)}.flashcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid #ddd;border-radius:20px;background:#fff;color:#212529;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 28px;box-shadow:0 10px 30px rgba(0,0,0,.10)}.flashcard-back{transform:rotateY(180deg);overflow:auto}.flashcard-chinese{font-size:clamp(2rem,7vw,4rem);font-weight:700;line-height:1.2;text-align:center}.flashcard-chinese-small{font-size:clamp(1.6rem,5vw,2.7rem);margin-bottom:12px}.flashcard-pinyin{font-size:1.25rem;color:#666;text-align:center;margin-bottom:14px}.flashcard-meaning{font-size:1.2rem;font-weight:600;text-align:center}.flashcard-secondary{text-align:center;margin-top:6px;color:#555}.flashcard-example{text-align:center;max-width:620px;line-height:1.55}.review-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.review-actions[hidden]{display:none!important}.flashcard:focus-visible{outline:3px solid rgba(13,110,253,.35);outline-offset:5px}.flashcard button{pointer-events:none}@media(max-width:576px){.flashcard-inner{min-height:330px}.flashcard-face{padding:26px 18px}.flashcard-chinese{font-size:clamp(1.8rem,12vw,3rem)}}@media(prefers-reduced-motion:reduce){.flashcard-inner{transition:none}}
 </style>
 
 {% if cards %}
@@ -89,11 +94,20 @@
   const prev = document.getElementById('prev-card');
   const next = document.getElementById('next-card');
   const shuffle = document.getElementById('shuffle-cards');
+  const reviewActions = document.getElementById('review-actions');
+  const reviewAgain = document.getElementById('review-again');
+  const knowCard = document.getElementById('know-card');
+
+  function resetCardFace(){
+    card.classList.remove('is-flipped');
+    card.setAttribute('aria-pressed','false');
+    reviewActions.hidden = true;
+  }
 
   function render(){
     if(!cards.length)return;
     const current = cards[index];
-    card.classList.remove('is-flipped');
+    resetCardFace();
     front.textContent = current.front || '';
     backChinese.textContent = current.front || '';
     pinyin.textContent = current.pinyin || '';
@@ -109,6 +123,11 @@
     audioButton.textContent = current.audio ? '🔊 Play Audio' : 'No Audio';
   }
 
+  function goNext(){
+    index=(index+1)%cards.length;
+    render();
+  }
+
   function shuffleDeck(){
     for(let i=cards.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
@@ -118,10 +137,28 @@
     render();
   }
 
-  card.addEventListener('click',function(){card.classList.toggle('is-flipped')});
+  card.addEventListener('click',function(){
+    const flipped = !card.classList.contains('is-flipped');
+    card.classList.toggle('is-flipped');
+    card.setAttribute('aria-pressed',flipped?'true':'false');
+    reviewActions.hidden = !flipped;
+  });
+
   prev.addEventListener('click',function(){index=(index-1+cards.length)%cards.length;render()});
-  next.addEventListener('click',function(){index=(index+1)%cards.length;render()});
+  next.addEventListener('click',goNext);
   shuffle.addEventListener('click',shuffleDeck);
+
+  reviewAgain.addEventListener('click',function(){
+    if(cards.length>1){
+      cards.push(cards[index]);
+    }
+    goNext();
+  });
+
+  knowCard.addEventListener('click',function(){
+    goNext();
+  });
+
   audioButton.addEventListener('click',function(){if(audio.src){audio.currentTime=0;audio.play().catch(function(){})}});
   render();
 })();
