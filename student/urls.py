@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import bingo_views
+from . import flashcard_views
 
 
 urlpatterns = [
@@ -15,6 +16,8 @@ urlpatterns = [
     path('sentences/category/<int:category_id>/', views.sentence_category_page, name='sentence_category_page'),
     path('idioms/category/<int:category_id>/', views.idiom_category_page, name='idiom_category_page'),
     path('pronunciations/', views.pronunciation_page, name='pronunciation_page'),
+
+    path('flashcards/', flashcard_views.flashcards, name='student_flashcards'),
 
     path('tests/', views.test_list, name='test_list'),
     path('tests/<int:test_id>/', views.take_test, name='take_test'),
