@@ -21,8 +21,8 @@
             <div class="card h-100 p-4">
               <h3 class="h5">{{ game.title }}</h3>
               <p class="mb-2"><strong>Content:</strong> {{ game.get_content_type_display }}</p>
-              <p class="mb-2"><strong>Level:</strong> {{ game.get_level_display }}</p>
-              <p class="mb-3"><strong>Card:</strong> {{ game.card_size }} × {{ game.card_size }}</p>
+              <p class="mb-2"><strong>Starting Level:</strong> {{ game.get_level_display }}</p>
+              <p class="mb-3"><strong>Choose Your Card:</strong> 3 × 3, 4 × 4, or 5 × 5</p>
               <a href="{% url 'play_bingo' game.id %}" class="btn btn-primary rounded-pill mt-auto">Play Bingo</a>
             </div>
           </div>
