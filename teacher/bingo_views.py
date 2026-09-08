@@ -125,18 +125,18 @@ def create_bingo_game(request):
             if game.game_mode == 'make_sentence':
                 game.content_type = 'sentence'
 
-            required = game.required_item_count
+            minimum_required = 8 if game.use_free_center else 9
             available = _eligible_materials(game).count()
 
-            if available < required:
+            if available < minimum_required:
                 if game.game_mode == 'listening':
                     detail = 'matching items with audio'
                 else:
                     detail = 'matching sentences'
                 form.add_error(
-                    'card_size',
-                    f'This card needs {required} {detail}, but only {available} are currently available. '
-                    'Choose a smaller card, another level, or add more learning materials.'
+                    None,
+                    f'Bingo needs at least {minimum_required} {detail} for a 3 x 3 game, but only {available} are currently available. '
+                    'Choose another level or add more learning materials.'
                 )
             else:
                 game.save()
@@ -144,7 +144,7 @@ def create_bingo_game(request):
                     _notify_students_about_bingo(game)
                     messages.success(
                         request,
-                        'Bingo game created. The selected audience was notified by PandaSpeak and email.'
+                        'Bingo game created. Students can choose 3 x 3, 4 x 4, or 5 x 5 when enough matching materials are available.'
                     )
                 else:
                     messages.success(
