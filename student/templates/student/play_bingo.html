@@ -4,7 +4,7 @@
   <div class="page-title dark-background">
     <div class="container position-relative">
       <h1>{{ game.title }}</h1>
-      {% if game.game_mode == 'listening' %}<p>Listen to the audio, then choose the matching Chinese square.</p>{% else %}<p>Arrange the shuffled Chinese characters into the correct sentence.</p>{% endif %}
+      {% if game.game_mode == 'listening' %}<p>Hear the Chinese, find the matching square, and get Bingo.</p>{% else %}<p>Build the Chinese sentence, earn squares, and get Bingo.</p>{% endif %}
     </div>
   </div>
   <section class="section">
@@ -13,36 +13,71 @@
         <a href="{% url 'student_bingo_list' %}" class="btn btn-outline-secondary rounded-pill">All Bingo Games</a>
         <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
       </div>
-      <div class="text-center mb-3">
-        <span class="badge text-bg-secondary px-3 py-2">Difficulty: {% if card.assigned_level == 'level1' %}Level I{% elif card.assigned_level == 'level2' %}Level II{% elif card.assigned_level == 'level3' %}Level III{% else %}All Levels{% endif %}</span>
-        <span class="badge text-bg-primary px-3 py-2">{{ game.get_game_mode_display }}</span>
-        {% if game.adaptive_difficulty %}<span class="badge text-bg-info px-3 py-2">Adaptive</span>{% endif %}
-        <button type="button" id="bingo-sound-toggle" class="btn btn-sm btn-outline-light rounded-pill ms-1" aria-pressed="false">🔊 Sound On</button>
-      </div>
 
-      {% if card.has_bingo %}
-        <div class="bingo-complete-card text-center" data-bingo-complete="true">
-          <div class="display-5 mb-2">🎉</div>
-          <h2>BINGO! 賓果！</h2>
-          <p class="mb-1">You completed Round {{ card.round_number }}.</p>
-          <p class="text-muted">Correct: {{ card.correct_count }} &nbsp; Wrong: {{ card.incorrect_count }}</p>
-          <h5 class="mt-4 mb-3">Would you like to continue playing?</h5>
-          <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="new_round"><button type="submit" class="btn btn-primary rounded-pill px-4">Play Another Round</button></form>
-            <a href="{% url 'student_bingo_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Finish for Now</a>
+      {% if card and not card.has_bingo %}
+        <div class="text-center mb-3">
+          <span class="badge text-bg-secondary px-3 py-2">Difficulty: {% if card.assigned_level == 'level1' %}Level I{% elif card.assigned_level == 'level2' %}Level II{% elif card.assigned_level == 'level3' %}Level III{% else %}All Levels{% endif %}</span>
+          <span class="badge text-bg-primary px-3 py-2">{{ card.card_size }} × {{ card.card_size }}</span>
+          <span class="badge text-bg-primary px-3 py-2">{{ game.get_game_mode_display }}</span>
+          {% if game.adaptive_difficulty %}<span class="badge text-bg-info px-3 py-2">Adaptive</span>{% endif %}
+          <button type="button" id="bingo-sound-toggle" class="btn btn-sm btn-outline-secondary rounded-pill ms-1" aria-pressed="false">🔊 Sound On</button>
+        </div>
+      {% endif %}
+
+      {% if not card or card.has_bingo %}
+        {% if card and card.has_bingo %}
+          <div class="bingo-complete-card text-center" data-bingo-complete="true">
+            <div class="display-5 mb-2">🎉</div>
+            <h2>BINGO! 賓果！</h2>
+            <p class="mb-1">Round {{ card.round_number }} complete — {{ card.card_size }} × {{ card.card_size }}</p>
+            <p class="text-muted mb-2">Correct: {{ card.correct_count }} &nbsp; Wrong: {{ card.incorrect_count }}</p>
+            {% if challenge_up %}
+              <div class="level-up-banner">⬆️ CHALLENGE UP!</div>
+              <p class="small mb-0">Nice round. PandaSpeak will make the next game a little more challenging.</p>
+            {% elif game.adaptive_difficulty %}
+              <p class="small text-muted mb-0">Your next round will adapt to how you played.</p>
+            {% endif %}
           </div>
-          {% if game.adaptive_difficulty %}<p class="small text-muted mt-3 mb-0">Your next round's difficulty will be adjusted from your recent performance.</p>{% endif %}
+        {% endif %}
+
+        <div class="size-select-card text-center">
+          <div class="game-controller mb-2">🎮</div>
+          <h3 class="h4">{% if card and card.has_bingo %}Choose Your Next Game{% else %}Choose Your Bingo Card{% endif %}</h3>
+          <p class="text-muted">Pick any size. You can choose a different one after every Bingo.</p>
+
+          <div class="size-options">
+            {% for size in "345" %}
+              <form method="post" class="size-option-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="start_round">
+                <input type="hidden" name="card_size" value="{{ size }}">
+                <button type="submit" class="size-option {% if size|add:'0' not in available_sizes %}size-option-disabled{% endif %}" {% if size|add:'0' not in available_sizes %}disabled{% endif %}>
+                  <span class="size-grid-icon size-grid-{{ size }}" aria-hidden="true"></span>
+                  <span class="size-name">{% if size == '3' %}Quick Play{% elif size == '4' %}Classic{% else %}Big Challenge{% endif %}</span>
+                  <strong>{{ size }} × {{ size }}</strong>
+                  {% if size|add:'0' not in available_sizes %}<small>More learning items needed</small>{% endif %}
+                </button>
+              </form>
+            {% endfor %}
+          </div>
+
+          {% if not available_sizes %}
+            <div class="alert alert-info mt-3 mb-0">There are not enough matching learning materials for a Bingo card yet.</div>
+          {% endif %}
         </div>
       {% else %}
         {% if challenge %}
           {% if game.game_mode == 'listening' %}
-            <div class="challenge-card text-center mb-3"><h5 class="mb-2">🔊 Listen carefully</h5><audio controls><source src="{{ challenge.audio }}"></audio><p class="text-muted small mb-0 mt-2">Choose the square that matches what you hear.</p></div>
+            <div class="challenge-card text-center mb-3">
+              <audio controls autoplay><source src="{{ challenge.audio }}"></audio>
+              <p class="text-muted small mb-0 mt-2">Choose the matching square.</p>
+            </div>
           {% else %}
             <div class="challenge-card mb-3"><h5 class="text-center">Make the sentence</h5>{% if challenge.translation %}<p class="text-center"><strong>Meaning:</strong> {{ challenge.translation }}</p>{% endif %}<div id="sentence-answer" class="sentence-answer mb-3">Tap the characters below in the correct order.</div><div id="sentence-tiles" class="sentence-tiles mb-3">{% for tile in sentence_tiles %}<button type="button" class="btn btn-outline-primary sentence-tile" data-char="{{ tile }}">{{ tile }}</button>{% endfor %}</div><form method="post" id="sentence-form" class="text-center">{% csrf_token %}<input type="hidden" name="action" value="sentence_submit"><input type="hidden" name="target_position" value="{{ target_position }}"><input type="hidden" name="candidate" id="sentence-candidate"><input type="hidden" id="sentence-answer-key" value="{{ challenge.text }}"><button type="button" class="btn btn-outline-secondary rounded-pill" id="sentence-reset">Reset</button> <button type="submit" class="btn btn-primary rounded-pill">Check Sentence</button></form></div>
           {% endif %}
         {% endif %}
 
-        <div class="bingo-board" style="--bingo-size: {{ game.card_size }};" data-card-size="{{ game.card_size }}">
+        <div class="bingo-board" style="--bingo-size: {{ card.card_size }};" data-card-size="{{ card.card_size }}">
           {% for row in rows %}{% for entry in row %}
             {% if game.game_mode == 'listening' %}
               <form method="post" class="bingo-cell-form" data-position="{{ entry.position }}">{% csrf_token %}<input type="hidden" name="action" value="listening_guess"><input type="hidden" name="target_position" value="{{ target_position }}"><input type="hidden" name="position" value="{{ entry.position }}"><button type="submit" class="bingo-cell {% if entry.marked %}bingo-cell-marked{% endif %} {% if entry.cell.free %}bingo-cell-free{% endif %}" data-position="{{ entry.position }}" data-marked="{% if entry.marked %}1{% else %}0{% endif %}" {% if entry.cell.free or entry.marked %}disabled{% endif %}><span class="bingo-chinese">{{ entry.cell.text }}</span>{% if entry.cell.pinyin %}<span class="bingo-pinyin">{{ entry.cell.pinyin }}</span>{% endif %}{% if entry.marked %}<span class="bingo-check">✓</span>{% endif %}</button></form>
@@ -51,13 +86,13 @@
             {% endif %}
           {% endfor %}{% endfor %}
         </div>
-        <p class="text-muted text-center mt-2 small">Get {{ game.card_size }} squares in a row horizontally, vertically, or diagonally.</p>
+        <p class="text-muted text-center mt-2 small">Get {{ card.card_size }} squares in a row horizontally, vertically, or diagonally.</p>
       {% endif %}
     </div>
   </section>
 </main>
 <style>
-.challenge-card{max-width:650px;margin:0 auto;padding:15px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#212529}.bingo-complete-card{max-width:560px;margin:30px auto;padding:32px;border-radius:18px;background:#fff;color:#212529;box-shadow:0 8px 28px rgba(0,0,0,.12)}.bingo-board{display:grid;grid-template-columns:repeat(var(--bingo-size),minmax(0,1fr));gap:5px;max-width:650px;margin:0 auto}.bingo-cell-form{margin:0;min-width:0}.bingo-cell{width:100%;aspect-ratio:1.28/1;min-height:64px;border:1.5px solid #d7d7d7;border-radius:9px;background:#fff;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;color:#212529;transition:transform .12s ease}.bingo-cell:not(:disabled):hover{transform:translateY(-1px)}.bingo-cell-marked{background:#e7f4ff;border-color:#0d6efd}.bingo-cell-free{background:#e8f8ef}.bingo-chinese{font-size:clamp(.95rem,2vw,1.35rem);font-weight:700;line-height:1.1;overflow-wrap:anywhere}.bingo-pinyin{font-size:clamp(.62rem,1.1vw,.78rem);color:#666;line-height:1}.bingo-check{position:absolute;top:2px;right:6px;font-weight:800;color:#0d6efd}.sentence-answer{min-height:52px;padding:10px;border:2px dashed #bbb;border-radius:10px;font-size:1.35rem;text-align:center}.sentence-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sentence-tile{min-width:44px;font-size:1.15rem}@media(max-width:576px){.bingo-board{gap:3px;max-width:100%}.bingo-cell{min-height:48px;border-radius:6px;padding:3px}.bingo-chinese{font-size:clamp(.72rem,4vw,1rem)}.bingo-pinyin{display:none}.bingo-complete-card{padding:24px 16px}}
+.challenge-card{max-width:650px;margin:0 auto;padding:15px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#212529}.bingo-complete-card{max-width:560px;margin:16px auto 22px;padding:28px;border-radius:18px;background:#fff;color:#212529;box-shadow:0 8px 28px rgba(0,0,0,.12)}.level-up-banner{display:inline-block;margin:8px 0;padding:8px 18px;border-radius:999px;background:#fff3cd;color:#664d03;font-weight:800;letter-spacing:.05em}.size-select-card{max-width:720px;margin:20px auto;padding:26px;border:1px solid #e1e1e1;border-radius:18px;background:#fff;color:#212529}.game-controller{font-size:2rem}.size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}.size-option-form{margin:0}.size-option{width:100%;min-height:155px;border:2px solid #d8d8d8;border-radius:16px;background:#fff;padding:15px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#212529;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}.size-option:not(:disabled):hover{transform:translateY(-3px);border-color:#0d6efd;box-shadow:0 8px 20px rgba(13,110,253,.12)}.size-option strong{font-size:1.3rem}.size-name{font-weight:700}.size-option small{font-size:.72rem;color:#777}.size-option-disabled{opacity:.48}.size-grid-icon{display:grid;width:42px;height:42px;gap:2px}.size-grid-icon:before{content:"";display:block;width:100%;height:100%;border-radius:5px;background:repeating-linear-gradient(90deg,#6c757d 0 2px,transparent 2px 12px),repeating-linear-gradient(0deg,#6c757d 0 2px,transparent 2px 12px);opacity:.55}.bingo-board{display:grid;grid-template-columns:repeat(var(--bingo-size),minmax(0,1fr));gap:5px;max-width:650px;margin:0 auto}.bingo-cell-form{margin:0;min-width:0}.bingo-cell{width:100%;aspect-ratio:1.28/1;min-height:64px;border:1.5px solid #d7d7d7;border-radius:9px;background:#fff;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;color:#212529;transition:transform .12s ease}.bingo-cell:not(:disabled):hover{transform:translateY(-1px)}.bingo-cell-marked{background:#e7f4ff;border-color:#0d6efd}.bingo-cell-free{background:#e8f8ef}.bingo-chinese{font-size:clamp(.95rem,2vw,1.35rem);font-weight:700;line-height:1.1;overflow-wrap:anywhere}.bingo-pinyin{font-size:clamp(.62rem,1.1vw,.78rem);color:#666;line-height:1}.bingo-check{position:absolute;top:2px;right:6px;font-weight:800;color:#0d6efd}.sentence-answer{min-height:52px;padding:10px;border:2px dashed #bbb;border-radius:10px;font-size:1.35rem;text-align:center}.sentence-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sentence-tile{min-width:44px;font-size:1.15rem}@media(max-width:576px){.size-select-card{padding:20px 12px}.size-options{grid-template-columns:1fr}.size-option{min-height:92px;display:grid;grid-template-columns:52px 1fr auto;text-align:left}.size-option small{grid-column:2/4}.bingo-board{gap:3px;max-width:100%}.bingo-cell{min-height:48px;border-radius:6px;padding:3px}.bingo-chinese{font-size:clamp(.72rem,4vw,1rem)}.bingo-pinyin{display:none}.bingo-complete-card{padding:24px 16px}}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
@@ -80,14 +115,14 @@ document.addEventListener('DOMContentLoaded',function(){
   updateSoundButton();
   if(soundToggle){soundToggle.addEventListener('click',function(){soundEnabled=!soundEnabled;localStorage.setItem('pandaspeakBingoSound',soundEnabled?'on':'off');updateSoundButton();if(soundEnabled)playDot()})}
 
-  document.querySelectorAll('form.bingo-cell-form').forEach(function(form){form.addEventListener('submit',function(event){const button=form.querySelector('.bingo-cell');if(!button||button.disabled)return;const position=parseInt(form.querySelector('input[name="position"]').value,10);const target=parseInt(form.querySelector('input[name="target_position"]').value,10);if(!soundEnabled)return;event.preventDefault();if(position===target){if(wouldWin(position)){playFanfare();setTimeout(function(){form.submit()},1700)}else{playCorrect();setTimeout(function(){form.submit()},430)}}else{playWrong();setTimeout(function(){form.submit()},520)}})});
+  document.querySelectorAll('form.bingo-cell-form').forEach(function(form){form.addEventListener('submit',function(event){const button=form.querySelector('.bingo-cell');if(!button||button.disabled)return;const position=parseInt(form.querySelector('input[name="position"]').value,10);const target=parseInt(form.querySelector('input[name="target_position"]').value,10);if(!soundEnabled)return;event.preventDefault();if(position===target){if(wouldWin(position)){playFanfare();setTimeout(function(){form.submit()},1700)}else{playCorrect();setTimeout(function(){form.submit()},430)}}else{playWrong();setTimeout(function(){form.submit()},420)}})});
 
   document.querySelectorAll('.sentence-tile').forEach(function(tile){tile.addEventListener('click',playDot)});
   const complete=document.querySelector('[data-bingo-complete="true"]');
   if(complete){setTimeout(function(){playFanfare()},180);document.addEventListener('pointerdown',function(){playFanfare()},{once:true})}
 
-  {% if game.game_mode == 'make_sentence' and challenge and not card.has_bingo %}
-  const tiles=document.querySelectorAll('.sentence-tile'),answer=document.getElementById('sentence-answer'),candidate=document.getElementById('sentence-candidate'),answerKey=document.getElementById('sentence-answer-key'),reset=document.getElementById('sentence-reset'),sentenceForm=document.getElementById('sentence-form');let built='';function refresh(){answer.textContent=built||'Tap the characters below in the correct order.';candidate.value=built}tiles.forEach(function(tile){tile.addEventListener('click',function(){if(tile.disabled)return;built+=tile.dataset.char;tile.disabled=true;refresh()})});reset.addEventListener('click',function(){built='';tiles.forEach(function(tile){tile.disabled=false});refresh()});sentenceForm.addEventListener('submit',function(event){if(!soundEnabled)return;const correct=normalizeSentence(candidate.value)===normalizeSentence(answerKey.value)&&normalizeSentence(answerKey.value)!=='';const target=parseInt(sentenceForm.querySelector('input[name="target_position"]').value,10);event.preventDefault();if(correct){if(wouldWin(target)){playFanfare();setTimeout(function(){sentenceForm.submit()},1700)}else{playCorrect();setTimeout(function(){sentenceForm.submit()},430)}}else{playWrong();setTimeout(function(){sentenceForm.submit()},520)}});
+  {% if game.game_mode == 'make_sentence' and challenge and card and not card.has_bingo %}
+  const tiles=document.querySelectorAll('.sentence-tile'),answer=document.getElementById('sentence-answer'),candidate=document.getElementById('sentence-candidate'),answerKey=document.getElementById('sentence-answer-key'),reset=document.getElementById('sentence-reset'),sentenceForm=document.getElementById('sentence-form');let built='';function refresh(){answer.textContent=built||'Tap the characters below in the correct order.';candidate.value=built}tiles.forEach(function(tile){tile.addEventListener('click',function(){if(tile.disabled)return;built+=tile.dataset.char;tile.disabled=true;refresh()})});reset.addEventListener('click',function(){built='';tiles.forEach(function(tile){tile.disabled=false});refresh()});sentenceForm.addEventListener('submit',function(event){if(!soundEnabled)return;const correct=normalizeSentence(candidate.value)===normalizeSentence(answerKey.value)&&normalizeSentence(answerKey.value)!=='';const target=parseInt(sentenceForm.querySelector('input[name="target_position"]').value,10);event.preventDefault();if(correct){if(wouldWin(target)){playFanfare();setTimeout(function(){sentenceForm.submit()},1700)}else{playCorrect();setTimeout(function(){sentenceForm.submit()},430)}}else{playWrong();setTimeout(function(){sentenceForm.submit()},420)}});
   {% endif %}
 });
 </script>
