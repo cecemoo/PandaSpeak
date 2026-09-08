@@ -34,10 +34,10 @@
               {% for game in games %}
               <tr>
                 <td>{{ game.title }}</td>
-                <td>{{ game.student_group.name }}</td>
+                <td>{% if game.student_group %}{{ game.student_group.name }}{% else %}{{ game.get_audience_display }}{% endif %}</td>
                 <td>{{ game.get_content_type_display }}</td>
                 <td>{{ game.get_level_display }}</td>
-                <td>{{ game.card_size }} × {{ game.card_size }}</td>
+                <td>Student choice: 3 × 3, 4 × 4, 5 × 5</td>
                 <td>{% if game.is_active %}Active{% else %}Inactive{% endif %}</td>
                 <td>
                   <form method="post" action="{% url 'teacher_delete_bingo' game.id %}" onsubmit="return confirm('Delete this Bingo game?');">
