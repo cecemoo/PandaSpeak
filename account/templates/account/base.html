@@ -14,14 +14,28 @@
 
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org", 
+    "@context": "https://schema.org",
     "@graph": [
     {
       "@type": "Organization",
       "@id": "https://pandaspeak.org/#organization",
       "name": "PandaSpeak",
+      "alternateName": "PandaSpeak.org",
       "url": "https://pandaspeak.org/",
-      "description": "PandaSpeak is an independent Traditional Chinese learning platform for adults.",
+      "email": "mailto:pandaspeaksupport@gmail.com",
+      "description": "PandaSpeak is an independent Houston-based Traditional Chinese learning platform for adults.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Houston",
+        "addressRegion": "TX",
+        "addressCountry": "US"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "pandaspeaksupport@gmail.com",
+        "availableLanguage": ["English", "Chinese"]
+      },
       "areaServed": "United States"
     },
     {
