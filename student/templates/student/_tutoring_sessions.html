@@ -41,7 +41,7 @@
             <span class="small text-light">Thank you for your feedback.</span>
             {% else %}
             <a href="{% url 'course:review_tutoring_session' booking.pk %}" class="btn btn-warning rounded-pill px-4">
-              Review Session
+              Leave a Review (Optional)
             </a>
             {% endif %}
           {% elif booking.timeslot.start_time > now %}
