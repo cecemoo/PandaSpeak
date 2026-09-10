@@ -4,8 +4,6 @@ from django.utils import timezone
 from django.conf import settings
 
 
-
-
 WEEKDAY_CHOICES = [
     (0, 'Monday'),
     (1, 'Tuesday'),
@@ -32,8 +30,8 @@ class Course(models.Model):
     available_days = models.CharField(max_length=100, blank=True, help_text='Comma separated weekdays (0=Monday, 6=Sunday)')
     daily_start_time = models.TimeField(blank=True, null=True)
     daily_end_time = models.TimeField(blank=True, null=True)
-    teacher_timezone = models.CharField(max_length=64, default="America/Chicago",help_text="Time zone used when creating this course schedule.",)
-   
+    teacher_timezone = models.CharField(max_length=64, default="America/Chicago", help_text="Time zone used when creating this course schedule.")
+
     def __str__(self):
         return self.title
 
@@ -46,8 +44,6 @@ class Course(models.Model):
             )
         super().save(*args, **kwargs)
 
-
-        
 
 class TimeSlot(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='time_slots')
@@ -62,11 +58,11 @@ class TimeSlot(models.Model):
     def remaining_slots(self):
         booked_count = self.bookings.filter(status='confirmed').count()
         return max(self.capacity - booked_count, 0)
-    
+
     @property
     def is_available(self):
         return self.remaining_slots > 0
-    
+
 
 class Booking(models.Model):
     STATUS_CHOICES = (
@@ -74,6 +70,25 @@ class Booking(models.Model):
         ('confirmed', 'Confirmed'),
         ('canceled', 'Canceled'),
     )
+
+    SESSION_STATUS_CHOICES = (
+        ('scheduled', 'Scheduled'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('review_required', 'Review Required'),
+        ('disputed', 'Disputed'),
+        ('no_show_student', 'Student No-show'),
+        ('no_show_teacher', 'Teacher No-show'),
+    )
+
+    PAYOUT_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('awaiting_release', 'Awaiting Release'),
+        ('on_hold', 'On Hold'),
+        ('transferred', 'Transferred'),
+        ('reversed', 'Reversed'),
+    )
+
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bookings')
     timeslot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name='bookings')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
@@ -83,19 +98,44 @@ class Booking(models.Model):
     canceled_at = models.DateTimeField(blank=True, null=True)
 
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_transfer_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-    )
-    teacher_transfer_amount_cents = models.PositiveIntegerField(
-        default=0,
-    )
+    stripe_transfer_id = models.CharField(max_length=255, blank=True, null=True)
+    teacher_transfer_amount_cents = models.PositiveIntegerField(default=0)
     is_refunded = models.BooleanField(default=False)
 
+    session_status = models.CharField(
+        max_length=30,
+        choices=SESSION_STATUS_CHOICES,
+        default='scheduled',
+    )
+    meeting_room_id = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        unique=True,
+    )
+    session_started_at = models.DateTimeField(blank=True, null=True)
+    session_completed_at = models.DateTimeField(blank=True, null=True)
+    shared_minutes = models.PositiveIntegerField(default=0)
+    payout_status = models.CharField(
+        max_length=20,
+        choices=PAYOUT_STATUS_CHOICES,
+        default='pending',
+    )
+    payout_eligible_at = models.DateTimeField(blank=True, null=True)
+    student_reported_issue = models.BooleanField(default=False)
+
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['student', 'timeslot'], name='unique_booking_per_student_timeslot')]
-        indexes = [models.Index(fields=['student', 'status']), models.Index(fields=['timeslot', 'status'])]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'timeslot'],
+                name='unique_booking_per_student_timeslot',
+            )
+        ]
+        indexes = [
+            models.Index(fields=['student', 'status']),
+            models.Index(fields=['timeslot', 'status']),
+            models.Index(fields=['session_status', 'payout_status']),
+        ]
 
     def cancel(self):
         if self.status != 'canceled':
@@ -107,6 +147,29 @@ class Booking(models.Model):
         return f"{self.student.username} -> {self.timeslot}"
 
 
+class SessionAttendance(models.Model):
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='attendance_records',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='tutoring_attendance_records',
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField(default=timezone.now)
+    left_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['booking', 'user', 'joined_at']),
+        ]
+        ordering = ['joined_at']
+
+    def __str__(self):
+        return f"{self.user} in booking {self.booking_id}"
 
 
 class StudentGroup(models.Model):
