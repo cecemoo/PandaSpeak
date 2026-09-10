@@ -7,12 +7,23 @@
         {% if b.status == "confirmed" %}
         <span class="badge bg-info text-dark ms-1">{{ b.get_session_status_display }}</span>
         {% endif %}
+        {% if b.student_reported_issue %}
+        <span class="badge bg-danger ms-1">Payment On Hold</span>
+        {% elif b.payout_status == "awaiting_release" %}
+        <span class="badge bg-warning text-dark ms-1">24-Hour Review</span>
+        {% endif %}
     </div>
 
-    <div class="d-flex gap-2 align-items-center">
+    <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
         {% if b.status == "confirmed" %}
         <a href="{% url 'course:tutoring_session' b.pk %}" class="btn btn-primary btn-sm">
             Join Session
+        </a>
+        {% endif %}
+
+        {% if b.session_status == "completed" and b.payout_status != "transferred" and not b.student_reported_issue %}
+        <a href="{% url 'course:report_session_issue' b.pk %}" class="btn btn-outline-danger btn-sm">
+            Report a Problem
         </a>
         {% endif %}
 
