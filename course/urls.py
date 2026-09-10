@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import session_views
+from . import payment_views
 from .views import WeeklyScheduleView
 
 app_name = 'course'
@@ -37,5 +38,5 @@ urlpatterns = [
     path("stripe/connect/", views.stripe_connect_onboard, name="stripe_connect_onboard"),
     path("stripe/connect/refresh/", views.stripe_connect_refresh, name="stripe_connect_refresh"),
     path("stripe/connect/return/", views.stripe_connect_return, name="stripe_connect_return"),
-    path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path("stripe/webhook/", payment_views.stripe_webhook, name="stripe_webhook"),
 ]
