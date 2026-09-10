@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import session_views
 from .views import WeeklyScheduleView
 
 app_name = 'course'
@@ -25,8 +26,11 @@ urlpatterns = [
     path('teacher_bookings/', views.teacher_bookings, name='teacher_bookings'),
 
     path('booking/<int:pk>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('booking/<int:pk>/session/', session_views.tutoring_session, name='tutoring_session'),
+    path('booking/<int:pk>/session/join/', session_views.session_join, name='session_join'),
+    path('booking/<int:pk>/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),
+    path('booking/<int:pk>/session/leave/', session_views.session_leave, name='session_leave'),
 
-    
     path("set-timezone/", views.set_student_timezone, name="set_student_timezone"),
 
     path("stripe/connect/", views.stripe_connect_onboard, name="stripe_connect_onboard"),
