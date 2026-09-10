@@ -33,6 +33,7 @@ urlpatterns = [
     path('booking/<int:pk>/session/join/', session_views.session_join, name='session_join'),
     path('booking/<int:pk>/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),
     path('booking/<int:pk>/session/leave/', session_views.session_leave, name='session_leave'),
+    path('booking/<int:pk>/session/review/', session_views.review_tutoring_session, name='review_tutoring_session'),
     path('booking/<int:pk>/session/report/', session_views.report_session_issue, name='report_session_issue'),
 
     path("set-timezone/", views.set_student_timezone, name="set_student_timezone"),
