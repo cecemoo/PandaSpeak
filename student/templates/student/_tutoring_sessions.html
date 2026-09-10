@@ -29,6 +29,7 @@
           <a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-success rounded-pill px-4">
             Enter Classroom
           </a>
+          {% elif booking.session_status == "completed" %}
           {% elif booking.timeslot.start_time > now %}
           <div class="small text-muted mb-2">Classroom opens 15 minutes before the session.</div>
           <a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-outline-secondary rounded-pill">
