@@ -1,12 +1,16 @@
 import uuid
 from datetime import timedelta
 
+from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from account.models import Notification
 from .models import Booking, SessionAttendance
 
 
@@ -29,6 +33,20 @@ def _get_booking_for_participant(request, pk):
     if request.user.id not in (booking.student_id, teacher.id):
         return booking, HttpResponseForbidden('You are not a participant in this tutoring session.')
     return booking, None
+
+
+def _session_link(booking):
+    return reverse('course:tutoring_session', args=[booking.pk])
+
+
+def _notify_once(user, title, message, link):
+    notification, _ = Notification.objects.get_or_create(
+        user=user,
+        title=title,
+        link=link,
+        defaults={'message': message},
+    )
+    return notification
 
 
 def _can_enter_session(booking):
@@ -82,6 +100,7 @@ def _calculate_shared_minutes(booking):
 
 
 def _update_session_state(booking):
+    previous_status = booking.session_status
     shared_minutes = _calculate_shared_minutes(booking)
     booking.shared_minutes = shared_minutes
 
@@ -111,6 +130,22 @@ def _update_session_state(booking):
         'payout_status',
         'payout_eligible_at',
     ])
+
+    if previous_status != 'completed' and booking.session_status == 'completed':
+        link = _session_link(booking)
+        title = f'Tutoring Session Completed #{booking.pk}'
+        _notify_once(
+            booking.student,
+            title,
+            'Your tutoring session is complete. You have 24 hours to report a problem before the teacher payment becomes eligible for release.',
+            link,
+        )
+        _notify_once(
+            teacher,
+            title,
+            'Your tutoring session is complete. The payment is now in the 24-hour student review period.',
+            link,
+        )
 
 
 @login_required(login_url='my_login')
@@ -146,7 +181,8 @@ def session_join(request, pk):
         return JsonResponse({'success': False, 'error': 'Session is outside the allowed join window.'}, status=403)
 
     attendance = _active_attendance(booking, request.user)
-    if attendance is None:
+    created = attendance is None
+    if created:
         attendance = SessionAttendance.objects.create(
             booking=booking,
             user=request.user,
@@ -155,6 +191,17 @@ def session_join(request, pk):
     else:
         attendance.last_seen_at = timezone.now()
         attendance.save(update_fields=['last_seen_at'])
+
+    if created:
+        teacher = booking.timeslot.course.teacher
+        other_user = booking.student if request.user.id == teacher.id else teacher
+        participant_name = request.user.get_full_name() or request.user.email
+        _notify_once(
+            other_user,
+            f'Participant Joined Session #{booking.pk}',
+            f'{participant_name} has joined your tutoring session.',
+            _session_link(booking),
+        )
 
     _update_session_state(booking)
     return JsonResponse({'success': True, 'attendance_id': attendance.id})
@@ -197,3 +244,65 @@ def session_leave(request, pk):
         'session_status': booking.session_status,
         'shared_minutes': booking.shared_minutes,
     })
+
+
+@login_required(login_url='my_login')
+def report_session_issue(request, pk):
+    booking = get_object_or_404(
+        Booking.objects.select_related('student', 'timeslot__course__teacher'),
+        pk=pk,
+        student=request.user,
+    )
+
+    if booking.session_status not in ('completed', 'disputed'):
+        messages.error(request, 'A problem can be reported only after the tutoring session is completed.')
+        return redirect('course:my_bookings')
+
+    if booking.payout_status == 'transferred':
+        messages.error(request, 'This teacher payment has already been released. Please contact PandaSpeak Support for assistance.')
+        return redirect('course:my_bookings')
+
+    if booking.payout_eligible_at and timezone.now() > booking.payout_eligible_at and not booking.student_reported_issue:
+        messages.error(request, 'The 24-hour session review period has ended. Please contact PandaSpeak Support for assistance.')
+        return redirect('course:my_bookings')
+
+    if request.method == 'POST':
+        details = (request.POST.get('issue_details') or '').strip()
+        if len(details) < 10:
+            messages.error(request, 'Please briefly describe the problem so PandaSpeak can review it.')
+        else:
+            booking.student_reported_issue = True
+            booking.issue_details = details
+            booking.issue_reported_at = timezone.now()
+            booking.session_status = 'disputed'
+            booking.payout_status = 'on_hold'
+            booking.save(update_fields=[
+                'student_reported_issue',
+                'issue_details',
+                'issue_reported_at',
+                'session_status',
+                'payout_status',
+            ])
+
+            teacher = booking.timeslot.course.teacher
+            link = reverse('course:teacher_bookings')
+            _notify_once(
+                teacher,
+                f'Tutoring Payment On Hold #{booking.pk}',
+                'The student reported a problem with this tutoring session. The teacher payment has been placed on hold while PandaSpeak reviews it.',
+                link,
+            )
+
+            User = get_user_model()
+            for manager in User.objects.filter(is_staff=True, is_active=True):
+                _notify_once(
+                    manager,
+                    f'Tutoring Session Needs Review #{booking.pk}',
+                    f'{booking.student.get_full_name() or booking.student.email} reported a problem: {details[:250]}',
+                    link,
+                )
+
+            messages.success(request, 'Your report was submitted. The teacher payment is now on hold while PandaSpeak reviews the session.')
+            return redirect('course:my_bookings')
+
+    return render(request, 'course/report_session_issue.html', {'booking': booking})
