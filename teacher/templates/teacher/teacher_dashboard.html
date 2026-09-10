@@ -90,9 +90,11 @@
                     {% endif %}
                   </p>
 
+                  {% if booking.session_status != 'completed' %}
                   <a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-primary rounded-pill">
                     Enter Classroom
                   </a>
+                  {% endif %}
                 </div>
               </div>
               {% endif %}
