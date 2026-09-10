@@ -129,6 +129,10 @@ class Booking(models.Model):
     issue_resolved_at = models.DateTimeField(blank=True, null=True)
     issue_resolution_note = models.TextField(blank=True)
 
+    review_rating = models.PositiveSmallIntegerField(blank=True, null=True)
+    review_comment = models.TextField(blank=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
