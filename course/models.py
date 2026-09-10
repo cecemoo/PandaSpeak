@@ -101,6 +101,7 @@ class Booking(models.Model):
     stripe_transfer_id = models.CharField(max_length=255, blank=True, null=True)
     teacher_transfer_amount_cents = models.PositiveIntegerField(default=0)
     is_refunded = models.BooleanField(default=False)
+    is_test_booking = models.BooleanField(default=False)
 
     session_status = models.CharField(
         max_length=30,
