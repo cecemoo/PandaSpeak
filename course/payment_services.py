@@ -1,4 +1,5 @@
 import logging
+import os
 from decimal import Decimal, ROUND_HALF_UP
 
 import stripe
@@ -16,8 +17,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def automatic_payouts_enabled():
-    return str(
-        getattr(settings, "TUTORING_AUTOMATIC_PAYOUTS_ENABLED", False)
+    return os.getenv(
+        "TUTORING_AUTOMATIC_PAYOUTS_ENABLED",
+        "false",
     ).lower() in {"1", "true", "yes", "on"}
 
 
