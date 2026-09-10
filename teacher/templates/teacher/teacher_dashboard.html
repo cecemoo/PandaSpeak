@@ -15,6 +15,10 @@
   .dashboard-card:hover {
     transform: translateY(-5px);
   }
+
+  .teacher-session-card {
+    border-radius: 15px;
+  }
 </style>
 <main class="main">
 
@@ -48,6 +52,55 @@
           <p>Manage your classes, bookings, and learning materials.</p>
         </div>
       </div>
+
+      {% if recent_bookings %}
+      <div class="card teacher-session-card mb-4 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h4 class="mb-0">My Tutoring Sessions</h4>
+            <a href="{% url 'course:teacher_bookings' %}" class="btn btn-outline-secondary rounded-pill">View All Sessions</a>
+          </div>
+
+          <div class="row g-3">
+            {% for booking in recent_bookings %}
+              {% if booking.status == 'confirmed' %}
+              <div class="col-lg-6">
+                <div class="border rounded-3 p-3 h-100">
+                  <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div>
+                      <h5 class="mb-1">{{ booking.timeslot.course.title }}</h5>
+                      <div class="text-muted small">
+                        Student: {{ booking.student.get_full_name|default:booking.student.email }}
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      {% if booking.is_test_booking %}
+                        <span class="badge bg-warning text-dark">Test Session</span>
+                      {% endif %}
+                      <span class="badge bg-secondary">{{ booking.get_session_status_display }}</span>
+                    </div>
+                  </div>
+
+                  <p class="mb-2">
+                    <strong>Scheduled:</strong>
+                    {% if booking.teacher_local_start %}
+                      {{ booking.teacher_local_start|date:"M j, Y g:i A" }}
+                    {% else %}
+                      {{ booking.timeslot.start_time|date:"M j, Y g:i A" }}
+                    {% endif %}
+                  </p>
+
+                  <a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-primary rounded-pill">
+                    Enter Classroom
+                  </a>
+                </div>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
       <div class="row g-4">
 
