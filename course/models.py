@@ -123,6 +123,10 @@ class Booking(models.Model):
     )
     payout_eligible_at = models.DateTimeField(blank=True, null=True)
     student_reported_issue = models.BooleanField(default=False)
+    issue_details = models.TextField(blank=True)
+    issue_reported_at = models.DateTimeField(blank=True, null=True)
+    issue_resolved_at = models.DateTimeField(blank=True, null=True)
+    issue_resolution_note = models.TextField(blank=True)
 
     class Meta:
         constraints = [
@@ -144,7 +148,7 @@ class Booking(models.Model):
             self.save(update_fields=['status', 'canceled_at'])
 
     def __str__(self):
-        return f"{self.student.username} -> {self.timeslot}"
+        return f"{self.student.email} -> {self.timeslot}"
 
 
 class SessionAttendance(models.Model):
