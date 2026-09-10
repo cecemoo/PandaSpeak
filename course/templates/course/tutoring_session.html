@@ -1,0 +1,124 @@
+{% extends 'account/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="mb-1">Private Tutoring Session</h2>
+      <div class="text-muted">
+        {{ booking.timeslot.course.title }}
+      </div>
+    </div>
+    <div class="text-end">
+      <div><strong>Teacher:</strong> {{ teacher.get_full_name|default:teacher.username }}</div>
+      <div><strong>Student:</strong> {{ booking.student.get_full_name|default:booking.student.username }}</div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="small text-muted">Scheduled time</div>
+          <div>{{ booking.timeslot.start_time|date:"M j, Y g:i A" }} – {{ booking.timeslot.end_time|date:"g:i A" }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="small text-muted">Session status</div>
+          <div id="session-status">{{ booking.get_session_status_display }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="small text-muted">Shared attendance</div>
+          <div><span id="shared-minutes">{{ booking.shared_minutes }}</span> minutes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if can_enter %}
+    <div id="meeting-container" class="rounded overflow-hidden shadow-sm" style="min-height: 650px;"></div>
+    <div class="alert alert-light border mt-3 mb-0">
+      Your attendance is recorded only for this tutoring session so PandaSpeak can confirm that the lesson took place. No lesson recording is created by PandaSpeak.
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      This meeting room opens 15 minutes before the scheduled lesson and remains available until 30 minutes after the scheduled end time.
+    </div>
+  {% endif %}
+</div>
+
+{% if can_enter %}
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+(function () {
+  const csrfToken = '{{ csrf_token }}';
+  const joinUrl = "{% url 'course:session_join' booking.id %}";
+  const heartbeatUrl = "{% url 'course:session_heartbeat' booking.id %}";
+  const leaveUrl = "{% url 'course:session_leave' booking.id %}";
+  let heartbeatTimer = null;
+  let joined = false;
+
+  function post(url, useBeacon) {
+    if (useBeacon && navigator.sendBeacon) {
+      const data = new FormData();
+      data.append('csrfmiddlewaretoken', csrfToken);
+      navigator.sendBeacon(url, data);
+      return Promise.resolve();
+    }
+
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin'
+    }).then(response => response.json());
+  }
+
+  const api = new JitsiMeetExternalAPI('meet.jit.si', {
+    roomName: '{{ booking.meeting_room_id|escapejs }}',
+    parentNode: document.querySelector('#meeting-container'),
+    width: '100%',
+    height: 650,
+    userInfo: {
+      displayName: '{% if request.user.get_full_name %}{{ request.user.get_full_name|escapejs }}{% else %}{{ request.user.username|escapejs }}{% endif %}'
+    },
+    configOverwrite: {
+      disableDeepLinking: true,
+      prejoinPageEnabled: true
+    }
+  });
+
+  api.addListener('videoConferenceJoined', function () {
+    post(joinUrl).then(function (data) {
+      if (!data || data.success === false) return;
+      joined = true;
+      heartbeatTimer = window.setInterval(function () {
+        post(heartbeatUrl).catch(function () {});
+      }, 60000);
+    }).catch(function () {});
+  });
+
+  api.addListener('videoConferenceLeft', function () {
+    if (!joined) return;
+    if (heartbeatTimer) window.clearInterval(heartbeatTimer);
+    post(leaveUrl).then(function (data) {
+      if (!data) return;
+      if (data.session_status) {
+        document.querySelector('#session-status').textContent = data.session_status.replaceAll('_', ' ');
+      }
+      if (typeof data.shared_minutes !== 'undefined') {
+        document.querySelector('#shared-minutes').textContent = data.shared_minutes;
+      }
+    }).catch(function () {});
+    joined = false;
+  });
+
+  window.addEventListener('pagehide', function () {
+    if (joined) post(leaveUrl, true);
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
