@@ -104,7 +104,11 @@ def _update_session_state(booking):
     shared_minutes = _calculate_shared_minutes(booking)
     booking.shared_minutes = shared_minutes
 
-    required_minutes = max(int((booking.timeslot.course.duration_minutes or 60) * 0.75), 10)
+    if booking.is_test_booking:
+        required_minutes = 1
+    else:
+        required_minutes = max(int((booking.timeslot.course.duration_minutes or 60) * 0.75), 10)
+
     teacher = booking.timeslot.course.teacher
     teacher_present = booking.attendance_records.filter(user=teacher).exists()
     student_present = booking.attendance_records.filter(user=booking.student).exists()
@@ -134,18 +138,14 @@ def _update_session_state(booking):
     if previous_status != 'completed' and booking.session_status == 'completed':
         link = _session_link(booking)
         title = f'Tutoring Session Completed #{booking.pk}'
-        _notify_once(
-            booking.student,
-            title,
-            'Your tutoring session is complete. You have 24 hours to report a problem before the teacher payment becomes eligible for release.',
-            link,
-        )
-        _notify_once(
-            teacher,
-            title,
-            'Your tutoring session is complete. The payment is now in the 24-hour student review period.',
-            link,
-        )
+        if booking.is_test_booking:
+            student_message = 'Your TEST tutoring session is complete. This test booking can never release real Stripe funds.'
+            teacher_message = 'Your TEST tutoring session is complete. This test booking can never release real Stripe funds.'
+        else:
+            student_message = 'Your tutoring session is complete. You have 24 hours to report a problem before the teacher payment becomes eligible for release.'
+            teacher_message = 'Your tutoring session is complete. The payment is now in the 24-hour student review period.'
+        _notify_once(booking.student, title, student_message, link)
+        _notify_once(teacher, title, teacher_message, link)
 
 
 @login_required(login_url='my_login')
