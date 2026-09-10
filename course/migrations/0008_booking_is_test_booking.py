@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('course', '0007_booking_issue_details_booking_issue_reported_at_and_more'),
+        ('course', '0007_booking_dispute_details'),
     ]
 
     operations = [
