@@ -6,7 +6,6 @@
 
 <main class="main">
     <br><br>
-    <!-- Page Title -->
     <div class="page-title">
         <div class="heading">
             <div class="container">
@@ -29,9 +28,8 @@
                 </ol>
             </div>
         </nav>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- teacher class bookings Section -->
     <section id="starter-section" class="starter-section section">
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="container mt-4">
@@ -78,7 +76,7 @@
                                         {{ b.timeslot.course.title|default:"(Untitled Course)" }}
                                     </div>
                                     <div class="text-muted small">
-                                        Slot #{{ b.timeslot.id }} · Booking #{{ b.id }} 
+                                        Slot #{{ b.timeslot.id }} · Booking #{{ b.id }}
                                     </div>
                                 </td>
 
@@ -95,6 +93,7 @@
                                 <td>
                                     {% if b.status == "confirmed" %}
                                     <span class="badge bg-success">Confirmed</span>
+                                    <span class="badge bg-info text-dark">{{ b.get_session_status_display }}</span>
                                     {% elif b.status == "pending" %}
                                     <span class="badge bg-warning text-dark">Pending</span>
                                     {% else %}
@@ -106,20 +105,26 @@
                                 </td>
 
                                 <td class="text-end">
+                                    {% if b.status == "confirmed" %}
+                                    <a href="{% url 'course:tutoring_session' b.pk %}" class="btn btn-sm btn-primary mb-1">
+                                        Start Session
+                                    </a>
+                                    {% endif %}
+
                                     {% if b.can_cancel %}
-                                    <form action="{% url 'courses:cancel_booking' b.pk %}" method="post" class="d-inline">
+                                    <form action="{% url 'course:cancel_booking' b.pk %}" method="post" class="d-inline">
                                         {% csrf_token %}
-                                        <button class="btn btn-sm btn-outline-danger"
+                                        <button class="btn btn-sm btn-outline-danger mb-1"
                                             onclick="return confirm('Cancel this booking?');">
                                             Cancel
                                         </button>
                                     </form>
                                     {% else %}
-                                    {% if b.status == "canceled" %}
-                                    <span class="text-muted small">Already canceled</span>
-                                    {% elif not b.can_cancel %}
-                                    <span class="text-muted small">Cancellation not available</span>
-                                    {% endif %}
+                                        {% if b.status == "canceled" %}
+                                        <span class="text-muted small d-block">Already canceled</span>
+                                        {% elif b.status != "confirmed" %}
+                                        <span class="text-muted small d-block">Cancellation not available</span>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -135,17 +140,8 @@
                 </div>
                 {% endif %}
             </div>
-
-
-    </section><!-- teacher course bookings Section -->
-
+        </div>
+    </section>
 </main>
-
-
-
-
-
-
-
 
 {% endblock %}
