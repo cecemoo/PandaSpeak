@@ -39,6 +39,8 @@ def release_teacher_payment(booking_id):
             .get(pk=booking_id)
         )
 
+        if booking.is_test_booking:
+            return False, "test booking never releases Stripe funds"
         if booking.stripe_transfer_id or booking.payout_status == "transferred":
             return False, "already transferred"
         if booking.status != "confirmed":
