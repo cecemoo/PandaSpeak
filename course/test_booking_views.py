@@ -93,9 +93,13 @@ def create_test_tutoring_booking(request):
 
         messages.success(
             request,
-            f"Test tutoring booking #{booking.pk} created. No Stripe charge or transfer was created.",
+            (
+                f"Test tutoring booking #{booking.pk} created for {student.email} with "
+                f"{course.teacher.email}. No Stripe charge or transfer was created. "
+                "Sign in as the student and teacher in separate browsers to test the session."
+            ),
         )
-        return redirect("course:tutoring_session", pk=booking.pk)
+        return redirect("course:create_test_tutoring_booking")
 
     return render(
         request,
