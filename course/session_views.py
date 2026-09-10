@@ -1,6 +1,11 @@
+import base64
+import json
+import os
 import uuid
 from datetime import timedelta
 
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -148,6 +153,68 @@ def _update_session_state(booking):
         _notify_once(teacher, title, teacher_message, link)
 
 
+def _b64url(data):
+    return base64.urlsafe_b64encode(data).rstrip(b'=')
+
+
+def _create_jaas_jwt(user, room_name, is_teacher):
+    app_id = (os.getenv('JAAS_APP_ID') or '').strip()
+    api_key_id = (os.getenv('JAAS_API_KEY_ID') or '').strip()
+    private_key_pem = (os.getenv('JAAS_PRIVATE_KEY') or '').strip().replace('\\n', '\n')
+
+    if not app_id or not api_key_id or not private_key_pem:
+        return None
+
+    now = int(timezone.now().timestamp())
+    display_name = user.get_full_name() or user.email or user.username
+
+    header = {
+        'alg': 'RS256',
+        'kid': api_key_id,
+        'typ': 'JWT',
+    }
+    payload = {
+        'aud': 'jitsi',
+        'iss': 'chat',
+        'sub': app_id,
+        'room': room_name,
+        'nbf': now - 10,
+        'exp': now + 60 * 60 * 2,
+        'context': {
+            'user': {
+                'id': str(user.pk),
+                'name': display_name,
+                'email': user.email or '',
+                'moderator': 'true' if is_teacher else 'false',
+            },
+            'features': {
+                'livestreaming': False,
+                'outbound-call': False,
+                'transcription': False,
+                'recording': False,
+            },
+            'room': {
+                'regex': False,
+            },
+        },
+    }
+
+    encoded_header = _b64url(json.dumps(header, separators=(',', ':')).encode())
+    encoded_payload = _b64url(json.dumps(payload, separators=(',', ':')).encode())
+    signing_input = encoded_header + b'.' + encoded_payload
+
+    private_key = serialization.load_pem_private_key(
+        private_key_pem.encode(),
+        password=None,
+    )
+    signature = private_key.sign(
+        signing_input,
+        padding.PKCS1v15(),
+        hashes.SHA256(),
+    )
+    return (signing_input + b'.' + _b64url(signature)).decode()
+
+
 @login_required(login_url='my_login')
 def tutoring_session(request, pk):
     booking, forbidden = _get_booking_for_participant(request, pk)
@@ -162,12 +229,33 @@ def tutoring_session(request, pk):
         booking.save(update_fields=['meeting_room_id'])
 
     teacher = booking.timeslot.course.teacher
+    is_teacher = request.user.id == teacher.id
     can_enter = _can_enter_session(booking)
+
+    jaas_app_id = (os.getenv('JAAS_APP_ID') or '').strip()
+    jaas_jwt = None
+    if can_enter and jaas_app_id:
+        try:
+            jaas_jwt = _create_jaas_jwt(
+                request.user,
+                booking.meeting_room_id,
+                is_teacher,
+            )
+        except (ValueError, TypeError):
+            jaas_jwt = None
+
+    jaas_enabled = bool(jaas_app_id and jaas_jwt)
+    return_url = reverse('teacher_dashboard') if is_teacher else reverse('student_dashboard')
+
     return render(request, 'course/tutoring_session.html', {
         'booking': booking,
         'teacher': teacher,
         'can_enter': can_enter,
-        'is_teacher': request.user.id == teacher.id,
+        'is_teacher': is_teacher,
+        'jaas_enabled': jaas_enabled,
+        'jaas_app_id': jaas_app_id,
+        'jaas_jwt': jaas_jwt,
+        'return_url': return_url,
     })
 
 
