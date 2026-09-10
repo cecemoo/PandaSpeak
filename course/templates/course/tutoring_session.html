@@ -48,6 +48,11 @@
   </div>
 
   {% if can_enter %}
+    {% if not jaas_enabled %}
+      <div class="alert alert-warning">
+        PandaSpeak's branded classroom is not configured yet, so this test is temporarily using the public Jitsi service.
+      </div>
+    {% endif %}
     <div id="meeting-container" class="rounded overflow-hidden shadow-sm" style="min-height: 650px;"></div>
     <div class="alert alert-light border mt-3 mb-0">
       Your attendance is recorded only for this tutoring session so PandaSpeak can confirm that the lesson took place. No lesson recording is created by PandaSpeak.
@@ -60,15 +65,21 @@
 </div>
 
 {% if can_enter %}
+{% if jaas_enabled %}
+<script src="https://8x8.vc/{{ jaas_app_id|escapejs }}/external_api.js"></script>
+{% else %}
 <script src="https://meet.jit.si/external_api.js"></script>
+{% endif %}
 <script>
 (function () {
   const csrfToken = '{{ csrf_token }}';
   const joinUrl = "{% url 'course:session_join' booking.id %}";
   const heartbeatUrl = "{% url 'course:session_heartbeat' booking.id %}";
   const leaveUrl = "{% url 'course:session_leave' booking.id %}";
+  const returnUrl = '{{ return_url|escapejs }}';
   let heartbeatTimer = null;
   let joined = false;
+  let leaving = false;
 
   function post(url, useBeacon) {
     if (useBeacon && navigator.sendBeacon) {
@@ -88,8 +99,40 @@
     }).then(response => response.json());
   }
 
-  const api = new JitsiMeetExternalAPI('meet.jit.si', {
-    roomName: '{{ booking.meeting_room_id|escapejs }}',
+  function recordLeaveAndReturn() {
+    if (leaving) return;
+    leaving = true;
+
+    if (heartbeatTimer) {
+      window.clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+
+    const finish = function () {
+      joined = false;
+      window.location.href = returnUrl;
+    };
+
+    if (!joined) {
+      finish();
+      return;
+    }
+
+    post(leaveUrl).then(function (data) {
+      if (data) {
+        if (data.session_status) {
+          document.querySelector('#session-status').textContent = data.session_status.replaceAll('_', ' ');
+        }
+        if (typeof data.shared_minutes !== 'undefined') {
+          document.querySelector('#shared-minutes').textContent = data.shared_minutes;
+        }
+      }
+      finish();
+    }).catch(finish);
+  }
+
+  const options = {
+    roomName: {% if jaas_enabled %}'{{ jaas_app_id|escapejs }}/{{ booking.meeting_room_id|escapejs }}'{% else %}'{{ booking.meeting_room_id|escapejs }}'{% endif %},
     parentNode: document.querySelector('#meeting-container'),
     width: '100%',
     height: 650,
@@ -99,8 +142,12 @@
     configOverwrite: {
       disableDeepLinking: true,
       prejoinPageEnabled: true
-    }
-  });
+    }{% if jaas_enabled %},
+    jwt: '{{ jaas_jwt|escapejs }}'
+    {% endif %}
+  };
+
+  const api = new JitsiMeetExternalAPI('{% if jaas_enabled %}8x8.vc{% else %}meet.jit.si{% endif %}', options);
 
   api.addListener('videoConferenceJoined', function () {
     post(joinUrl).then(function (data) {
@@ -113,22 +160,15 @@
   });
 
   api.addListener('videoConferenceLeft', function () {
-    if (!joined) return;
-    if (heartbeatTimer) window.clearInterval(heartbeatTimer);
-    post(leaveUrl).then(function (data) {
-      if (!data) return;
-      if (data.session_status) {
-        document.querySelector('#session-status').textContent = data.session_status.replaceAll('_', ' ');
-      }
-      if (typeof data.shared_minutes !== 'undefined') {
-        document.querySelector('#shared-minutes').textContent = data.shared_minutes;
-      }
-    }).catch(function () {});
-    joined = false;
+    recordLeaveAndReturn();
+  });
+
+  api.addListener('readyToClose', function () {
+    recordLeaveAndReturn();
   });
 
   window.addEventListener('pagehide', function () {
-    if (joined) post(leaveUrl, true);
+    if (joined && !leaving) post(leaveUrl, true);
   });
 })();
 </script>
