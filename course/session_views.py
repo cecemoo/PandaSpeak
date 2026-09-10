@@ -6,9 +6,11 @@ from datetime import timedelta
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -166,7 +168,6 @@ def _load_jaas_private_key():
         except (OSError, UnicodeError):
             return ''
 
-    # Backward-compatible fallback for environments that store the PEM in an env var.
     return (os.getenv('JAAS_PRIVATE_KEY') or '').strip().replace('\\n', '\n')
 
 
@@ -345,6 +346,82 @@ def session_leave(request, pk):
         'session_status': booking.session_status,
         'shared_minutes': booking.shared_minutes,
     })
+
+
+@login_required(login_url='my_login')
+def review_tutoring_session(request, pk):
+    booking = get_object_or_404(
+        Booking.objects.select_related('student', 'timeslot__course__teacher', 'timeslot__course'),
+        pk=pk,
+        student=request.user,
+        status='confirmed',
+        is_refunded=False,
+    )
+
+    if booking.session_status != 'completed':
+        messages.error(request, 'You can review a tutoring session only after it is completed.')
+        return redirect('student_dashboard')
+
+    if booking.reviewed_at:
+        messages.info(request, 'You already submitted a review for this tutoring session.')
+        return redirect('student_dashboard')
+
+    if request.method == 'POST':
+        try:
+            rating = int(request.POST.get('rating', ''))
+        except (TypeError, ValueError):
+            rating = 0
+        comment = (request.POST.get('comment') or '').strip()
+
+        if rating not in (1, 2, 3, 4, 5):
+            messages.error(request, 'Please select a rating from 1 to 5 stars.')
+        else:
+            booking.review_rating = rating
+            booking.review_comment = comment
+            booking.reviewed_at = timezone.now()
+            booking.save(update_fields=['review_rating', 'review_comment', 'reviewed_at'])
+
+            teacher = booking.timeslot.course.teacher
+            student_name = booking.student.get_full_name() or booking.student.email
+            teacher_name = teacher.get_full_name() or teacher.email
+            manager_link = reverse('manager_dashboard')
+            review_message = (
+                f'{student_name} rated the tutoring session with {teacher_name} '
+                f'{rating}/5 stars.'
+            )
+            if comment:
+                review_message += f' Review: {comment[:300]}'
+
+            User = get_user_model()
+            for manager in User.objects.filter(is_staff=True, is_active=True):
+                Notification.objects.create(
+                    user=manager,
+                    title=f'New Tutoring Session Review #{booking.pk}',
+                    message=review_message,
+                    link=manager_link,
+                )
+
+            email_message = (
+                f'A student submitted a tutoring session review on PandaSpeak.\n\n'
+                f'Student: {student_name}\n'
+                f'Teacher: {teacher_name}\n'
+                f'Course: {booking.timeslot.course.title}\n'
+                f'Session: {booking.timeslot.start_time:%b %d, %Y %I:%M %p}\n'
+                f'Rating: {rating}/5\n'
+                f'Review: {comment or "No written comment."}\n'
+            )
+            send_mail(
+                subject=f'PandaSpeak Tutoring Review #{booking.pk} — {rating}/5 stars',
+                message=email_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=['pandaspeaksupport@gmail.com'],
+                fail_silently=True,
+            )
+
+            messages.success(request, 'Thank you. Your tutoring session review was submitted to PandaSpeak management.')
+            return redirect('student_dashboard')
+
+    return render(request, 'course/review_tutoring_session.html', {'booking': booking})
 
 
 @login_required(login_url='my_login')
