@@ -157,10 +157,23 @@ def _b64url(data):
     return base64.urlsafe_b64encode(data).rstrip(b'=')
 
 
+def _load_jaas_private_key():
+    private_key_path = (os.getenv('JAAS_PRIVATE_KEY_PATH') or '').strip()
+    if private_key_path:
+        try:
+            with open(private_key_path, 'r', encoding='utf-8') as key_file:
+                return key_file.read().strip()
+        except (OSError, UnicodeError):
+            return ''
+
+    # Backward-compatible fallback for environments that store the PEM in an env var.
+    return (os.getenv('JAAS_PRIVATE_KEY') or '').strip().replace('\\n', '\n')
+
+
 def _create_jaas_jwt(user, room_name, is_teacher):
     app_id = (os.getenv('JAAS_APP_ID') or '').strip()
     api_key_id = (os.getenv('JAAS_API_KEY_ID') or '').strip()
-    private_key_pem = (os.getenv('JAAS_PRIVATE_KEY') or '').strip().replace('\\n', '\n')
+    private_key_pem = _load_jaas_private_key()
 
     if not app_id or not api_key_id or not private_key_pem:
         return None
