@@ -1,0 +1,59 @@
+{% extends 'account/base.html' %}
+
+{% block content %}
+<main class="main">
+    <div class="page-title">
+        <div class="heading">
+            <div class="container">
+                <div class="row d-flex justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="heading-title">Report a Tutoring Problem</h1>
+                        <p class="mb-0">Booking #{{ booking.id }} · {{ booking.timeslot.course.title }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="section">
+        <div class="container" style="max-width: 760px;">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">Tell PandaSpeak what happened</h4>
+                    <p class="text-muted">
+                        Submitting this report will place the teacher payment on hold while PandaSpeak reviews the session.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="issue_details" class="form-label">Problem details</label>
+                            <textarea
+                                class="form-control"
+                                id="issue_details"
+                                name="issue_details"
+                                rows="6"
+                                minlength="10"
+                                maxlength="2000"
+                                required
+                                placeholder="Please describe the problem with this tutoring session."
+                            >{{ booking.issue_details }}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">Submit Report</button>
+                            <a href="{% url 'course:my_bookings' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
