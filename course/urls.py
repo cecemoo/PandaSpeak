@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import session_views
 from . import payment_views
+from . import test_booking_views
 from .views import WeeklyScheduleView
 
 app_name = 'course'
@@ -25,6 +26,7 @@ urlpatterns = [
 
     path('my_bookings/', views.my_bookings, name='my_bookings'),
     path('teacher_bookings/', views.teacher_bookings, name='teacher_bookings'),
+    path('manager/test-tutoring-booking/', test_booking_views.create_test_tutoring_booking, name='create_test_tutoring_booking'),
 
     path('booking/<int:pk>/cancel/', views.cancel_booking, name='cancel_booking'),
     path('booking/<int:pk>/session/', session_views.tutoring_session, name='tutoring_session'),
