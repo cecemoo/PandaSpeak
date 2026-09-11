@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load crispy_forms_tags %}
+{% load tutoring_archive_tags %}
 
 {% block content %}
 
@@ -63,7 +64,7 @@
 
           <div class="row g-3">
             {% for booking in recent_bookings %}
-              {% if booking.status == 'confirmed' %}
+              {% if booking.status == 'confirmed' and booking|tutoring_session_visible %}
               <div class="col-lg-6">
                 <div class="border rounded-3 p-3 h-100">
                   <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
