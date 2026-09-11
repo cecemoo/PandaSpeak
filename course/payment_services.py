@@ -118,10 +118,12 @@ def release_teacher_payment(booking_id):
         booking.stripe_transfer_id = transfer.id
         booking.teacher_transfer_amount_cents = transfer_amount_cents
         booking.payout_status = "transferred"
+        booking.payout_transferred_at = timezone.now()
         booking.save(update_fields=[
             "stripe_transfer_id",
             "teacher_transfer_amount_cents",
             "payout_status",
+            "payout_transferred_at",
         ])
 
     Notification.objects.create(
