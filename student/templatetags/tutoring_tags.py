@@ -16,11 +16,17 @@ def student_tutoring_sessions(context):
         return {'tutoring_sessions': []}
 
     now = timezone.now()
+    archive_cutoff = now - timedelta(days=7)
     bookings = list(
         Booking.objects.filter(
             student=request.user,
             status='confirmed',
             is_refunded=False,
+        )
+        .exclude(
+            session_status='completed',
+            payout_status='transferred',
+            payout_transferred_at__lte=archive_cutoff,
         )
         .select_related('timeslot__course__teacher', 'timeslot__course')
         .order_by('timeslot__start_time')[:5]
