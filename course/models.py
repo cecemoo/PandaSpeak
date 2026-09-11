@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from account.models import CustomUser
 from django.utils import timezone
@@ -123,6 +125,7 @@ class Booking(models.Model):
         default='pending',
     )
     payout_eligible_at = models.DateTimeField(blank=True, null=True)
+    payout_transferred_at = models.DateTimeField(blank=True, null=True)
     student_reported_issue = models.BooleanField(default=False)
     issue_details = models.TextField(blank=True)
     issue_reported_at = models.DateTimeField(blank=True, null=True)
@@ -145,6 +148,17 @@ class Booking(models.Model):
             models.Index(fields=['timeslot', 'status']),
             models.Index(fields=['session_status', 'payout_status']),
         ]
+
+    @property
+    def is_archived_from_tutoring_lists(self):
+        """Hide a paid, completed tutoring session seven days after payout."""
+        if (
+            self.session_status != 'completed'
+            or self.payout_status != 'transferred'
+            or not self.payout_transferred_at
+        ):
+            return False
+        return self.payout_transferred_at <= timezone.now() - timedelta(days=7)
 
     def cancel(self):
         if self.status != 'canceled':
