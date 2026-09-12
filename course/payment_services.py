@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 import stripe
@@ -53,7 +54,11 @@ def release_teacher_payment(booking_id):
             return False, "payout is on hold"
         if booking.payout_status != "awaiting_release":
             return False, "payout is not awaiting release"
-        if not booking.payout_eligible_at or booking.payout_eligible_at > timezone.now():
+        scheduled_review_end = booking.timeslot.end_time + timedelta(days=5)
+        effective_eligible_at = max(
+            filter(None, [booking.payout_eligible_at, scheduled_review_end])
+        )
+        if effective_eligible_at > timezone.now():
             return False, "review window has not ended"
         if not booking.stripe_payment_intent_id:
             return False, "missing Stripe PaymentIntent"
