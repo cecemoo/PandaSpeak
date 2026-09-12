@@ -41,16 +41,17 @@ def _visibility_filter_for_game(game):
     return Q(visibility='all')
 
 
-def _category_id_for_game(game, expected_prefix):
-    if not game.category_key:
-        return None
-    prefix, separator, raw_id = game.category_key.partition(':')
-    if separator != ':' or prefix != expected_prefix:
-        return None
-    try:
-        return int(raw_id)
-    except (TypeError, ValueError):
-        return None
+def _category_ids_for_game(game, expected_prefix):
+    category_ids = []
+    for key in (game.category_key or '').split(','):
+        prefix, separator, raw_id = key.partition(':')
+        if separator != ':' or prefix != expected_prefix:
+            continue
+        try:
+            category_ids.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
+    return category_ids
 
 
 def _eligible_materials(game, level=None):
@@ -62,29 +63,29 @@ def _eligible_materials(game, level=None):
 
     if game.game_mode == 'make_sentence':
         queryset = Sentence.objects.filter(visibility_filter, level_filter)
-        category_id = _category_id_for_game(game, 'sentence')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+        category_ids = _category_ids_for_game(game, 'sentence')
+        if category_ids:
+            queryset = queryset.filter(category_id__in=category_ids)
         return queryset.distinct()
 
     if game.content_type == 'sentence':
         queryset = Sentence.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='')
-        category_id = _category_id_for_game(game, 'sentence')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+        category_ids = _category_ids_for_game(game, 'sentence')
+        if category_ids:
+            queryset = queryset.filter(category_id__in=category_ids)
         return queryset.distinct()
 
     if game.content_type == 'expression':
         queryset = Idiom.objects.filter(visibility_filter, level_filter, audio_scenario_file__isnull=False).exclude(audio_scenario_file='')
-        category_id = _category_id_for_game(game, 'expression')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+        category_ids = _category_ids_for_game(game, 'expression')
+        if category_ids:
+            queryset = queryset.filter(category_id__in=category_ids)
         return queryset.distinct()
 
     queryset = Vocabulary.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='')
-    category_id = _category_id_for_game(game, 'vocabulary')
-    if category_id:
-        queryset = queryset.filter(category_id=category_id)
+    category_ids = _category_ids_for_game(game, 'vocabulary')
+    if category_ids:
+        queryset = queryset.filter(category_id__in=category_ids)
     return queryset.distinct()
 
 
