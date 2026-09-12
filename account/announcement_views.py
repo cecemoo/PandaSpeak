@@ -42,7 +42,8 @@ def preferences(request):
         form.save()
         messages.success(request, 'You have opted in to PandaSpeak news and update emails.' if request.user.news_emails else 'You have opted out of PandaSpeak news and update emails.')
         return redirect(dashboard)
-    return render(request, 'account/email_preferences.html', {'opted_in': request.user.news_emails, 'dashboard': dashboard, 'form': form})
+    announcements = Announcement.objects.filter(queued_at__isnull=False).order_by('-queued_at', '-pk')[:3]
+    return render(request, 'account/email_preferences.html', {'opted_in': request.user.news_emails, 'dashboard': dashboard, 'form': form, 'announcements': announcements})
 
 
 @require_http_methods(['GET', 'POST'])
