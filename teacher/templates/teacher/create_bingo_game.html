@@ -34,7 +34,7 @@
     const group = document.getElementById('id_student_group');
     const mode = document.getElementById('id_game_mode');
     const contentType = document.getElementById('id_content_type');
-    const category = document.getElementById('id_category_key');
+    const categoryInputs = Array.from(document.querySelectorAll('input[name="category_keys"]'));
 
     const groupContainer = group ? (group.closest('.mb-3') || group.parentElement) : null;
     const contentContainer = contentType ? (contentType.closest('.mb-3') || contentType.parentElement) : null;
@@ -47,23 +47,16 @@
     }
 
     function updateCategoryChoices() {
-      if (!category || !contentType) return;
+      if (!contentType) return;
       const selectedContent = contentType.value;
-      let currentStillValid = category.value === '';
 
-      Array.from(category.options).forEach(function (option) {
-        if (!option.value) {
-          option.disabled = false;
-          option.hidden = false;
-          return;
-        }
-        const matches = option.value.startsWith(selectedContent + ':');
-        option.disabled = !matches;
-        option.hidden = !matches;
-        if (matches && option.value === category.value) currentStillValid = true;
+      categoryInputs.forEach(function (input) {
+        const matches = input.value.startsWith(selectedContent + ':');
+        const wrapper = input.closest('.form-check') || input.parentElement;
+        if (wrapper) wrapper.style.display = matches ? '' : 'none';
+        input.disabled = !matches;
+        if (!matches) input.checked = false;
       });
-
-      if (!currentStillValid) category.value = '';
     }
 
     function updateModeFields() {
