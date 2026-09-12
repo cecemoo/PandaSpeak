@@ -111,6 +111,10 @@
                                     </a>
                                     {% endif %}
 
+                                    {% if b.status == "confirmed" and b.session_status == "scheduled" %}
+                                    {% include "course/_reschedule_actions.html" %}
+                                    {% endif %}
+
                                     {% if b.can_cancel %}
                                     <form action="{% url 'course:cancel_booking' b.pk %}" method="post" class="d-inline">
                                         {% csrf_token %}
