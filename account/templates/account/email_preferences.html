@@ -1,7 +1,27 @@
 {% extends 'account/base.html' %}
 {% block content %}
-<main class="main"><section class="section" style="padding-top:150px"><div class="container">
-  <h1>Email Preferences</h1>
+<style>
+  .user-news { max-width: 920px; margin: auto; }
+  .user-news-card { background: #15251f; border: 1px solid #34483e; border-radius: 14px; padding: 24px; margin: 18px 0; }
+  .user-news-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; color: #d4dfd9; }
+  .user-news-date { color: #becbc5; font-size: .9rem; }
+</style>
+<main class="main"><section class="section" style="padding-top:150px"><div class="container"><div class="user-news">
+  <h1>Announcements</h1>
+  <p>The latest news and updates from PandaSpeak.</p>
+  <section aria-label="Recent announcements">
+    {% for item in announcements %}
+    <article class="user-news-card">
+      <h2 class="h4">{{ item.subject }}</h2>
+      <p class="user-news-date">{{ item.queued_at|date:"F j, Y" }}</p>
+      <div class="user-news-body">{{ item.body }}</div>
+    </article>
+    {% empty %}
+    <p class="user-news-card">No announcements yet. Check back soon for updates.</p>
+    {% endfor %}
+  </section>
+  <section class="user-news-card" aria-labelledby="email-preferences-heading">
+  <h2 id="email-preferences-heading" class="h4">Email Preferences</h2>
   {% if opted_in %}
     <p>You are currently <strong>opted in</strong> to PandaSpeak news and platform updates.</p>
     <p>Want to stop receiving these emails? You can opt out below.</p>
@@ -17,5 +37,5 @@
     <button class="btn {% if opted_in %}btn-warning text-dark{% else %}btn-success{% endif %}" type="submit">{% if opted_in %}Opt out of news emails{% else %}Opt in to news emails{% endif %}</button>
     <a class="btn btn-outline-secondary ms-2" href="{% url dashboard %}">Back to dashboard</a>
   </form>
-</div></section></main>
+</section></div></div></section></main>
 {% endblock %}
