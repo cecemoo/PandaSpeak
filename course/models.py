@@ -136,6 +136,9 @@ class Booking(models.Model):
     review_comment = models.TextField(blank=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
 
+    reminder_24h_sent_at = models.DateTimeField(blank=True, null=True)
+    reminder_1h_sent_at = models.DateTimeField(blank=True, null=True)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
