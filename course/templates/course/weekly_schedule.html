@@ -5,7 +5,6 @@
 {% block content %}
 <main class="main">
 
-    <!-- Page Title -->
     <div class="page-title">
         <div class="heading">
             <div class="container">
@@ -13,7 +12,7 @@
                     <div class="col-lg-8">
                         <h1 class="heading-title">Weekly Schedule</h1>
                         <p class="mb-0">
-                            Detailed information about the weekly schedule.
+                            {{ course.get_session_type_display }} · {% if course.is_group_session %}${{ course.price }} per student{% else %}${{ course.price }} per private session{% endif %}
                         </p>
                     </div>
                 </div>
@@ -27,14 +26,14 @@
                 </ol>
             </div>
         </nav>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- weekly_schedule Section -->
     <section id="starter-section" class="starter-section section">
-
-        <!-- Section Title -->
         <div class="container section-title" data-aos="fade-up">
             <h2>Weekly Schedule for {{ course.title }}</h2>
+            {% if course.is_group_session %}
+            <p class="mb-2">Group size: up to {{ course.max_students }} students per session. Each student books and pays for one seat.</p>
+            {% endif %}
             <p class="text-center">
                 <a href="?start={{ prev_start|date:'Y-m-d' }}">&laquo; Previous week</a>
                 <span class="mx-3">
@@ -42,10 +41,10 @@
                 </span>
                 <a href="?start={{ next_start|date:'Y-m-d' }}">Next week &raquo;</a>
             </p>
-        </div><!-- End Section Title -->
+        </div>
 
         <div class="text-center mb-2">
-            <small style=color:#d6d6d6">
+            <small style="color:#d6d6d6">
                 <i class="bi bi-globe"></i>
                 <strong> Time shown in your local time:</strong> {{ student_timezone }}
             </small>
@@ -72,26 +71,31 @@
 
                             {% for cell in row.cells %}
                             {% if cell.slot %}
-                            {% if cell.status == 'full' %}
-                            {# FULL – NOT CLICKABLE #}
-                            <td class="slot slot-full">
-                                {{ row.hour|stringformat:"02d" }}:00<br>Full
-                            </td>
-                            {% else %}
-                            {# AVAILABLE – CLICKABLE BUTTON TO BOOK #}
-                            <td class="slot slot-available">
-                                {% if request.user.is_authenticated and not request.user.is_staff and request.user != course.teacher %}
-                                <form method="post" action="{% url 'course:add_to_cart' cell.slot.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-primary w-100">
-                                        Book<br>
-                                    </button>
-                                </form>
+                                {% if cell.status == 'full' %}
+                                <td class="slot slot-full">
+                                    {{ row.hour|stringformat:"02d" }}:00<br>
+                                    {% if course.is_group_session %}Group Full{% else %}Booked{% endif %}
+                                </td>
                                 {% else %}
-                                <span class="text-muted">Available</span>
+                                <td class="slot slot-available">
+                                    {% if course.is_group_session %}
+                                    <div class="small mb-1">
+                                        {{ cell.slot.remaining_slots }} of {{ cell.slot.capacity }} seats left
+                                    </div>
+                                    {% endif %}
+
+                                    {% if request.user.is_authenticated and not request.user.is_staff and request.user != course.teacher %}
+                                    <form method="post" action="{% url 'course:add_to_cart' cell.slot.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                                            {% if course.is_group_session %}Book Seat{% else %}Book{% endif %}
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted">Available</span>
+                                    {% endif %}
+                                </td>
                                 {% endif %}
-                            </td>
-                            {% endif %}
                             {% else %}
                             <td class="slot slot-empty"></td>
                             {% endif %}
@@ -103,23 +107,12 @@
             </div>
             <a href="{% url 'course:course_detail' course.id %}">Class: {{ course.title }}</a>
         </div>
-
-</section><!-- weekly_schedule Section -->
+    </section>
 
 <style>
-    .slot-empty {
-        background-color: #f8f9fa;
-    }
-
-    .slot-available {
-        cursor: pointer;
-    }
-
-    .slot-full {
-        opacity: 0.3;
-        background-color: #e9ecef;
-        pointer-events: none;  
-    }
+    .slot-empty { background-color: #f8f9fa; }
+    .slot-available { cursor: pointer; }
+    .slot-full { opacity: 0.3; background-color: #e9ecef; pointer-events: none; }
 </style>
 
 </main>
