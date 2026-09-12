@@ -18,6 +18,11 @@ WEEKDAY_CHOICES = [
 
 
 class Course(models.Model):
+    SESSION_TYPE_CHOICES = (
+        ('private', 'Private Tutoring'),
+        ('group', 'Group Tutoring'),
+    )
+
     teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='courses')
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -25,6 +30,15 @@ class Course(models.Model):
     video_url = models.URLField(blank=True, null=True)
     price = models.PositiveIntegerField()
     duration_minutes = models.PositiveIntegerField(default=60)
+    session_type = models.CharField(
+        max_length=10,
+        choices=SESSION_TYPE_CHOICES,
+        default='private',
+    )
+    max_students = models.PositiveIntegerField(
+        default=1,
+        help_text='Maximum number of students who can book the same session.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     start_date = models.DateField(blank=True, null=True)
@@ -37,7 +51,16 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def is_group_session(self):
+        return self.session_type == 'group'
+
     def save(self, *args, **kwargs):
+        if self.session_type == 'private':
+            self.max_students = 1
+        elif self.max_students < 2:
+            self.max_students = 2
+
         if self.video_url and "drive.google.com/file/d/" in self.video_url:
             self.video_url = (
                 self.video_url
