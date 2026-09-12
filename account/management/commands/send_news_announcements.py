@@ -19,7 +19,14 @@ class Command(BaseCommand):
             if user and user.email:
                 token = signing.dumps(user.pk, salt='pandaspeak-news')
                 link = 'https://pandaspeak.org' + reverse('news_unsubscribe', args=[token])
-                body = delivery.announcement.body + '\n\nPandaSpeak\nYou chose to receive PandaSpeak news and updates.\nUnsubscribe: ' + link
+                body = (
+                    'Dear PandaSpeak Users,\n\n'
+                    "We'd like to share the following news and updates from PandaSpeak:\n\n"
+                    + delivery.announcement.body
+                    + '\n\nThank you for being part of the PandaSpeak community!\n\n'
+                    'Best regards,\nThe PandaSpeak Team\n\n'
+                    'You chose to receive PandaSpeak news and updates.\nUnsubscribe: ' + link
+                )
                 try:
                     sent = EmailMessage(delivery.announcement.subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], reply_to=['pandaspeaksupport@gmail.com']).send(fail_silently=False)
                     status = 'sent' if sent else 'failed'
