@@ -1,6 +1,7 @@
 from .models import Notification
 
 
+NOTIFICATION_DISPLAY_LIMIT = 5
 
 
 def notification_count(request):
@@ -9,6 +10,7 @@ def notification_count(request):
             user=request.user,
             is_read=False
         ).count()
+        count = min(count, NOTIFICATION_DISPLAY_LIMIT)
     else:
         count = 0
     return {
