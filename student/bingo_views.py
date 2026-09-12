@@ -15,7 +15,7 @@ from course.models import StudentGroup
 from student.models import LearnedItem
 from subscription.models import Subscription
 from teacher.bingo_models import BingoCard, BingoGame
-from teacher.models import Sentence, Vocabulary
+from teacher.models import Idiom, Sentence, Vocabulary
 
 LEVEL_ORDER = ['level1', 'level2', 'level3']
 CARD_SIZES = (3, 4, 5)
@@ -41,22 +41,58 @@ def _visibility_filter_for_game(game):
     return Q(visibility='all')
 
 
+def _category_id_for_game(game, expected_prefix):
+    if not game.category_key:
+        return None
+    prefix, separator, raw_id = game.category_key.partition(':')
+    if separator != ':' or prefix != expected_prefix:
+        return None
+    try:
+        return int(raw_id)
+    except (TypeError, ValueError):
+        return None
+
+
 def _eligible_materials(game, level=None):
     visibility_filter = _visibility_filter_for_game(game)
     selected_level = level or game.level
     level_filter = Q()
     if selected_level != 'all':
         level_filter = Q(level=selected_level) | Q(level='all')
+
     if game.game_mode == 'make_sentence':
-        return Sentence.objects.filter(visibility_filter, level_filter).distinct()
+        queryset = Sentence.objects.filter(visibility_filter, level_filter)
+        category_id = _category_id_for_game(game, 'sentence')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
+
     if game.content_type == 'sentence':
-        return Sentence.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='').distinct()
-    return Vocabulary.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='').distinct()
+        queryset = Sentence.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='')
+        category_id = _category_id_for_game(game, 'sentence')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
+
+    if game.content_type == 'expression':
+        queryset = Idiom.objects.filter(visibility_filter, level_filter, audio_scenario_file__isnull=False).exclude(audio_scenario_file='')
+        category_id = _category_id_for_game(game, 'expression')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
+
+    queryset = Vocabulary.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='')
+    category_id = _category_id_for_game(game, 'vocabulary')
+    if category_id:
+        queryset = queryset.filter(category_id=category_id)
+    return queryset.distinct()
 
 
 def _serialize_item(game, item):
     if isinstance(item, Sentence):
         return {'id': item.id, 'text': item.text, 'pinyin': item.pinyin, 'translation': item.translation, 'audio': item.audio_file.url if item.audio_file else '', 'free': False}
+    if isinstance(item, Idiom):
+        return {'id': item.id, 'text': item.idiom, 'pinyin': item.pinyin, 'translation': item.english_translation, 'audio': item.audio_scenario_file.url if item.audio_scenario_file else '', 'free': False}
     return {'id': item.id, 'text': item.word, 'pinyin': item.pinyin, 'translation': item.english_translation, 'audio': item.audio_file.url if item.audio_file else '', 'free': False}
 
 
@@ -71,6 +107,8 @@ def _recent_learned_ids(student, game, limit=80):
     learned = LearnedItem.objects.filter(student=student).order_by('-learned_at')
     if game.game_mode == 'make_sentence' or game.content_type == 'sentence':
         return list(learned.exclude(sentence__isnull=True).values_list('sentence_id', flat=True)[:limit])
+    if game.content_type == 'expression':
+        return list(learned.exclude(idiom__isnull=True).values_list('idiom_id', flat=True)[:limit])
     return list(learned.exclude(vocabulary__isnull=True).values_list('vocabulary_id', flat=True)[:limit])
 
 
