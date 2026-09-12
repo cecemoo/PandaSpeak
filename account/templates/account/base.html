@@ -134,7 +134,9 @@
               {% endif %}
             </a>
           </li>
+          {% if not user.is_staff and not user.is_superuser %}
           <li><a href="{% url 'email_preferences' %}">Announcement</a></li>
+          {% endif %}
           <li><a href="{% url 'user_logout' %}">Logout</a></li>
           {% else %}
           <li><a href="{% url 'my_login' %}">Login</a></li>
