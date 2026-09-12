@@ -24,7 +24,7 @@ from .models import Booking, SessionAttendance
 PRESENCE_TIMEOUT = timedelta(minutes=2)
 JOIN_EARLY_WINDOW = timedelta(minutes=15)
 JOIN_LATE_WINDOW = timedelta(minutes=30)
-PAYOUT_REVIEW_WINDOW = timedelta(hours=24)
+PAYOUT_REVIEW_WINDOW = timedelta(days=5)
 
 
 def _get_booking_for_participant(request, pk):
@@ -129,7 +129,7 @@ def _update_session_state(booking):
         booking.session_status = 'completed'
         if not booking.student_reported_issue and booking.payout_status == 'pending':
             booking.payout_status = 'awaiting_release'
-            booking.payout_eligible_at = timezone.now() + PAYOUT_REVIEW_WINDOW
+            booking.payout_eligible_at = booking.timeslot.end_time + PAYOUT_REVIEW_WINDOW
     elif teacher_present and student_present and booking.session_status == 'scheduled':
         booking.session_status = 'in_progress'
 
@@ -149,8 +149,8 @@ def _update_session_state(booking):
             student_message = 'Your TEST tutoring session is complete. This test booking can never release real Stripe funds.'
             teacher_message = 'Your TEST tutoring session is complete. This test booking can never release real Stripe funds.'
         else:
-            student_message = 'Your tutoring session is complete. You have 24 hours to report a problem before the teacher payment becomes eligible for release.'
-            teacher_message = 'Your tutoring session is complete. The payment is now in the 24-hour student review period.'
+            student_message = 'Your tutoring session is complete. You have five days after the scheduled session end time to report a problem before the teacher payment becomes eligible for release.'
+            teacher_message = 'Your tutoring session is complete. The payment is now in the five-day student review period, calculated from the scheduled session end time.'
         _notify_once(booking.student, title, student_message, link)
         _notify_once(teacher, title, teacher_message, link)
 
@@ -441,7 +441,7 @@ def report_session_issue(request, pk):
         return redirect('course:my_bookings')
 
     if booking.payout_eligible_at and timezone.now() > booking.payout_eligible_at and not booking.student_reported_issue:
-        messages.error(request, 'The 24-hour session review period has ended. Please contact PandaSpeak Support for assistance.')
+        messages.error(request, 'The five-day session review period has ended. Please contact PandaSpeak Support for assistance.')
         return redirect('course:my_bookings')
 
     if request.method == 'POST':
