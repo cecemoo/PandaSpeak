@@ -21,6 +21,10 @@
         </a>
         {% endif %}
 
+        {% if b.status == "confirmed" and b.session_status == "scheduled" %}
+        {% include "course/_reschedule_actions.html" %}
+        {% endif %}
+
         {% if b.session_status == "completed" and b.payout_status != "transferred" and not b.student_reported_issue %}
         <a href="{% url 'course:report_session_issue' b.pk %}" class="btn btn-outline-danger btn-sm">
             Report a Problem
