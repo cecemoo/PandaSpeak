@@ -1,0 +1,57 @@
+{% extends 'account/base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="main">
+  <section class="section">
+    <div class="container py-5" style="max-width: 850px;">
+      <div class="card bg-dark text-light border-secondary shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="mb-3">Request Tutoring Reschedule</h2>
+          <p class="text-light mb-2"><strong>Course:</strong> {{ booking.timeslot.course.title }}</p>
+          <p class="text-light mb-4">
+            <strong>Current time:</strong>
+            {{ booking.timeslot.start_time|date:"M d, Y g:i A" }} – {{ booking.timeslot.end_time|date:"g:i A" }}
+          </p>
+
+          <div class="alert alert-info">
+            The original session stays booked until the other party accepts your request. Rescheduling is available only more than 24 hours before the scheduled session.
+          </div>
+
+          {% if available_slots %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="timeslot_id" class="form-label">Choose a new available time</label>
+              <select class="form-select" id="timeslot_id" name="timeslot_id" required>
+                <option value="">Select a time...</option>
+                {% for slot in available_slots %}
+                <option value="{{ slot.id }}">
+                  {{ slot.start_time|date:"M d, Y g:i A" }} – {{ slot.end_time|date:"g:i A" }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-success" type="submit">Send Reschedule Request</button>
+              {% if request.user.is_teacher %}
+              <a class="btn btn-outline-light" href="{% url 'course:teacher_bookings' %}">Back</a>
+              {% else %}
+              <a class="btn btn-outline-light" href="{% url 'course:my_bookings' %}">Back</a>
+              {% endif %}
+            </div>
+          </form>
+          {% else %}
+          <p class="mb-3">There are currently no available future time slots that meet the 24-hour rescheduling rule.</p>
+          {% if request.user.is_teacher %}
+          <a class="btn btn-outline-light" href="{% url 'course:teacher_bookings' %}">Back to Bookings</a>
+          {% else %}
+          <a class="btn btn-outline-light" href="{% url 'course:my_bookings' %}">Back to My Classes</a>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
