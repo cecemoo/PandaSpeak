@@ -34,6 +34,7 @@
     const group = document.getElementById('id_student_group');
     const mode = document.getElementById('id_game_mode');
     const contentType = document.getElementById('id_content_type');
+    const category = document.getElementById('id_category_key');
 
     const groupContainer = group ? (group.closest('.mb-3') || group.parentElement) : null;
     const contentContainer = contentType ? (contentType.closest('.mb-3') || contentType.parentElement) : null;
@@ -45,15 +46,37 @@
       if (!showGroup) group.value = '';
     }
 
+    function updateCategoryChoices() {
+      if (!category || !contentType) return;
+      const selectedContent = contentType.value;
+      let currentStillValid = category.value === '';
+
+      Array.from(category.options).forEach(function (option) {
+        if (!option.value) {
+          option.disabled = false;
+          option.hidden = false;
+          return;
+        }
+        const matches = option.value.startsWith(selectedContent + ':');
+        option.disabled = !matches;
+        option.hidden = !matches;
+        if (matches && option.value === category.value) currentStillValid = true;
+      });
+
+      if (!currentStillValid) category.value = '';
+    }
+
     function updateModeFields() {
       if (!mode || !contentType) return;
       const isSentenceBuilder = mode.value === 'make_sentence';
       if (contentContainer) contentContainer.style.display = isSentenceBuilder ? 'none' : '';
       if (isSentenceBuilder) contentType.value = 'sentence';
+      updateCategoryChoices();
     }
 
     if (audience) audience.addEventListener('change', updateGroupVisibility);
     if (mode) mode.addEventListener('change', updateModeFields);
+    if (contentType) contentType.addEventListener('change', updateCategoryChoices);
 
     updateGroupVisibility();
     updateModeFields();
