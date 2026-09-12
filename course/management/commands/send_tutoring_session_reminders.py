@@ -15,7 +15,7 @@ from course.models import Booking
 
 
 logger = logging.getLogger(__name__)
-REMINDER_WINDOW = timedelta(minutes=5)
+REMINDER_WINDOW = timedelta(minutes=1)
 
 
 class Command(BaseCommand):
