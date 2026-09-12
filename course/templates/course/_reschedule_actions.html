@@ -1,0 +1,46 @@
+{% load reschedule_tags %}
+{% with rr=b.reschedule_request %}
+  {% if rr.status == "pending" %}
+    {% if rr.requested_by_id == request.user.id %}
+      <span class="badge bg-warning text-dark">Reschedule Pending</span>
+      <span class="small text-muted d-block">Waiting for the other party to respond.</span>
+    {% else %}
+      <div class="small mb-1">
+        Proposed: {{ rr.proposed_timeslot.start_time|date:"M d, Y g:i A" }}
+      </div>
+      <form action="{% url 'course:respond_reschedule' b.pk 'accept' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success mb-1">Accept Reschedule</button>
+      </form>
+      <form action="{% url 'course:respond_reschedule' b.pk 'decline' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger mb-1">Decline</button>
+      </form>
+    {% endif %}
+  {% elif rr.status == "declined" %}
+    <span class="badge bg-secondary mb-1">Reschedule Declined</span>
+    {% if rr.requested_by_id == request.user.id %}
+      <form action="{% url 'course:cancel_after_declined_reschedule' b.pk %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger mb-1"
+                onclick="return confirm('Cancel this booking after the declined reschedule request?');">
+          Cancel Booking
+        </button>
+      </form>
+    {% endif %}
+    {% if b|can_reschedule %}
+      <a href="{% url 'course:request_reschedule' b.pk %}" class="btn btn-sm btn-outline-warning mb-1">
+        Request Another Time
+      </a>
+    {% endif %}
+  {% else %}
+    {% if rr.status == "accepted" %}
+      <span class="badge bg-success mb-1">Rescheduled</span>
+    {% endif %}
+    {% if b|can_reschedule %}
+      <a href="{% url 'course:request_reschedule' b.pk %}" class="btn btn-sm btn-outline-warning mb-1">
+        Request Reschedule
+      </a>
+    {% endif %}
+  {% endif %}
+{% endwith %}
