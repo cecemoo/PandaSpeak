@@ -12,7 +12,16 @@
 <main class="main"><section class="section" style="padding-top:150px"><div class="container"><div class="announcement-wrap">
 <h1>{% if announcement.queued_at %}Announcement{% else %}Preview announcement{% endif %}</h1>
 <div class="announcement-card"><h2 class="h4 mb-3">{{ announcement.subject }}</h2>
-<div class="announcement-body">{{ announcement.body }}</div></div>
+<div class="announcement-body">Dear PandaSpeak Users,
+
+We'd like to share the following news and updates from PandaSpeak:
+
+{{ announcement.body }}
+
+Thank you for being part of the PandaSpeak community!
+
+Best regards,
+The PandaSpeak Team</div></div>
 {% if announcement.queued_at %}
 <p class="announcement-date">Submitted {{ announcement.queued_at }}</p>
 <div class="announcement-summary" aria-label="Email delivery status">
