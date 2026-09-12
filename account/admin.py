@@ -27,7 +27,6 @@ class AnnouncementDeliveryAdmin(admin.ModelAdmin):
     list_display = ('announcement', 'user', 'status')
     list_filter = ('status',)
     search_fields = ('announcement__subject', 'user__email')
-    autocomplete_fields = ('announcement', 'user')
 
 
 admin.site.register(CustomUser)
