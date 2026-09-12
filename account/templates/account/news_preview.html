@@ -1,17 +1,34 @@
 {% extends 'account/base.html' %}
 {% block content %}
-<main class="main"><section class="section" style="padding-top:150px"><div class="container">
-<h1>Preview announcement</h1><h2>{{ announcement.subject }}</h2>
-<div style="white-space:pre-wrap">{{ announcement.body }}</div>
-<p class="mt-3">Each email includes a personal unsubscribe link. Recipients cannot see other users' addresses.</p>
+<style>
+.announcement-wrap { max-width: 920px; margin: auto; }
+.announcement-card { background: #15251f; border: 1px solid #34483e; border-radius: 16px; padding: 28px; margin: 24px 0; }
+.announcement-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; color: #d4dfd9; }
+.announcement-summary { display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 18px 0; color: #d4dfd9; }
+.announcement-summary strong { color: #63e68a; }
+.announcement-date { color: #becbc5; font-size: .9rem; }
+@media (max-width: 575px) { .announcement-card { padding: 20px; } }
+</style>
+<main class="main"><section class="section" style="padding-top:150px"><div class="container"><div class="announcement-wrap">
+<h1>{% if announcement.queued_at %}Announcement{% else %}Preview announcement{% endif %}</h1>
+<div class="announcement-card"><h2 class="h4 mb-3">{{ announcement.subject }}</h2>
+<div class="announcement-body">{{ announcement.body }}</div></div>
 {% if announcement.queued_at %}
-<p>Queued {{ announcement.queued_at }}. Delivery runs in background batches.</p>
-<ul>{% for status, count in counts.items %}<li>{{ status }}: {{ count }}</li>{% endfor %}</ul>
-<p>Failed or interrupted deliveries are not automatically retried, to avoid duplicate emails.</p>
+<p class="announcement-date">Submitted {{ announcement.queued_at }}</p>
+<div class="announcement-summary" aria-label="Email delivery status">
+<span><strong>{{ counts.sent }}</strong> sent to email provider</span>
+{% if counts.pending %}<span>{{ counts.pending }} waiting to send</span>{% endif %}
+{% if counts.sending %}<span>{{ counts.sending }} processing</span>{% endif %}
+{% if counts.failed %}<span class="text-warning">{{ counts.failed }} failed — needs review</span>{% endif %}
+{% if counts.skipped %}<span>{{ counts.skipped }} skipped (no longer eligible)</span>{% endif %}
+</div>
+{% if counts.pending or counts.sending %}<p class="announcement-date">Refresh to check progress. You do not need to submit this announcement again.</p>{% endif %}
+{% if counts.failed %}<p class="announcement-date">Failed emails are not retried automatically. Check delivery logs before trying again.</p>{% endif %}
+{% if not counts.sent and not counts.pending and not counts.sending and not counts.failed and not counts.skipped %}<p>No eligible recipients were included.</p>{% endif %}
 {% else %}
-<p>{{ recipient_count }} active users currently opted in. Preferences are checked again before delivery.</p>
+<p>Send to {{ recipient_count }} opted-in user{{ recipient_count|pluralize }}. An unsubscribe link is included automatically.</p>
 <form method="post">{% csrf_token %}<label><input type="checkbox" name="confirm" value="yes" required> I have reviewed this message and want to send it to opted-in users.</label><br><button class="btn btn-success mt-3" type="submit">Confirm and queue emails</button></form>
 {% endif %}
-<a href="{% url 'announcements' %}">Back to announcements</a>
-</div></section></main>
+<a class="btn btn-outline-secondary mt-3" href="{% url 'announcements' %}">Back to announcements</a>
+</div></div></section></main>
 {% endblock %}
