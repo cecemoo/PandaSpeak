@@ -17,16 +17,31 @@
 <div class="container py-4 tutoring-session-page">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
-      <h2 class="mb-1">Private Tutoring Session</h2>
+      <h2 class="mb-1">
+        {% if booking.timeslot.course.is_group_session %}Group Tutoring Session{% else %}Private Tutoring Session{% endif %}
+      </h2>
       <div class="text-muted">
         {{ booking.timeslot.course.title }}
       </div>
     </div>
     <div class="text-end">
       <div><strong>Teacher:</strong> {{ teacher.get_full_name|default:teacher.username }}</div>
-      <div><strong>Student:</strong> {{ booking.student.get_full_name|default:booking.student.username }}</div>
+      {% if booking.timeslot.course.is_group_session %}
+        <div><strong>Booked seats:</strong> {{ group_booking_count }} / {{ booking.timeslot.course.max_students }}</div>
+        {% if not is_teacher %}
+          <div><strong>Your booking:</strong> {{ booking.student.get_full_name|default:booking.student.username }}</div>
+        {% endif %}
+      {% else %}
+        <div><strong>Student:</strong> {{ booking.student.get_full_name|default:booking.student.username }}</div>
+      {% endif %}
     </div>
   </div>
+
+  {% if booking.timeslot.course.is_group_session %}
+    <div class="alert alert-info">
+      Everyone who booked this group time slot enters the same PandaSpeak classroom. Attendance, payment, reviews, and any session issues are still tracked separately for each student.
+    </div>
+  {% endif %}
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -40,7 +55,7 @@
           <div id="session-status">{{ booking.get_session_status_display }}</div>
         </div>
         <div class="col-md-4">
-          <div class="small text-muted">Shared attendance</div>
+          <div class="small text-muted">{% if booking.timeslot.course.is_group_session and is_teacher %}Selected student's shared attendance{% else %}Shared attendance{% endif %}</div>
           <div><span id="shared-minutes">{{ booking.shared_minutes }}</span> minutes</div>
         </div>
       </div>
@@ -132,7 +147,7 @@
   }
 
   const options = {
-    roomName: {% if jaas_enabled %}'{{ jaas_app_id|escapejs }}/{{ booking.meeting_room_id|escapejs }}'{% else %}'{{ booking.meeting_room_id|escapejs }}'{% endif %},
+    roomName: {% if jaas_enabled %}'{{ jaas_app_id|escapejs }}/{{ meeting_room_id|escapejs }}'{% else %}'{{ meeting_room_id|escapejs }}'{% endif %},
     parentNode: document.querySelector('#meeting-container'),
     width: '100%',
     height: 650,
