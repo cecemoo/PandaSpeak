@@ -45,4 +45,6 @@ jobs:
 
             (crontab -l 2>/dev/null | grep -v 'release_tutoring_payouts' || true; echo '*/15 * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py release_tutoring_payouts >> $HOME/PandaSpeak/payout_cron.log 2>&1') | crontab -
 
+            (crontab -l 2>/dev/null | grep -v 'send_tutoring_session_reminders' || true; echo '* * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py send_tutoring_session_reminders >> $HOME/PandaSpeak/session_reminder_cron.log 2>&1') | crontab -
+
             sudo systemctl restart pandaspeak
