@@ -1,0 +1,21 @@
+{% extends 'account/base.html' %}
+{% block content %}
+<main class="main"><section class="section" style="padding-top:150px"><div class="container">
+  <h1>Email Preferences</h1>
+  {% if opted_in %}
+    <p>You are currently <strong>opted in</strong> to PandaSpeak news and platform updates.</p>
+    <p>Want to stop receiving these emails? You can opt out below.</p>
+  {% else %}
+    <p>You are currently <strong>opted out</strong> of PandaSpeak news and platform updates.</p>
+    <p>Choose to receive occasional news about new features and learning resources.</p>
+  {% endif %}
+  <p>Essential account, security, payment, and tutoring emails are not affected.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.errors }}
+    {% if not opted_in %}<input type="hidden" name="news_emails" value="on">{% endif %}
+    <button class="btn btn-success" type="submit">{% if opted_in %}Opt out of news emails{% else %}Opt in to news emails{% endif %}</button>
+    <a class="btn btn-outline-secondary ms-2" href="{% url dashboard %}">Back to dashboard</a>
+  </form>
+</div></section></main>
+{% endblock %}

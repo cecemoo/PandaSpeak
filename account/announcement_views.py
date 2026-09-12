@@ -34,12 +34,13 @@ def manager(user):
 @login_required(login_url='my_login')
 @require_http_methods(['GET', 'POST'])
 def preferences(request):
+    dashboard = 'manager_dashboard' if manager(request.user) else ('teacher_dashboard' if request.user.is_teacher else 'student_dashboard')
     form = PreferenceForm(request.POST if request.method == 'POST' else None, instance=request.user)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, 'Your email preference has been saved.')
-        return redirect('email_preferences')
-    return render(request, 'account/news_form.html', {'form': form, 'title': 'Email Preferences', 'button': 'Save preference'})
+        messages.success(request, 'You have opted in to PandaSpeak news and update emails.' if request.user.news_emails else 'You have opted out of PandaSpeak news and update emails.')
+        return redirect(dashboard)
+    return render(request, 'account/email_preferences.html', {'opted_in': request.user.news_emails, 'dashboard': dashboard, 'form': form})
 
 
 @require_http_methods(['GET', 'POST'])

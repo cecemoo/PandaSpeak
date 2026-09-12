@@ -15,6 +15,26 @@ class AnnouncementTests(TestCase):
     def test_default_opt_out(self):
         self.assertFalse(self.user.news_emails)
 
+    def test_preference_dashboard_redirects(self):
+        for fields, target in [({}, '/student/'), ({'is_teacher': True}, '/teacher/'), ({'is_staff': True}, '/manager/')]:
+            for name, value in fields.items():
+                setattr(self.user, name, value)
+            self.user.save()
+            self.client.force_login(self.user)
+            for data in [{'news_emails': 'on'}, {}]:
+                response = self.client.post('/preferences/', data)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.url, target)
+
+    @patch('account.announcement_views.render', return_value=HttpResponse('ok'))
+    def test_preference_page_reflects_saved_status(self, render):
+        self.client.force_login(self.user)
+        for opted_in in [True, False]:
+            CustomUser.objects.filter(pk=self.user.pk).update(news_emails=opted_in)
+            self.client.get('/preferences/')
+            self.assertEqual(render.call_args.args[1], 'account/email_preferences.html')
+            self.assertEqual(render.call_args.args[2]['opted_in'], opted_in)
+
     def test_preference_choice(self):
         self.client.force_login(self.user)
         self.client.post('/preferences/', {'news_emails': 'on'})
