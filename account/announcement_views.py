@@ -34,6 +34,8 @@ def manager(user):
 @login_required(login_url='my_login')
 @require_http_methods(['GET', 'POST'])
 def preferences(request):
+    if manager(request.user):
+        return redirect('manager_dashboard')
     dashboard = 'manager_dashboard' if manager(request.user) else ('teacher_dashboard' if request.user.is_teacher else 'student_dashboard')
     form = PreferenceForm(request.POST if request.method == 'POST' else None, instance=request.user)
     if request.method == 'POST' and form.is_valid():
