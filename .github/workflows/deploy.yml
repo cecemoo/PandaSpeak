@@ -49,4 +49,6 @@ jobs:
 
             (crontab -l 2>/dev/null | grep -v 'delete_expired_announcement_drafts' || true; echo '0 * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py delete_expired_announcement_drafts >> $HOME/PandaSpeak/draft_cleanup_cron.log 2>&1') | crontab -
 
+            (crontab -l 2>/dev/null | grep -v 'send_news_announcements' || true; echo '* * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py send_news_announcements >> $HOME/PandaSpeak/news_email_cron.log 2>&1') | crontab -
+
             sudo systemctl restart pandaspeak
