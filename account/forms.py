@@ -6,7 +6,7 @@ from teacher.models import VocabularyCategory, SentenceCategory, IdiomCategory
 class CreateUserForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'password1', 'password2', 'is_teacher']
+        fields = ['email', 'first_name', 'last_name', 'password1', 'password2', 'is_teacher', 'news_emails']
        
 
 class AddVocabCategoryForm(forms.ModelForm):

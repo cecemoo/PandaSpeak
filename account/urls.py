@@ -1,10 +1,15 @@
 from django.urls import path
 from . import views
 from . import managers
+from . import announcement_views
 from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
+    path('email-preferences/', announcement_views.preferences, name='email_preferences'),
+    path('news/unsubscribe/<str:token>/', announcement_views.unsubscribe, name='news_unsubscribe'),
+    path('announcements/', announcement_views.compose, name='announcements'),
+    path('announcements/<int:pk>/', announcement_views.preview, name='announcement_preview'),
     path('', views.home, name="home"),
     path('register/', views.register, name='register'),
     path('my_login/', views.my_login, name='my_login'),

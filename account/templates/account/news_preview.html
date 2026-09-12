@@ -1,0 +1,17 @@
+{% extends 'account/base.html' %}
+{% block content %}
+<main class="main"><section class="section" style="padding-top:150px"><div class="container">
+<h1>Preview announcement</h1><h2>{{ announcement.subject }}</h2>
+<div style="white-space:pre-wrap">{{ announcement.body }}</div>
+<p class="mt-3">Each email includes a personal unsubscribe link. Recipients cannot see other users' addresses.</p>
+{% if announcement.queued_at %}
+<p>Queued {{ announcement.queued_at }}. Delivery runs in background batches.</p>
+<ul>{% for status, count in counts.items %}<li>{{ status }}: {{ count }}</li>{% endfor %}</ul>
+<p>Failed or interrupted deliveries are not automatically retried, to avoid duplicate emails.</p>
+{% else %}
+<p>{{ recipient_count }} active users currently opted in. Preferences are checked again before delivery.</p>
+<form method="post">{% csrf_token %}<label><input type="checkbox" name="confirm" value="yes" required> I have reviewed this message and want to send it to opted-in users.</label><br><button class="btn btn-success mt-3" type="submit">Confirm and queue emails</button></form>
+{% endif %}
+<a href="{% url 'announcements' %}">Back to announcements</a>
+</div></section></main>
+{% endblock %}

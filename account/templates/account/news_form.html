@@ -1,0 +1,9 @@
+{% extends 'account/base.html' %}
+{% block content %}
+<main class="main"><section class="section" style="padding-top:150px"><div class="container">
+<h1>{{ title }}</h1>
+<p>News and update emails are optional. Essential account, security, payment, and tutoring emails are not affected.</p>
+{% if button %}<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-success" type="submit">{{ button }}</button></form>{% endif %}
+{% if history %}<h2 class="mt-4">Recent announcements</h2><ul>{% for item in history %}<li><a href="{% url 'announcement_preview' item.pk %}">{{ item.subject }}</a> — {% if item.queued_at %}Queued{% else %}Draft{% endif %}</li>{% endfor %}</ul>{% endif %}
+</div></section></main>
+{% endblock %}

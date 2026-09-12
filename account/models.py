@@ -12,6 +12,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=120)
     is_active = models.BooleanField(default=True)
+    news_emails = models.BooleanField(default=False, verbose_name='Email me occasional PandaSpeak news and platform updates', help_text='Optional. Change this anytime in Email Preferences. Essential service emails are separate.')
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
@@ -40,6 +41,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
     
+
+class Announcement(models.Model):
+    subject = models.CharField(max_length=200)
+    body = models.TextField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    queued_at = models.DateTimeField(null=True, blank=True)
+
+
+class AnnouncementDelivery(models.Model):
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, related_name='deliveries')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(max_length=12, default='pending')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['announcement', 'user'], name='unique_announcement_user')]
+
 
 class TermsOfService(models.Model):
     content = models.TextField()
@@ -159,4 +177,3 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - Push Subscription"
-
