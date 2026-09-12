@@ -6,7 +6,6 @@
 
 <main class="main">
 
-    <!-- Page Title -->
     <div class="page-title">
         <div class="heading">
             <div class="container">
@@ -14,7 +13,7 @@
                     <div class="col-lg-8">
                         <h1 class="heading-title">Course Creation</h1>
                         <p class="mb-0">
-                            Welcome, Teacher {{ request.user.last_name }}, fill in the details below to create a new course.
+                            Welcome, Teacher {{ request.user.last_name }}, create either private or group tutoring availability.
                         </p>
                     </div>
                 </div>
@@ -28,37 +27,66 @@
                 </ol>
             </div>
         </nav>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- course_form Section -->
     <section id="starter-section" class="starter-section section">
-
-        <!-- Section Title -->
         <div class="container section-title" data-aos="fade-up">
-            <h2>Create Class</h2>
-            <p>Fill in the class details below:</p>
-        </div><!-- End Section Title -->
+            <h2>Create Tutoring Class</h2>
+            <p>Choose Private Tutoring for one student or Group Tutoring for multiple students in the same session.</p>
+        </div>
 
         <div class="container" data-aos="fade-up">
             <form method="post" action="{% url 'course:course_create' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form|crispy }}
+                <div id="group-session-note" class="alert alert-info d-none">
+                    The price is charged per student. Each generated time slot will allow up to the maximum number of students you set above.
+                </div>
                 <button class="btn btn-primary" type="submit">Create Class</button>
             </form>
-          
         </div>
-        
-       
-
-    </section><!-- course_form Section -->
+    </section>
 
 </main>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sessionType = document.getElementById('id_session_type');
+    const maxStudents = document.getElementById('id_max_students');
+    const initialCapacity = document.getElementById('id_initial_capacity');
+    const groupNote = document.getElementById('group-session-note');
+    const maxStudentsContainer = maxStudents ? (maxStudents.closest('.mb-3') || maxStudents.parentElement) : null;
 
+    function updateSessionTypeFields() {
+        if (!sessionType || !maxStudents) return;
+        const isGroup = sessionType.value === 'group';
 
+        if (maxStudentsContainer) {
+            maxStudentsContainer.style.display = isGroup ? '' : 'none';
+        }
+        if (groupNote) {
+            groupNote.classList.toggle('d-none', !isGroup);
+        }
 
+        if (!isGroup) {
+            maxStudents.value = '1';
+            if (initialCapacity) initialCapacity.value = '1';
+        } else {
+            const current = parseInt(maxStudents.value || '0', 10);
+            if (!current || current < 2) maxStudents.value = '2';
+            if (initialCapacity) initialCapacity.value = maxStudents.value;
+        }
+    }
 
+    if (sessionType) sessionType.addEventListener('change', updateSessionTypeFields);
+    if (maxStudents) {
+        maxStudents.addEventListener('input', function () {
+            if (initialCapacity) initialCapacity.value = maxStudents.value;
+        });
+    }
 
-
+    updateSessionTypeFields();
+});
+</script>
 
 {% endblock %}
