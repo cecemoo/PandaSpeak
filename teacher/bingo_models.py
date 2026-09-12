@@ -10,6 +10,7 @@ class BingoGame(models.Model):
     CONTENT_CHOICES = [
         ("vocabulary", "Vocabulary"),
         ("sentence", "Sentences"),
+        ("expression", "Chinese Expressions"),
     ]
     CARD_SIZE_CHOICES = [
         (3, "3 x 3"),
@@ -34,6 +35,7 @@ class BingoGame(models.Model):
     student_group = models.ForeignKey("course.StudentGroup", on_delete=models.SET_NULL, related_name="bingo_games", blank=True, null=True)
     game_mode = models.CharField(max_length=20, choices=GAME_MODE_CHOICES, default="listening")
     content_type = models.CharField(max_length=20, choices=CONTENT_CHOICES, default="vocabulary")
+    category_key = models.CharField(max_length=50, blank=True, default="")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="level1")
     card_size = models.PositiveSmallIntegerField(choices=CARD_SIZE_CHOICES, default=5)
     use_free_center = models.BooleanField(default=True)
