@@ -6,7 +6,12 @@ from .models import IdiomCategory, SentenceCategory, VocabularyCategory
 
 
 class BingoGameForm(forms.ModelForm):
-    category_key = forms.ChoiceField(required=False, label='Category (optional)')
+    category_keys = forms.MultipleChoiceField(
+        required=False,
+        label='Categories (optional)',
+        widget=forms.CheckboxSelectMultiple,
+        help_text='Select one or more categories. Leave all unchecked to use all categories.',
+    )
 
     class Meta:
         model = BingoGame
@@ -16,7 +21,7 @@ class BingoGameForm(forms.ModelForm):
             'student_group',
             'game_mode',
             'content_type',
-            'category_key',
+            'category_keys',
             'level',
             'use_free_center',
             'adaptive_difficulty',
@@ -60,23 +65,25 @@ class BingoGameForm(forms.ModelForm):
         teacher = kwargs.pop('teacher', None)
         super().__init__(*args, **kwargs)
         self.fields['student_group'].required = False
-        self.fields['category_key'].widget.attrs.update({'class': 'form-select'})
-        self.fields['category_key'].help_text = 'Choose a category to limit the Bingo to that topic, or leave All categories selected.'
-        self.fields['category_key'].choices = [
-            ('', 'All categories'),
-            ('Vocabulary', [
+        self.fields['category_keys'].choices = (
+            [
                 (f'vocabulary:{category.id}', category.category_name)
                 for category in VocabularyCategory.objects.order_by('category_name')
-            ]),
-            ('Sentences', [
+            ]
+            + [
                 (f'sentence:{category.id}', category.category_name)
                 for category in SentenceCategory.objects.order_by('category_name')
-            ]),
-            ('Chinese Expressions', [
+            ]
+            + [
                 (f'expression:{category.id}', category.category_name)
                 for category in IdiomCategory.objects.order_by('category_name')
-            ]),
-        ]
+            ]
+        )
+
+        if self.instance and self.instance.category_key and not self.is_bound:
+            self.initial['category_keys'] = [
+                key for key in self.instance.category_key.split(',') if key
+            ]
 
         if teacher:
             self.fields['student_group'].queryset = StudentGroup.objects.filter(
@@ -92,7 +99,7 @@ class BingoGameForm(forms.ModelForm):
         student_group = cleaned_data.get('student_group')
         game_mode = cleaned_data.get('game_mode')
         content_type = cleaned_data.get('content_type')
-        category_key = cleaned_data.get('category_key') or ''
+        category_keys = cleaned_data.get('category_keys') or []
 
         if audience == 'group' and not student_group:
             self.add_error('student_group', 'Please choose a student group.')
@@ -103,9 +110,9 @@ class BingoGameForm(forms.ModelForm):
             content_type = 'sentence'
             cleaned_data['content_type'] = 'sentence'
 
-        if category_key:
-            expected_prefix = f'{content_type}:'
-            if not category_key.startswith(expected_prefix):
-                self.add_error('category_key', 'Please choose a category that matches the selected Bingo content.')
+        expected_prefix = f'{content_type}:'
+        invalid_categories = [key for key in category_keys if not key.startswith(expected_prefix)]
+        if invalid_categories:
+            self.add_error('category_keys', 'Please choose categories that match the selected Bingo content.')
 
         return cleaned_data
