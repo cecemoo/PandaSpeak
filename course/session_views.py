@@ -67,6 +67,33 @@ def _can_enter_session(booking):
     )
 
 
+def _is_group_booking(booking):
+    return booking.timeslot.course.session_type == 'group'
+
+
+def _group_bookings(booking):
+    return list(
+        Booking.objects
+        .filter(
+            timeslot=booking.timeslot,
+            status='confirmed',
+            is_refunded=False,
+        )
+        .select_related('student', 'timeslot__course__teacher', 'timeslot__course')
+        .order_by('pk')
+    )
+
+
+def _room_name_for_booking(booking):
+    if _is_group_booking(booking):
+        return f'pandaspeak-group-slot-{booking.timeslot_id}'
+
+    if not booking.meeting_room_id:
+        booking.meeting_room_id = f'pandaspeak-{uuid.uuid4().hex}'
+        booking.save(update_fields=['meeting_room_id'])
+    return booking.meeting_room_id
+
+
 def _active_attendance(booking, user):
     now = timezone.now()
     attendance = (
@@ -80,6 +107,21 @@ def _active_attendance(booking, user):
         attendance.save(update_fields=['left_at'])
         return None
     return attendance
+
+
+def _touch_attendance(booking, user):
+    attendance = _active_attendance(booking, user)
+    created = attendance is None
+    if created:
+        attendance = SessionAttendance.objects.create(
+            booking=booking,
+            user=user,
+            last_seen_at=timezone.now(),
+        )
+    else:
+        attendance.last_seen_at = timezone.now()
+        attendance.save(update_fields=['last_seen_at'])
+    return attendance, created
 
 
 def _calculate_shared_minutes(booking):
@@ -238,13 +280,12 @@ def tutoring_session(request, pk):
     if booking.status != 'confirmed' or booking.is_refunded:
         return HttpResponseForbidden('This tutoring session is not available.')
 
-    if not booking.meeting_room_id:
-        booking.meeting_room_id = f'pandaspeak-{uuid.uuid4().hex}'
-        booking.save(update_fields=['meeting_room_id'])
-
+    room_name = _room_name_for_booking(booking)
     teacher = booking.timeslot.course.teacher
     is_teacher = request.user.id == teacher.id
     can_enter = _can_enter_session(booking)
+
+    group_bookings = _group_bookings(booking) if _is_group_booking(booking) else [booking]
 
     jaas_app_id = (os.getenv('JAAS_APP_ID') or '').strip()
     jaas_jwt = None
@@ -252,7 +293,7 @@ def tutoring_session(request, pk):
         try:
             jaas_jwt = _create_jaas_jwt(
                 request.user,
-                booking.meeting_room_id,
+                room_name,
                 is_teacher,
             )
         except (ValueError, TypeError):
@@ -270,6 +311,8 @@ def tutoring_session(request, pk):
         'jaas_app_id': jaas_app_id,
         'jaas_jwt': jaas_jwt,
         'return_url': return_url,
+        'meeting_room_id': room_name,
+        'group_booking_count': len(group_bookings),
     })
 
 
@@ -282,22 +325,31 @@ def session_join(request, pk):
     if not _can_enter_session(booking):
         return JsonResponse({'success': False, 'error': 'Session is outside the allowed join window.'}, status=403)
 
-    attendance = _active_attendance(booking, request.user)
-    created = attendance is None
-    if created:
-        attendance = SessionAttendance.objects.create(
-            booking=booking,
-            user=request.user,
-            last_seen_at=timezone.now(),
-        )
-    else:
-        attendance.last_seen_at = timezone.now()
-        attendance.save(update_fields=['last_seen_at'])
+    teacher = booking.timeslot.course.teacher
+    participant_name = request.user.get_full_name() or request.user.email
 
+    if _is_group_booking(booking) and request.user.id == teacher.id:
+        primary_attendance = None
+        for group_booking in _group_bookings(booking):
+            attendance, created = _touch_attendance(group_booking, request.user)
+            if primary_attendance is None:
+                primary_attendance = attendance
+            if created:
+                _notify_once(
+                    group_booking.student,
+                    f'Teacher Joined Group Session #{group_booking.pk}',
+                    f'{participant_name} has joined your group tutoring session.',
+                    _session_link(group_booking),
+                )
+            _update_session_state(group_booking)
+        return JsonResponse({
+            'success': True,
+            'attendance_id': primary_attendance.id if primary_attendance else None,
+        })
+
+    attendance, created = _touch_attendance(booking, request.user)
     if created:
-        teacher = booking.timeslot.course.teacher
         other_user = booking.student if request.user.id == teacher.id else teacher
-        participant_name = request.user.get_full_name() or request.user.email
         _notify_once(
             other_user,
             f'Participant Joined Session #{booking.pk}',
@@ -316,6 +368,18 @@ def session_heartbeat(request, pk):
     if forbidden:
         return forbidden
 
+    teacher = booking.timeslot.course.teacher
+    if _is_group_booking(booking) and request.user.id == teacher.id:
+        found_attendance = False
+        for group_booking in _group_bookings(booking):
+            attendance, _ = _touch_attendance(group_booking, request.user)
+            if attendance:
+                found_attendance = True
+            _update_session_state(group_booking)
+        if not found_attendance:
+            return JsonResponse({'success': False, 'error': 'No active attendance record.'}, status=409)
+        return JsonResponse({'success': True})
+
     attendance = _active_attendance(booking, request.user)
     if attendance is None:
         return JsonResponse({'success': False, 'error': 'No active attendance record.'}, status=409)
@@ -332,6 +396,23 @@ def session_leave(request, pk):
     booking, forbidden = _get_booking_for_participant(request, pk)
     if forbidden:
         return forbidden
+
+    teacher = booking.timeslot.course.teacher
+    if _is_group_booking(booking) and request.user.id == teacher.id:
+        now = timezone.now()
+        for group_booking in _group_bookings(booking):
+            attendance = _active_attendance(group_booking, request.user)
+            if attendance:
+                attendance.last_seen_at = now
+                attendance.left_at = now
+                attendance.save(update_fields=['last_seen_at', 'left_at'])
+            _update_session_state(group_booking)
+        booking.refresh_from_db(fields=['session_status', 'shared_minutes'])
+        return JsonResponse({
+            'success': True,
+            'session_status': booking.session_status,
+            'shared_minutes': booking.shared_minutes,
+        })
 
     attendance = _active_attendance(booking, request.user)
     if attendance:
