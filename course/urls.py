@@ -3,6 +3,7 @@ from . import views
 from . import session_views
 from . import payment_views
 from . import test_booking_views
+from . import reschedule_views
 from .views import WeeklyScheduleView
 
 app_name = 'course'
@@ -29,6 +30,9 @@ urlpatterns = [
     path('manager/test-tutoring-booking/', test_booking_views.create_test_tutoring_booking, name='create_test_tutoring_booking'),
 
     path('booking/<int:pk>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('booking/<int:pk>/reschedule/', reschedule_views.request_reschedule, name='request_reschedule'),
+    path('booking/<int:pk>/reschedule/<str:decision>/', reschedule_views.respond_reschedule, name='respond_reschedule'),
+    path('booking/<int:pk>/reschedule/cancel-after-decline/', reschedule_views.cancel_after_declined_reschedule, name='cancel_after_declined_reschedule'),
     path('booking/<int:pk>/session/', session_views.tutoring_session, name='tutoring_session'),
     path('booking/<int:pk>/session/join/', session_views.session_join, name='session_join'),
     path('booking/<int:pk>/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),
