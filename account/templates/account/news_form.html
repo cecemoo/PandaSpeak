@@ -52,7 +52,7 @@
 </form></div>
 {% endif %}
 {% if form.subject %}
-<div class="news-notice news-muted">Only active users who opted in will receive your announcement. Each email includes an unsubscribe link. Saving a draft does not send any emails.</div>
+<div class="news-notice news-muted">Only active users who opted in will receive your announcement. Each email includes an unsubscribe link. Saving a draft does not send any emails. Drafts not queued for sending within 3 days of creation are permanently deleted at the next hourly cleanup.</div>
 <div class="news-card"><h2 class="h5 mb-3">Recent announcements</h2>
 <ul class="news-history">{% for item in history %}<li><a href="{% url 'announcement_preview' item.pk %}">{{ item.subject }}</a><span class="news-status">{% if item.queued_at %}Queued{% else %}Draft{% endif %}</span></li>{% empty %}<li class="news-muted">No announcements yet. Your saved drafts will appear here.</li>{% endfor %}</ul>
 </div>
