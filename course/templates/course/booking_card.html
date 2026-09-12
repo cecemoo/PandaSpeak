@@ -3,6 +3,9 @@
         <h4>{{ b.timeslot.course.title }}</h4>
         <p>Teacher: {{ b.timeslot.course.teacher.first_name }} {{ b.timeslot.course.teacher.last_name }}</p>
         <p>{{ b.timeslot.start_time|date:"M d, Y" }} · {{ b.timeslot.start_time|date:"g:i A" }}</p>
+        {% if b.timeslot.course.session_type == "group" %}
+        <span class="badge bg-primary mb-1">Group Tutoring</span>
+        {% endif %}
         <span class="badge bg-success">{{ b.status }}</span>
         {% if b.status == "confirmed" %}
         <span class="badge bg-info text-dark ms-1">{{ b.get_session_status_display }}</span>
@@ -34,7 +37,9 @@
         {% if b.can_cancel %}
         <form action="{% url 'course:cancel_booking' b.pk %}" method="post" class="mb-0">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                {% if b.timeslot.course.session_type == "group" %}Cancel My Seat{% else %}Cancel{% endif %}
+            </button>
         </form>
         {% endif %}
     </div>
