@@ -27,7 +27,6 @@
     <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
         <div class="container position-relative">
             <h1>FAQ</h1>
-            <!-- <p>Login to your account to access all features.</p> -->
             <nav class="breadcrumbs">
                 <ol>
                     <li><a href="{% url 'home' %}">Home</a></li>
@@ -37,17 +36,13 @@
         </div>
     </div><!-- End Page Title -->
 
-    <!-- FAQ Section Section -->
     <section id="faq-section" class="faq-section section">
-
-        <!-- Section Title -->
         <div class="container section-title" data-aos="fade-up">
             <h2>FAQ Section</h2>
             <p>Frequently Asked Questions</p>
-        </div><!-- End Section Title -->
+        </div>
 
         <div class="container" data-aos="fade-up">
-
             <div class="faq-list">
 
                 <details class="faq-item">
@@ -134,16 +129,38 @@
                 <details class="faq-item">
                     <summary>Do you offer one-on-one tutoring?</summary>
                     <p>
-                        Yes. PandaSpeak offers personalized one-on-one tutoring sessions.
-                        Sessions can be scheduled based on teacher availability.
+                        Yes. PandaSpeak offers personalized one-on-one tutoring sessions with
+                        teachers on the PandaSpeak platform. Sessions can be scheduled based on
+                        teacher availability.
                     </p>
                 </details>
 
                 <details class="faq-item">
                     <summary>How are tutoring sessions conducted?</summary>
                     <p>
-                        Tutoring sessions may be conducted through online meeting platforms
-                        such as Google Meet or another agreed-upon platform.
+                        Tutoring sessions take place directly on the PandaSpeak platform using
+                        PandaSpeak's integrated online classroom. Students and teachers can enter
+                        their scheduled classroom from their PandaSpeak account, so there is no need
+                        to arrange a separate Google Meet, Zoom, or other external meeting link.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How do I join my tutoring session?</summary>
+                    <p>
+                        Sign in to your PandaSpeak account and open your scheduled tutoring session.
+                        The classroom becomes available shortly before the scheduled start time.
+                        PandaSpeak also sends session reminders before the lesson to help students
+                        and teachers arrive on time.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do I need to install video meeting software for tutoring?</summary>
+                    <p>
+                        No. The tutoring classroom is integrated into PandaSpeak and works through
+                        your supported web browser. You do not need to install a separate video
+                        meeting application to attend a PandaSpeak tutoring session.
                     </p>
                 </details>
 
@@ -174,16 +191,15 @@
                 <details class="faq-item">
                     <summary>Do I need to install software?</summary>
                     <p>
-                        No. PandaSpeak is a web-based platform, so you can access it through
-                        your web browser without installing additional software.
+                        No. PandaSpeak is a web-based platform, so you can access its learning
+                        features and integrated tutoring classroom through a supported web browser
+                        without installing additional software.
                     </p>
                 </details>
 
             </div>
         </div>
-        </div>
-
-    </section><!-- /FAQ Section Section -->
+    </section>
 
 </main>
 {% endblock %}
