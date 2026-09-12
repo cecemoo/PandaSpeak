@@ -1,9 +1,61 @@
 {% extends 'account/base.html' %}
 {% block content %}
-<main class="main"><section class="section" style="padding-top:150px"><div class="container">
-<h1>{{ title }}</h1>
-<p>News and update emails are optional. Essential account, security, payment, and tutoring emails are not affected.</p>
-{% if button %}<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-success" type="submit">{{ button }}</button></form>{% endif %}
-{% if history %}<h2 class="mt-4">Recent announcements</h2><ul>{% for item in history %}<li><a href="{% url 'announcement_preview' item.pk %}">{{ item.subject }}</a> — {% if item.queued_at %}Queued{% else %}Draft{% endif %}</li>{% endfor %}</ul>{% endif %}
-</div></section></main>
+<style>
+  .news-page { padding: 145px 0 75px; }
+  .news-shell { max-width: 920px; margin: auto; }
+  .news-kicker { color: #63e68a; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .news-heading { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 12px; }
+  .news-muted { color: #becbc5; line-height: 1.7; }
+  .news-card { background: #15251f; border: 1px solid #34483e; border-radius: 18px; padding: 32px; margin-top: 26px; box-shadow: 0 12px 32px #0002; }
+  .news-field { margin-bottom: 26px; }
+  .news-field label { display: block; color: #f3f8f5; font-weight: 600; margin-bottom: 10px; }
+  .news-field input, .news-field textarea { display: block; width: 100%; max-width: 100%; box-sizing: border-box; border: 1px solid #53695e; border-radius: 10px; padding: 13px 15px; background: #0e1b16; color: #f3f8f5; font: inherit; line-height: 1.6; }
+  .news-field textarea { min-height: 290px; resize: vertical; }
+  .news-field input:focus, .news-field textarea:focus { outline: 2px solid #63e68a; outline-offset: 3px; }
+  .news-card .errorlist { color: #ffb4b4; padding-left: 20px; margin-top: 8px; }
+  .news-help { display: block; color: #becbc5; font-size: .88rem; margin-top: 8px; }
+  .news-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; border-top: 1px solid #34483e; padding-top: 24px; }
+  .news-submit { background: #63e68a; color: #102018; border: 0; border-radius: 9px; padding: 13px 22px; font-weight: 700; }
+  .news-submit:hover { background: #8cefa9; }
+  .news-submit:focus-visible, .news-back:focus-visible { outline: 2px solid #63e68a; outline-offset: 4px; }
+  .news-back { color: #c9d8cf; text-decoration: underline; text-underline-offset: 4px; }
+  .news-notice { border-left: 3px solid #63e68a; padding: 4px 0 4px 16px; margin-top: 24px; }
+  .news-history { list-style: none; padding: 0; margin: 0; }
+  .news-history li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #34483e; }
+  .news-history a { overflow-wrap: anywhere; }
+  .news-status { flex-shrink: 0; border: 1px solid #53695e; border-radius: 20px; padding: 3px 10px; font-size: .8rem; color: #c9d8cf; }
+  @media (max-width: 575px) { .news-page { padding-top: 115px; } .news-card { padding: 22px 18px; } .news-submit { width: 100%; } }
+</style>
+<main class="main"><section class="section news-page"><div class="container"><div class="news-shell">
+{% if form.subject %}<span class="news-kicker">Manager communications</span>{% endif %}
+<h1 class="news-heading">{{ title }}</h1>
+{% if form.subject %}
+<p class="news-muted">Share what's new at PandaSpeak. Write your message below, then review it before sending.</p>
+{% else %}
+<p class="news-muted">News and update emails are optional. Essential account, security, payment, and tutoring emails are not affected.</p>
+{% endif %}
+{% if button %}
+<div class="news-card"><form method="post">{% csrf_token %}
+{{ form.non_field_errors }}
+{% for field in form %}
+<div class="news-field">
+  <label for="{{ field.id_for_label }}">{% if field.name == 'body' %}Your message{% else %}{{ field.label }}{% endif %}</label>
+  {{ field }}{{ field.errors }}
+  {% if field.name == 'subject' %}<span class="news-help">A short, clear subject helps readers know what's new.</span>{% endif %}
+  {% if field.name == 'body' %}<span class="news-help">Write in plain text. Your line breaks will be kept in the email.</span>{% endif %}
+  {% if field.help_text %}<span class="news-help">{{ field.help_text }}</span>{% endif %}
+</div>
+{% endfor %}
+<div class="news-actions"><button class="news-submit" type="submit">{{ button }}</button>
+{% if form.subject %}<a class="news-back" href="{% url 'manager_dashboard' %}">Back to dashboard</a>{% endif %}
+</div>
+</form></div>
+{% endif %}
+{% if form.subject %}
+<div class="news-notice news-muted">Only active users who opted in will receive your announcement. Each email includes an unsubscribe link. Saving a draft does not send any emails.</div>
+<div class="news-card"><h2 class="h5 mb-3">Recent announcements</h2>
+<ul class="news-history">{% for item in history %}<li><a href="{% url 'announcement_preview' item.pk %}">{{ item.subject }}</a><span class="news-status">{% if item.queued_at %}Queued{% else %}Draft{% endif %}</span></li>{% empty %}<li class="news-muted">No announcements yet. Your saved drafts will appear here.</li>{% endfor %}</ul>
+</div>
+{% endif %}
+</div></div></section></main>
 {% endblock %}
