@@ -440,7 +440,8 @@ def report_session_issue(request, pk):
         messages.error(request, 'This teacher payment has already been released. Please contact PandaSpeak Support for assistance.')
         return redirect('course:my_bookings')
 
-    if booking.payout_eligible_at and timezone.now() > booking.payout_eligible_at and not booking.student_reported_issue:
+    review_deadline = booking.timeslot.end_time + PAYOUT_REVIEW_WINDOW
+    if timezone.now() > review_deadline and not booking.student_reported_issue:
         messages.error(request, 'The five-day session review period has ended. Please contact PandaSpeak Support for assistance.')
         return redirect('course:my_bookings')
 
