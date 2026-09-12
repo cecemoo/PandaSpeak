@@ -12,7 +12,7 @@ from course.models import StudentGroup
 
 from .bingo_forms import BingoGameForm
 from .bingo_models import BingoGame
-from .models import Sentence, Vocabulary
+from .models import Idiom, Sentence, Vocabulary
 
 
 def _audience_students(game):
@@ -54,6 +54,18 @@ def _visibility_filter_for_game(game):
     return Q(visibility='all')
 
 
+def _category_id_for_game(game, expected_prefix):
+    if not game.category_key:
+        return None
+    prefix, separator, raw_id = game.category_key.partition(':')
+    if separator != ':' or prefix != expected_prefix:
+        return None
+    try:
+        return int(raw_id)
+    except (TypeError, ValueError):
+        return None
+
+
 def _eligible_materials(game):
     visibility_filter = _visibility_filter_for_game(game)
     level_filter = Q()
@@ -61,22 +73,43 @@ def _eligible_materials(game):
         level_filter = Q(level=game.level) | Q(level='all')
 
     if game.game_mode == 'make_sentence':
-        return Sentence.objects.filter(visibility_filter, level_filter).distinct()
+        queryset = Sentence.objects.filter(visibility_filter, level_filter)
+        category_id = _category_id_for_game(game, 'sentence')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
 
     if game.content_type == 'sentence':
-        return (
+        queryset = (
             Sentence.objects
             .filter(visibility_filter, level_filter, audio_file__isnull=False)
             .exclude(audio_file='')
-            .distinct()
         )
+        category_id = _category_id_for_game(game, 'sentence')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
 
-    return (
+    if game.content_type == 'expression':
+        queryset = (
+            Idiom.objects
+            .filter(visibility_filter, level_filter, audio_scenario_file__isnull=False)
+            .exclude(audio_scenario_file='')
+        )
+        category_id = _category_id_for_game(game, 'expression')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset.distinct()
+
+    queryset = (
         Vocabulary.objects
         .filter(visibility_filter, level_filter, audio_file__isnull=False)
         .exclude(audio_file='')
-        .distinct()
     )
+    category_id = _category_id_for_game(game, 'vocabulary')
+    if category_id:
+        queryset = queryset.filter(category_id=category_id)
+    return queryset.distinct()
 
 
 def _notify_students_about_bingo(game):
@@ -136,7 +169,7 @@ def create_bingo_game(request):
                 form.add_error(
                     None,
                     f'Bingo needs at least {minimum_required} {detail} for a 3 x 3 game, but only {available} are currently available. '
-                    'Choose another level or add more learning materials.'
+                    'Choose another category or level, or add more learning materials.'
                 )
             else:
                 game.save()
