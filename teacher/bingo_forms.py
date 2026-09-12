@@ -2,9 +2,12 @@ from django import forms
 
 from course.models import StudentGroup
 from .bingo_models import BingoGame
+from .models import IdiomCategory, SentenceCategory, VocabularyCategory
 
 
 class BingoGameForm(forms.ModelForm):
+    category_key = forms.ChoiceField(required=False, label='Category (optional)')
+
     class Meta:
         model = BingoGame
         fields = [
@@ -13,6 +16,7 @@ class BingoGameForm(forms.ModelForm):
             'student_group',
             'game_mode',
             'content_type',
+            'category_key',
             'level',
             'use_free_center',
             'adaptive_difficulty',
@@ -56,6 +60,24 @@ class BingoGameForm(forms.ModelForm):
         teacher = kwargs.pop('teacher', None)
         super().__init__(*args, **kwargs)
         self.fields['student_group'].required = False
+        self.fields['category_key'].widget.attrs.update({'class': 'form-select'})
+        self.fields['category_key'].help_text = 'Choose a category to limit the Bingo to that topic, or leave All categories selected.'
+        self.fields['category_key'].choices = [
+            ('', 'All categories'),
+            ('Vocabulary', [
+                (f'vocabulary:{category.id}', category.category_name)
+                for category in VocabularyCategory.objects.order_by('category_name')
+            ]),
+            ('Sentences', [
+                (f'sentence:{category.id}', category.category_name)
+                for category in SentenceCategory.objects.order_by('category_name')
+            ]),
+            ('Chinese Expressions', [
+                (f'expression:{category.id}', category.category_name)
+                for category in IdiomCategory.objects.order_by('category_name')
+            ]),
+        ]
+
         if teacher:
             self.fields['student_group'].queryset = StudentGroup.objects.filter(
                 teacher=teacher,
@@ -69,6 +91,8 @@ class BingoGameForm(forms.ModelForm):
         audience = cleaned_data.get('audience')
         student_group = cleaned_data.get('student_group')
         game_mode = cleaned_data.get('game_mode')
+        content_type = cleaned_data.get('content_type')
+        category_key = cleaned_data.get('category_key') or ''
 
         if audience == 'group' and not student_group:
             self.add_error('student_group', 'Please choose a student group.')
@@ -76,6 +100,12 @@ class BingoGameForm(forms.ModelForm):
             cleaned_data['student_group'] = None
 
         if game_mode == 'make_sentence':
+            content_type = 'sentence'
             cleaned_data['content_type'] = 'sentence'
+
+        if category_key:
+            expected_prefix = f'{content_type}:'
+            if not category_key.startswith(expected_prefix):
+                self.add_error('category_key', 'Please choose a category that matches the selected Bingo content.')
 
         return cleaned_data
