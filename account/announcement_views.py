@@ -65,7 +65,7 @@ def compose(request):
         announcement.created_by = request.user
         announcement.save()
         return redirect('announcement_preview', pk=announcement.pk)
-    return render(request, 'account/news_form.html', {'form': form, 'title': 'News & Update Emails', 'button': 'Save draft and preview', 'history': Announcement.objects.order_by('-created_at')[:20]})
+    return render(request, 'account/news_form.html', {'form': form, 'title': 'News & Update Emails', 'button': 'Save draft and preview', 'history': Announcement.objects.order_by('-created_at')[:5]})
 
 
 @user_passes_test(manager, login_url='my_login')
