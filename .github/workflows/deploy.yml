@@ -1,54 +1,36 @@
 name: Deploy PandaSpeak
 
 on:
-
   push:
-
     branches:
-
       - main
   workflow_dispatch:
 
+concurrency:
+  group: pandaspeak-production-deploy
+  cancel-in-progress: false
+
 jobs:
-
   deploy:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Deploy to EC2
-
         uses: appleboy/ssh-action@v1.0.3
-
         with:
-
           host: ${{ secrets.EC2_HOST }}
-
           username: ${{ secrets.EC2_USER }}
-
           key: ${{ secrets.EC2_SSH_KEY }}
-
           script: |
-
+            set -e
             cd ~/PandaSpeak
-
             git pull origin main
-
             source venv/bin/activate
-
             pip install -r requirements.txt
-
             python manage.py migrate
-
             python manage.py collectstatic --noinput
-
             (crontab -l 2>/dev/null | grep -v 'release_tutoring_payouts' || true; echo '*/15 * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py release_tutoring_payouts >> $HOME/PandaSpeak/payout_cron.log 2>&1') | crontab -
-
             (crontab -l 2>/dev/null | grep -v 'send_tutoring_session_reminders' || true; echo '* * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py send_tutoring_session_reminders >> $HOME/PandaSpeak/session_reminder_cron.log 2>&1') | crontab -
-
             (crontab -l 2>/dev/null | grep -v 'delete_expired_announcement_drafts' || true; echo '0 * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py delete_expired_announcement_drafts >> $HOME/PandaSpeak/draft_cleanup_cron.log 2>&1') | crontab -
-
             (crontab -l 2>/dev/null | grep -v 'send_news_announcements' || true; echo '* * * * * cd $HOME/PandaSpeak && $HOME/PandaSpeak/venv/bin/python manage.py send_news_announcements >> $HOME/PandaSpeak/news_email_cron.log 2>&1') | crontab -
-
             sudo systemctl restart pandaspeak
