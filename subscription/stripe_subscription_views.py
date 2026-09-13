@@ -6,14 +6,17 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Subscription
 
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
 User = get_user_model()
+
+
+def _subscription_api_key():
+    return getattr(settings, "STRIPE_SUBSCRIPTION_SECRET_KEY", "") or settings.STRIPE_SECRET_KEY
 
 
 def _annual_line_items():
@@ -44,15 +47,21 @@ def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
 
+    api_key = _subscription_api_key()
+    if not api_key:
+        messages.error(request, "Card subscription checkout is not configured yet.")
+        return redirect("subscribe")
+
     try:
         checkout_session = stripe.checkout.Session.create(
+            api_key=api_key,
             mode="subscription",
             payment_method_types=["card"],
             customer_email=request.user.email or None,
             line_items=_annual_line_items(),
             success_url=(
-                request.build_absolute_uri("/subscription/success/")
-                + "?stripe_session_id={CHECKOUT_SESSION_ID}"
+                request.build_absolute_uri("/subscription/stripe/success/")
+                + "?session_id={CHECKOUT_SESSION_ID}"
             ),
             cancel_url=request.build_absolute_uri("/subscription/subscribe/"),
             metadata={
@@ -132,6 +141,50 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
     local_subscription.save()
 
 
+@login_required
+def stripe_subscription_success(request):
+    session_id = request.GET.get("session_id", "")
+    if not session_id:
+        messages.error(request, "Stripe did not return a checkout session ID.")
+        return redirect("subscribe")
+
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(
+            session_id,
+            api_key=_subscription_api_key(),
+        )
+    except stripe.error.StripeError:
+        messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
+        return redirect("subscribe")
+
+    metadata = checkout_session.get("metadata") or {}
+    if (
+        checkout_session.get("mode") != "subscription"
+        or metadata.get("purpose") != "pandaspeak_annual_subscription"
+        or str(metadata.get("user_id")) != str(request.user.id)
+        or checkout_session.get("payment_status") not in ("paid", "no_payment_required")
+        or not checkout_session.get("subscription")
+    ):
+        messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
+        return redirect("subscribe")
+
+    try:
+        stripe_subscription = stripe.Subscription.retrieve(
+            checkout_session.get("subscription"),
+            api_key=_subscription_api_key(),
+        )
+        _sync_subscription_from_stripe(stripe_subscription, user=request.user)
+    except stripe.error.StripeError:
+        messages.error(request, "Your payment completed, but PandaSpeak could not finish verification yet. Please contact support if access is not enabled.")
+        return redirect("subscribe")
+
+    return render(
+        request,
+        "subscription/success.html",
+        {"user": request.user, "first_name": request.user.first_name},
+    )
+
+
 @csrf_exempt
 def stripe_subscription_webhook(request):
     if request.method != "POST":
@@ -166,7 +219,10 @@ def stripe_subscription_webhook(request):
                 except (User.DoesNotExist, ValueError, TypeError):
                     return HttpResponse(status=200)
 
-                stripe_subscription = stripe.Subscription.retrieve(obj.get("subscription"))
+                stripe_subscription = stripe.Subscription.retrieve(
+                    obj.get("subscription"),
+                    api_key=_subscription_api_key(),
+                )
                 _sync_subscription_from_stripe(stripe_subscription, user=user)
 
         elif event_type in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
@@ -175,7 +231,10 @@ def stripe_subscription_webhook(request):
         elif event_type in ("invoice.paid", "invoice.payment_failed"):
             stripe_subscription_id = obj.get("subscription")
             if stripe_subscription_id:
-                stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+                stripe_subscription = stripe.Subscription.retrieve(
+                    stripe_subscription_id,
+                    api_key=_subscription_api_key(),
+                )
                 _sync_subscription_from_stripe(stripe_subscription)
 
     except stripe.error.StripeError:
