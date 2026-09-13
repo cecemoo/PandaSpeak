@@ -16,6 +16,8 @@
         <a href="{% url 'student_flashcards' %}?deck=vocabulary" class="btn {% if deck == 'vocabulary' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">Vocabulary</a>
         <a href="{% url 'student_flashcards' %}?deck=sentence" class="btn {% if deck == 'sentence' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">Sentences</a>
         <a href="{% url 'student_flashcards' %}?deck=expression" class="btn {% if deck == 'expression' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">Expressions</a>
+        <a href="{% url 'student_flashcards' %}?deck=personal" class="btn {% if deck == 'personal' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">My Flash Cards</a>
+        <a href="{% url 'student_personal_flashcards' %}" class="btn btn-success rounded-pill">＋ Create My Flash Card</a>
       </div>
 
       {% if cards %}
@@ -62,7 +64,14 @@
           <audio id="flashcard-audio"></audio>
         </div>
       {% else %}
-        <div class="alert alert-info">There are no {{ deck_name|lower }} available for your current learning level yet.</div>
+        {% if deck == 'personal' %}
+          <div class="alert alert-info">
+            You have not created any personal flash cards yet.
+            <a href="{% url 'student_personal_flashcards' %}" class="alert-link">Create your first flash card.</a>
+          </div>
+        {% else %}
+          <div class="alert alert-info">There are no {{ deck_name|lower }} available for your current learning level yet.</div>
+        {% endif %}
       {% endif %}
     </div>
   </section>
