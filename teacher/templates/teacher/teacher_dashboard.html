@@ -119,6 +119,17 @@
         </div>
 
         <div class="col-md-4">
+          <a href="{% url 'course:course_create' %}?session_type=group" class="text-decoration-none">
+            <div class="card text-center dashboard-card">
+              <div class="card-body">
+                <h5>Create Group Session</h5>
+                <p>Create a tutoring session where multiple students can book seats in the same classroom.</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
 
             {% if user.is_authenticated and user.is_teacher %}
             {% if user.stripe_account_id %}
