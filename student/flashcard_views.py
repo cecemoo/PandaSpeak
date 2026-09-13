@@ -1,17 +1,21 @@
 import random
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from subscription.decorators import subscription_required
 from teacher.models import Idiom, Sentence, Vocabulary
+from .models import PersonalFlashcard
 
 
 DECKS = {
     'vocabulary': 'Vocabulary',
     'sentence': 'Sentences',
     'expression': 'Expressions',
+    'personal': 'My Flash Cards',
 }
 
 
@@ -99,6 +103,23 @@ def _expression_cards(student):
     return cards
 
 
+def _personal_cards(student):
+    items = PersonalFlashcard.objects.filter(student=student)
+    return [
+        {
+            'front': item.front,
+            'pinyin': item.pinyin or '',
+            'meaning': item.meaning or '',
+            'secondary': item.notes or '',
+            'example': item.example or '',
+            'example_pinyin': '',
+            'example_translation': '',
+            'audio': '',
+        }
+        for item in items
+    ]
+
+
 @login_required(login_url='my_login')
 @subscription_required
 def flashcards(request):
@@ -110,10 +131,11 @@ def flashcards(request):
         cards = _sentence_cards(request.user)
     elif deck == 'expression':
         cards = _expression_cards(request.user)
+    elif deck == 'personal':
+        cards = _personal_cards(request.user)
     else:
         cards = _vocabulary_cards(request.user)
 
-    # Keep the first visit fresh without changing the student's stored materials.
     cards = list(cards)
     random.shuffle(cards)
 
@@ -122,3 +144,43 @@ def flashcards(request):
         'deck_name': DECKS[deck],
         'cards': cards,
     })
+
+
+@login_required(login_url='my_login')
+@subscription_required
+def manage_personal_flashcards(request):
+    if request.method == 'POST':
+        front = (request.POST.get('front') or '').strip()
+        pinyin = (request.POST.get('pinyin') or '').strip()
+        meaning = (request.POST.get('meaning') or '').strip()
+        example = (request.POST.get('example') or '').strip()
+        notes = (request.POST.get('notes') or '').strip()
+
+        if not front or not meaning:
+            messages.error(request, 'Chinese/front text and meaning are required.')
+        else:
+            PersonalFlashcard.objects.create(
+                student=request.user,
+                front=front,
+                pinyin=pinyin,
+                meaning=meaning,
+                example=example,
+                notes=notes,
+            )
+            messages.success(request, 'Your flash card was created.')
+            return redirect('student_personal_flashcards')
+
+    cards = PersonalFlashcard.objects.filter(student=request.user)
+    return render(request, 'student/personal_flashcards.html', {
+        'personal_cards': cards,
+    })
+
+
+@login_required(login_url='my_login')
+@subscription_required
+@require_POST
+def delete_personal_flashcard(request, pk):
+    card = get_object_or_404(PersonalFlashcard, pk=pk, student=request.user)
+    card.delete()
+    messages.success(request, 'Flash card deleted.')
+    return redirect('student_personal_flashcards')
