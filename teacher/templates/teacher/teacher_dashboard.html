@@ -23,7 +23,6 @@
 </style>
 <main class="main">
 
-  <!-- Page Title -->
   <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
     <div class="container position-relative">
       <h1>Teacher Dashboard</h1>
@@ -35,16 +34,12 @@
         </ol>
       </nav>
     </div>
-  </div><!-- End Page Title -->
+  </div>
 
-  <!-- Teacher Dashboard Section -->
   <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
-
-    <!-- Section Title -->
     <div class="container section-title" data-aos="fade-up">
       <h2>Teacher Dashboard Section</h2>
-      <!-- <p>Manage your account, create new classes, and update learning materials.</p> -->
-    </div><!-- End Section Title -->
+    </div>
 
     <div class="container" data-aos="fade-up">
       <div class="card mb-4">
@@ -119,7 +114,6 @@
         </div>
 
         <div class="col-md-4">
-
             {% if user.is_authenticated and user.is_teacher %}
             {% if user.stripe_account_id %}
             <a href="{% url 'course:stripe_connect_onboard' %}" class="text-decoration-none">
@@ -129,7 +123,6 @@
                   <p>Connect your Stripe account to receive payments.</p>
                 </div>
               </div>
-            </a>
             </a>
             {% else %}
             <a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-primary rounded-pill">
@@ -151,22 +144,11 @@
         </div>
 
         <div class="col-md-4">
-          <a href="{% url 'create_student_group' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Create Student Group</h5>
-                <p>Create and manage student groups.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
           <a href="{% url 'student_group_list' %}" class="text-decoration-none">
             <div class="card text-center dashboard-card">
               <div class="card-body">
-                <h5>Student Group List</h5>
-                <p>View and manage your student groups.</p>
+                <h5>Student Group</h5>
+                <p>Create groups and add or remove students from your existing groups.</p>
               </div>
             </div>
           </a>
@@ -204,17 +186,6 @@
             </div>
           </a>
         </div>
-
-        <!-- <div class="col-md-4">
-          <a href="{% url 'add_tone' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Add Tone</h5>
-                <p>Add tones and usage examples.</p>
-              </div>
-            </div>
-          </a>
-        </div> -->
 
         <div class="col-md-4">
           <a href="{% url 'teacher_create_test' %}" class="text-decoration-none">
@@ -284,9 +255,7 @@
 
       </div>
     </div>
-
-
-  </section><!-- /Teacher Dashboard Section -->
+  </section>
 
 </main>
 {% endblock %}
