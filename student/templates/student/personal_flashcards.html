@@ -20,7 +20,7 @@
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
           <h3 class="mb-2">Add from PandaSpeak</h3>
-          <p class="text-muted">Choose a vocabulary word, sentence, or Chinese expression. PandaSpeak will automatically copy its Chinese, pinyin, meaning, and example into your personal flashcard deck.</p>
+          <p class="text-muted">Choose the type, then a category, and then the vocabulary word, sentence, or Chinese expression you want to add.</p>
 
           <form method="post" id="add-existing-flashcard-form">
             {% csrf_token %}
@@ -36,12 +36,19 @@
               </select>
             </div>
 
+            <div class="mb-3 d-none" id="category-picker-wrap">
+              <label class="form-label" for="category-picker">Choose category</label>
+              <select class="form-select" id="category-picker" required>
+                <option value="">Select a category...</option>
+              </select>
+            </div>
+
             <div class="mb-3 d-none" id="vocabulary-picker-wrap">
-              <label class="form-label" for="vocabulary-picker">Choose vocabulary</label>
+              <label class="form-label" for="vocabulary-picker">Choose vocabulary word</label>
               <select class="form-select source-picker" id="vocabulary-picker">
-                <option value="">Select vocabulary...</option>
+                <option value="">Select a vocabulary word...</option>
                 {% for item in available_vocabulary %}
-                  <option value="{{ item.pk }}">{{ item.word }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
+                  <option value="{{ item.pk }}" data-category="{{ item.category_id|default:'' }}">{{ item.word }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -51,7 +58,7 @@
               <select class="form-select source-picker" id="sentence-picker">
                 <option value="">Select a sentence...</option>
                 {% for item in available_sentences %}
-                  <option value="{{ item.pk }}">{{ item.text }}{% if item.translation %} — {{ item.translation }}{% endif %}</option>
+                  <option value="{{ item.pk }}" data-category="{{ item.category_id|default:'' }}">{{ item.text }}{% if item.translation %} — {{ item.translation }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -61,7 +68,7 @@
               <select class="form-select source-picker" id="expression-picker">
                 <option value="">Select an expression...</option>
                 {% for item in available_expressions %}
-                  <option value="{{ item.pk }}">{{ item.idiom }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
+                  <option value="{{ item.pk }}" data-category="{{ item.category_id|default:'' }}">{{ item.idiom }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -143,9 +150,15 @@
   </section>
 </main>
 
+{{ vocabulary_categories|json_script:"vocabulary-categories" }}
+{{ sentence_categories|json_script:"sentence-categories" }}
+{{ expression_categories|json_script:"expression-categories" }}
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const typeSelect = document.getElementById('item_type');
+  const categoryWrap = document.getElementById('category-picker-wrap');
+  const categoryPicker = document.getElementById('category-picker');
   const itemId = document.getElementById('item_id');
   const pickers = {
     vocabulary: document.getElementById('vocabulary-picker'),
@@ -157,15 +170,59 @@ document.addEventListener('DOMContentLoaded', function () {
     sentence: document.getElementById('sentence-picker-wrap'),
     expression: document.getElementById('expression-picker-wrap')
   };
+  const categories = {
+    vocabulary: JSON.parse(document.getElementById('vocabulary-categories').textContent || '[]'),
+    sentence: JSON.parse(document.getElementById('sentence-categories').textContent || '[]'),
+    expression: JSON.parse(document.getElementById('expression-categories').textContent || '[]')
+  };
 
-  function updatePicker() {
-    const selectedType = typeSelect.value;
+  function resetItemPickers() {
     itemId.value = '';
-    Object.keys(wraps).forEach(function (key) {
-      wraps[key].classList.toggle('d-none', key !== selectedType);
-      pickers[key].required = key === selectedType;
-      if (key !== selectedType) pickers[key].value = '';
+    Object.keys(pickers).forEach(function (key) {
+      pickers[key].value = '';
+      wraps[key].classList.add('d-none');
+      pickers[key].required = false;
     });
+  }
+
+  function populateCategories() {
+    const selectedType = typeSelect.value;
+    categoryPicker.innerHTML = '<option value="">Select a category...</option>';
+    resetItemPickers();
+
+    if (!selectedType) {
+      categoryWrap.classList.add('d-none');
+      categoryPicker.required = false;
+      return;
+    }
+
+    categories[selectedType].forEach(function (category) {
+      const option = document.createElement('option');
+      option.value = String(category.id);
+      option.textContent = category.name;
+      categoryPicker.appendChild(option);
+    });
+
+    categoryWrap.classList.remove('d-none');
+    categoryPicker.required = true;
+  }
+
+  function showItemsForCategory() {
+    const selectedType = typeSelect.value;
+    const selectedCategory = categoryPicker.value;
+    resetItemPickers();
+    if (!selectedType || !selectedCategory) return;
+
+    const picker = pickers[selectedType];
+    Array.from(picker.options).forEach(function (option, index) {
+      if (index === 0) {
+        option.hidden = false;
+        return;
+      }
+      option.hidden = option.dataset.category !== selectedCategory;
+    });
+    wraps[selectedType].classList.remove('d-none');
+    picker.required = true;
   }
 
   Object.keys(pickers).forEach(function (key) {
@@ -174,8 +231,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  typeSelect.addEventListener('change', updatePicker);
-  updatePicker();
+  typeSelect.addEventListener('change', populateCategories);
+  categoryPicker.addEventListener('change', showItemsForCategory);
+  populateCategories();
 });
 </script>
 {% endblock %}
