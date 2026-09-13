@@ -9,6 +9,7 @@ class Subscription(models.Model):
     subscription_plan = models.CharField(max_length=300)
     subscription_cost = models.DecimalField(max_digits=8, decimal_places=2)
     paypal_subscription_id = models.CharField(max_length=300, blank=True, null=True)
+    stripe_subscription_id = models.CharField(max_length=300, blank=True, null=True)
     is_active = models.BooleanField(default=False)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, unique=True)
     is_cancelled = models.BooleanField(default=False)
