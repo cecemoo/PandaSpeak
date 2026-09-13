@@ -11,9 +11,15 @@
             <div class="container">
                 <div class="row d-flex justify-content-center text-center">
                     <div class="col-lg-8">
-                        <h1 class="heading-title">Course Creation</h1>
+                        <h1 class="heading-title">
+                            {% if request.GET.session_type == 'group' %}Create Group Tutoring Session{% else %}Course Creation{% endif %}
+                        </h1>
                         <p class="mb-0">
-                            Welcome, Teacher {{ request.user.last_name }}, create either private or group tutoring availability.
+                            {% if request.GET.session_type == 'group' %}
+                                Welcome, Teacher {{ request.user.last_name }}, set the schedule, price per student, and maximum group size.
+                            {% else %}
+                                Welcome, Teacher {{ request.user.last_name }}, create either private or group tutoring availability.
+                            {% endif %}
                         </p>
                     </div>
                 </div>
@@ -23,7 +29,7 @@
             <div class="container">
                 <ol>
                     <li><a href="{% url 'home' %}">Home</a></li>
-                    <li class="current">Create Course</li>
+                    <li class="current">{% if request.GET.session_type == 'group' %}Create Group Session{% else %}Create Course{% endif %}</li>
                 </ol>
             </div>
         </nav>
@@ -31,8 +37,14 @@
 
     <section id="starter-section" class="starter-section section">
         <div class="container section-title" data-aos="fade-up">
-            <h2>Create Tutoring Class</h2>
-            <p>Choose Private Tutoring for one student or Group Tutoring for multiple students in the same session.</p>
+            <h2>{% if request.GET.session_type == 'group' %}Create Group Tutoring Session{% else %}Create Tutoring Class{% endif %}</h2>
+            <p>
+                {% if request.GET.session_type == 'group' %}
+                    Multiple students can book seats in the same PandaSpeak classroom. The price is charged separately to each student.
+                {% else %}
+                    Choose Private Tutoring for one student or Group Tutoring for multiple students in the same session.
+                {% endif %}
+            </p>
         </div>
 
         <div class="container" data-aos="fade-up">
@@ -42,7 +54,9 @@
                 <div id="group-session-note" class="alert alert-info d-none">
                     The price is charged per student. Each generated time slot will allow up to the maximum number of students you set above.
                 </div>
-                <button class="btn btn-primary" type="submit">Create Class</button>
+                <button class="btn btn-primary" type="submit">
+                    {% if request.GET.session_type == 'group' %}Create Group Session{% else %}Create Class{% endif %}
+                </button>
             </form>
         </div>
     </section>
@@ -56,6 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const initialCapacity = document.getElementById('id_initial_capacity');
     const groupNote = document.getElementById('group-session-note');
     const maxStudentsContainer = maxStudents ? (maxStudents.closest('.mb-3') || maxStudents.parentElement) : null;
+
+    {% if request.GET.session_type == 'group' %}
+    if (sessionType) sessionType.value = 'group';
+    if (maxStudents && parseInt(maxStudents.value || '0', 10) < 2) maxStudents.value = '2';
+    {% endif %}
 
     function updateSessionTypeFields() {
         if (!sessionType || !maxStudents) return;
