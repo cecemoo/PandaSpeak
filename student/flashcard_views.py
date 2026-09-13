@@ -37,6 +37,20 @@ def _visible_to_student(queryset, student):
     ).distinct()
 
 
+def _student_learning_items(student):
+    levels = _allowed_levels(student)
+    vocabulary = _visible_to_student(
+        Vocabulary.objects.filter(level__in=levels), student
+    ).order_by('word')
+    sentences = _visible_to_student(
+        Sentence.objects.filter(level__in=levels), student
+    ).order_by('text')
+    expressions = _visible_to_student(
+        Idiom.objects.filter(level__in=levels), student
+    ).order_by('idiom')
+    return vocabulary, sentences, expressions
+
+
 def _vocabulary_cards(student):
     items = _visible_to_student(
         Vocabulary.objects.filter(level__in=_allowed_levels(student)),
@@ -149,7 +163,57 @@ def flashcards(request):
 @login_required(login_url='my_login')
 @subscription_required
 def manage_personal_flashcards(request):
+    vocabulary, sentences, expressions = _student_learning_items(request.user)
+
     if request.method == 'POST':
+        action = request.POST.get('action', 'manual')
+
+        if action == 'add_existing':
+            item_type = (request.POST.get('item_type') or '').strip()
+            item_id = request.POST.get('item_id')
+            source = None
+
+            if item_type == 'vocabulary':
+                source = get_object_or_404(vocabulary, pk=item_id)
+                front = source.word
+                pinyin = source.pinyin or ''
+                meaning = source.meaning or ''
+                example = source.example_sentence or ''
+            elif item_type == 'sentence':
+                source = get_object_or_404(sentences, pk=item_id)
+                front = source.text
+                pinyin = source.pinyin or ''
+                meaning = source.translation or ''
+                example = ''
+            elif item_type == 'expression':
+                source = get_object_or_404(expressions, pk=item_id)
+                front = source.idiom
+                pinyin = source.pinyin or ''
+                meaning = source.meaning or source.english_translation or ''
+                example = source.example_sentence or ''
+            else:
+                messages.error(request, 'Please choose vocabulary, a sentence, or an expression.')
+                return redirect('student_personal_flashcards')
+
+            if PersonalFlashcard.objects.filter(
+                student=request.user,
+                front=front,
+                pinyin=pinyin,
+                meaning=meaning,
+                example=example,
+            ).exists():
+                messages.info(request, 'That item is already in My Flash Cards.')
+            else:
+                PersonalFlashcard.objects.create(
+                    student=request.user,
+                    front=front,
+                    pinyin=pinyin,
+                    meaning=meaning,
+                    example=example,
+                )
+                messages.success(request, f'“{front}” was added to My Flash Cards.')
+            return redirect('student_personal_flashcards')
+
         front = (request.POST.get('front') or '').strip()
         pinyin = (request.POST.get('pinyin') or '').strip()
         meaning = (request.POST.get('meaning') or '').strip()
@@ -173,6 +237,9 @@ def manage_personal_flashcards(request):
     cards = PersonalFlashcard.objects.filter(student=request.user)
     return render(request, 'student/personal_flashcards.html', {
         'personal_cards': cards,
+        'available_vocabulary': vocabulary,
+        'available_sentences': sentences,
+        'available_expressions': expressions,
     })
 
 
