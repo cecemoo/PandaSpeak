@@ -308,16 +308,14 @@
         </div>
         <div class="dashboard-card">
           <h4>Subscription</h4>
+          {% if has_subscription %}
           <p>Manage your account subscription settings.</p>
           <a href="{% url 'account_management_student' %}" class="btn btn-secondary rounded-pill">Manage Subscription</a>
-        </div>
-        {% if not has_subscription %}
-        <div class="dashboard-card">
-          <h4>Subscription</h4>
+          {% else %}
           <p>Subscribe to unlock all learning materials.</p>
           <a href="{% url 'subscription_plans' %}" class="btn btn-primary rounded-pill">View Plans</a>
+          {% endif %}
         </div>
-        {% endif %}
         <div class="dashboard-card">
           <h4>View Tests</h4>
           <p>View and take your tests.</p>
