@@ -18,6 +18,8 @@ urlpatterns = [
     path('pronunciations/', views.pronunciation_page, name='pronunciation_page'),
 
     path('flashcards/', flashcard_views.flashcards, name='student_flashcards'),
+    path('flashcards/my-cards/', flashcard_views.manage_personal_flashcards, name='student_personal_flashcards'),
+    path('flashcards/my-cards/<int:pk>/delete/', flashcard_views.delete_personal_flashcard, name='delete_personal_flashcard'),
 
     path('tests/', views.test_list, name='test_list'),
     path('tests/<int:test_id>/', views.take_test, name='take_test'),
