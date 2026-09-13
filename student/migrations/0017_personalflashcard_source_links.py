@@ -6,7 +6,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('student', '0016_personalflashcard'),
-        ('teacher', '0032_bingogame_expand_category_key'),
+        ('teacher', '0032_alter_bingogame_category_key'),
     ]
 
     operations = [
