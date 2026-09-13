@@ -57,6 +57,19 @@
     opacity: 1 !important;
   }
 
+  .recent-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: calc(100% - 45px);
+  }
+
+  .recent-empty p {
+    min-height: 0;
+    margin-bottom: 18px;
+  }
+
   .progress-section-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -168,9 +181,9 @@
           </div>
         </div>
 
-        {% if recently_learned %}
         <div class="dashboard-card recent-card">
           <h4>Recently Learned</h4>
+          {% if recently_learned %}
           {% for item in recently_learned %}
           {% if item.vocabulary %}
           <p class="mb-3">
@@ -286,8 +299,13 @@
           </div>
           {% endif %}
           {% endfor %}
+          {% else %}
+          <div class="recent-empty">
+            <p>You have not started learning yet. Start learning now, and your most recently learned vocabulary, sentences, and Chinese expressions will appear here.</p>
+            <a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">Start Learning</a>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
 
       <div class="dashboard-grid">
