@@ -166,6 +166,27 @@ class PersonalFlashcard(models.Model):
         on_delete=models.CASCADE,
         related_name='personal_flashcards',
     )
+    source_vocabulary = models.ForeignKey(
+        Vocabulary,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='personal_flashcards',
+    )
+    source_sentence = models.ForeignKey(
+        Sentence,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='personal_flashcards',
+    )
+    source_idiom = models.ForeignKey(
+        Idiom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='personal_flashcards',
+    )
     front = models.CharField(max_length=300)
     pinyin = models.CharField(max_length=300, blank=True)
     meaning = models.CharField(max_length=500)
