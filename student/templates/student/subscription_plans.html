@@ -10,9 +10,49 @@
     display: flex;
     justify-content: center;
   }
+
   #paypal-button-container-P-6WU49349628878712NITRXWQ {
     width: 500px;
     max-width: 100%;
+  }
+
+  .paypal-mobile-checkout {
+    display: none;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .paypal-mobile-checkout form {
+    width: 500px;
+    max-width: 100%;
+  }
+
+  .paypal-mobile-button {
+    width: 100%;
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 24px;
+    background: #ffc439;
+    color: #111;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .paypal-mobile-note {
+    margin-top: 12px;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 991.98px) {
+    .paypal-desktop-checkout {
+      display: none;
+    }
+
+    .paypal-mobile-checkout {
+      display: flex;
+    }
   }
 </style>
 
@@ -36,28 +76,41 @@
     </div>
 
     <div class="container" data-aos="fade-up">
-      <div class="paypal-wrapper">
-        <div id="paypal-button-container-P-6WU49349628878712NITRXWQ"></div>
+      <div class="paypal-desktop-checkout">
+        <div class="paypal-wrapper">
+          <div id="paypal-button-container-P-6WU49349628878712NITRXWQ"></div>
+        </div>
+      </div>
+
+      <div class="paypal-mobile-checkout">
+        <form method="post" action="{% url 'subscribe' %}">
+          {% csrf_token %}
+          <input type="hidden" name="subscription_type" value="yearly">
+          <button type="submit" class="paypal-mobile-button">Subscribe with PayPal - $15/year</button>
+          <p class="paypal-mobile-note">You’ll continue to PayPal securely to approve your subscription.</p>
+        </form>
       </div>
 
       <script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
       <script>
-        paypal.Buttons({
-          style: {
-            shape: 'pill',
-            color: 'gold',
-            layout: 'vertical',
-            label: 'subscribe'
-          },
-          createSubscription: function(data, actions) {
-            return actions.subscription.create({
-              plan_id: 'P-1SD58047K0688043LNJR4JSQ'
-            });
-          },
-          onApprove: function(data, actions) {
-            window.location.href = "/subscription/success/?subscription_id=" + encodeURIComponent(data.subscriptionID);
-          }
-        }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ');
+        if (window.matchMedia('(min-width: 992px)').matches) {
+          paypal.Buttons({
+            style: {
+              shape: 'pill',
+              color: 'gold',
+              layout: 'vertical',
+              label: 'subscribe'
+            },
+            createSubscription: function(data, actions) {
+              return actions.subscription.create({
+                plan_id: 'P-1SD58047K0688043LNJR4JSQ'
+              });
+            },
+            onApprove: function(data, actions) {
+              window.location.href = "/subscription/success/?subscription_id=" + encodeURIComponent(data.subscriptionID);
+            }
+          }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ');
+        }
       </script>
     </div>
   </section>
