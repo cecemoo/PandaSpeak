@@ -1,0 +1,85 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>My Flash Cards</h1>
+      <p>Create your own Chinese flash cards for personal review.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up" style="max-width: 900px;">
+      <div class="d-flex gap-2 flex-wrap mb-4">
+        <a href="{% url 'student_flashcards' %}?deck=personal" class="btn btn-primary rounded-pill">Review My Flash Cards</a>
+        <a href="{% url 'student_flashcards' %}" class="btn btn-outline-secondary rounded-pill">All Flash Cards</a>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
+      </div>
+
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h3 class="mb-3">Create a Flash Card</h3>
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label" for="front">Chinese / Front of card *</label>
+              <input class="form-control" type="text" id="front" name="front" maxlength="300" required placeholder="例如：你好">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="pinyin">Pinyin</label>
+              <input class="form-control" type="text" id="pinyin" name="pinyin" maxlength="300" placeholder="nǐ hǎo">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="meaning">Meaning / Translation *</label>
+              <input class="form-control" type="text" id="meaning" name="meaning" maxlength="500" required placeholder="hello">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="example">Example sentence</label>
+              <textarea class="form-control" id="example" name="example" rows="2" placeholder="你好，很高興認識你。"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="notes">Notes</label>
+              <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Add any personal note or memory hint."></textarea>
+            </div>
+            <button class="btn btn-success rounded-pill" type="submit">Create Flash Card</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h3 class="mb-0">My Cards</h3>
+            <span class="badge text-bg-secondary">{{ personal_cards|length }} card{{ personal_cards|length|pluralize }}</span>
+          </div>
+
+          {% if personal_cards %}
+            <div class="list-group list-group-flush">
+              {% for card in personal_cards %}
+                <div class="list-group-item px-0 py-3">
+                  <div class="d-flex justify-content-between gap-3 align-items-start">
+                    <div>
+                      <h5 class="mb-1">{{ card.front }}</h5>
+                      {% if card.pinyin %}<div class="text-muted">{{ card.pinyin }}</div>{% endif %}
+                      <div class="mt-1">{{ card.meaning }}</div>
+                      {% if card.example %}<div class="small mt-2"><strong>Example:</strong> {{ card.example }}</div>{% endif %}
+                      {% if card.notes %}<div class="small text-muted mt-1"><strong>Notes:</strong> {{ card.notes }}</div>{% endif %}
+                    </div>
+                    <form method="post" action="{% url 'delete_personal_flashcard' card.pk %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this flash card?');">Delete</button>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info mb-0">You have not created any personal flash cards yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
