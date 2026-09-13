@@ -239,6 +239,24 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function ensureRecentlyLearnedCard() {
+    const progressGrid = document.querySelector(".progress-section-grid");
+    if (!progressGrid || progressGrid.querySelector(".recent-card")) {
+        return;
+    }
+
+    const card = document.createElement("div");
+    card.className = "dashboard-card recent-card";
+    card.innerHTML = `
+        <h4>Recently Learned</h4>
+        <p class="mb-3">You have not started learning yet.</p>
+        <p class="mb-3">Start learning now and your most recently learned vocabulary, sentences, and Chinese expressions will appear here.</p>
+        <a href="/student/access_learning_materials/" class="btn btn-success rounded-pill">Start Learning</a>
+    `;
+    progressGrid.appendChild(card);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     updateNotificationButton();
+    ensureRecentlyLearnedCard();
 });
