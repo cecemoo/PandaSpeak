@@ -6,52 +6,85 @@
 {% block content %}
 
 <style>
+  .subscription-payment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    max-width: 980px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  .subscription-payment-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 24px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    text-align: center;
+  }
+
+  .subscription-payment-card h3 {
+    margin-bottom: 8px;
+  }
+
+  .subscription-payment-card p {
+    color: #6c757d;
+  }
+
+  .stripe-subscribe-button,
+  .paypal-mobile-button {
+    width: 100%;
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 24px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .stripe-subscribe-button {
+    background: #635bff;
+    color: #fff;
+  }
+
+  .paypal-mobile-button {
+    background: #ffc439;
+    color: #111;
+  }
+
+  .payment-note {
+    margin-top: 12px;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
   .paypal-wrapper {
     display: flex;
     justify-content: center;
   }
 
   #paypal-button-container-P-6WU49349628878712NITRXWQ {
-    width: 500px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 500px;
   }
 
   .paypal-mobile-checkout {
     display: none;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .paypal-mobile-checkout form {
-    width: 500px;
-    max-width: 100%;
-  }
-
-  .paypal-mobile-button {
-    width: 100%;
-    border: 0;
-    border-radius: 999px;
-    padding: 14px 24px;
-    background: #ffc439;
-    color: #111;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-
-  .paypal-mobile-note {
-    margin-top: 12px;
-    color: #6c757d;
-    font-size: 0.9rem;
   }
 
   @media (max-width: 991.98px) {
+    .subscription-payment-grid {
+      grid-template-columns: 1fr;
+      max-width: 560px;
+    }
+
     .paypal-desktop-checkout {
       display: none;
     }
 
     .paypal-mobile-checkout {
-      display: flex;
+      display: block;
     }
   }
 </style>
@@ -73,22 +106,44 @@
   <section id="register-section" class="register-section section">
     <div class="container section-title" data-aos="fade-up">
       <h2>Subscription Plans - Standard Access</h2>
+      <p>$15 per year. Choose the payment method that works best for you.</p>
     </div>
 
     <div class="container" data-aos="fade-up">
-      <div class="paypal-desktop-checkout">
-        <div class="paypal-wrapper">
-          <div id="paypal-button-container-P-6WU49349628878712NITRXWQ"></div>
+      <div class="subscription-payment-grid">
+        <div class="subscription-payment-card">
+          <h3>Credit or Debit Card</h3>
+          <p>Pay securely with Stripe. No PayPal account required.</p>
+          <form method="post" action="{% url 'subscribe' %}">
+            {% csrf_token %}
+            <input type="hidden" name="subscription_type" value="yearly">
+            <input type="hidden" name="payment_method" value="stripe">
+            <button type="submit" class="stripe-subscribe-button">Pay with Card - $15/year</button>
+          </form>
+          <div class="payment-note">Secure checkout powered by Stripe.</div>
         </div>
-      </div>
 
-      <div class="paypal-mobile-checkout">
-        <form method="post" action="{% url 'subscribe' %}">
-          {% csrf_token %}
-          <input type="hidden" name="subscription_type" value="yearly">
-          <button type="submit" class="paypal-mobile-button">Subscribe with PayPal - $15/year</button>
-          <p class="paypal-mobile-note">You’ll continue to PayPal securely to approve your subscription.</p>
-        </form>
+        <div class="subscription-payment-card">
+          <h3>PayPal</h3>
+          <p>Use your PayPal account or available PayPal checkout options.</p>
+
+          <div class="paypal-desktop-checkout">
+            <div class="paypal-wrapper">
+              <div id="paypal-button-container-P-6WU49349628878712NITRXWQ"></div>
+            </div>
+          </div>
+
+          <div class="paypal-mobile-checkout">
+            <form method="post" action="{% url 'subscribe' %}">
+              {% csrf_token %}
+              <input type="hidden" name="subscription_type" value="yearly">
+              <input type="hidden" name="payment_method" value="paypal">
+              <button type="submit" class="paypal-mobile-button">Subscribe with PayPal - $15/year</button>
+            </form>
+          </div>
+
+          <div class="payment-note">You’ll continue securely through PayPal.</div>
+        </div>
       </div>
 
       <script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
