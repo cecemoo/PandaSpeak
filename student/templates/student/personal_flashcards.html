@@ -5,7 +5,7 @@
   <div class="page-title dark-background">
     <div class="container position-relative">
       <h1>My Flash Cards</h1>
-      <p>Create your own Chinese flash cards for personal review.</p>
+      <p>Add PandaSpeak learning items to your personal deck, or create a custom card.</p>
     </div>
   </div>
 
@@ -19,9 +19,69 @@
 
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
-          <h3 class="mb-3">Create a Flash Card</h3>
+          <h3 class="mb-2">Add from PandaSpeak</h3>
+          <p class="text-muted">Choose a vocabulary word, sentence, or Chinese expression. PandaSpeak will automatically copy its Chinese, pinyin, meaning, and example into your personal flashcard deck.</p>
+
+          <form method="post" id="add-existing-flashcard-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_existing">
+
+            <div class="mb-3">
+              <label class="form-label" for="item_type">Choose type</label>
+              <select class="form-select" id="item_type" name="item_type" required>
+                <option value="">Select a type...</option>
+                <option value="vocabulary">Vocabulary</option>
+                <option value="sentence">Sentence</option>
+                <option value="expression">Chinese Expression</option>
+              </select>
+            </div>
+
+            <div class="mb-3 d-none" id="vocabulary-picker-wrap">
+              <label class="form-label" for="vocabulary-picker">Choose vocabulary</label>
+              <select class="form-select source-picker" id="vocabulary-picker">
+                <option value="">Select vocabulary...</option>
+                {% for item in available_vocabulary %}
+                  <option value="{{ item.pk }}">{{ item.word }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3 d-none" id="sentence-picker-wrap">
+              <label class="form-label" for="sentence-picker">Choose sentence</label>
+              <select class="form-select source-picker" id="sentence-picker">
+                <option value="">Select a sentence...</option>
+                {% for item in available_sentences %}
+                  <option value="{{ item.pk }}">{{ item.text }}{% if item.translation %} — {{ item.translation }}{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3 d-none" id="expression-picker-wrap">
+              <label class="form-label" for="expression-picker">Choose Chinese expression</label>
+              <select class="form-select source-picker" id="expression-picker">
+                <option value="">Select an expression...</option>
+                {% for item in available_expressions %}
+                  <option value="{{ item.pk }}">{{ item.idiom }}{% if item.pinyin %} — {{ item.pinyin }}{% endif %}{% if item.meaning %} — {{ item.meaning }}{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <input type="hidden" id="item_id" name="item_id" value="">
+            <button class="btn btn-success rounded-pill" type="submit">Add to My Flash Cards</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h3 class="mb-0">Create a Custom Flash Card</h3>
+            <span class="badge text-bg-secondary">Optional</span>
+          </div>
+          <p class="text-muted">Use this only when the item is not already available in PandaSpeak.</p>
           <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="action" value="manual">
             <div class="mb-3">
               <label class="form-label" for="front">Chinese / Front of card *</label>
               <input class="form-control" type="text" id="front" name="front" maxlength="300" required placeholder="例如：你好">
@@ -42,7 +102,7 @@
               <label class="form-label" for="notes">Notes</label>
               <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Add any personal note or memory hint."></textarea>
             </div>
-            <button class="btn btn-success rounded-pill" type="submit">Create Flash Card</button>
+            <button class="btn btn-outline-success rounded-pill" type="submit">Create Custom Flash Card</button>
           </form>
         </div>
       </div>
@@ -75,11 +135,47 @@
               {% endfor %}
             </div>
           {% else %}
-            <div class="alert alert-info mb-0">You have not created any personal flash cards yet.</div>
+            <div class="alert alert-info mb-0">You have not added any personal flash cards yet.</div>
           {% endif %}
         </div>
       </div>
     </div>
   </section>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const typeSelect = document.getElementById('item_type');
+  const itemId = document.getElementById('item_id');
+  const pickers = {
+    vocabulary: document.getElementById('vocabulary-picker'),
+    sentence: document.getElementById('sentence-picker'),
+    expression: document.getElementById('expression-picker')
+  };
+  const wraps = {
+    vocabulary: document.getElementById('vocabulary-picker-wrap'),
+    sentence: document.getElementById('sentence-picker-wrap'),
+    expression: document.getElementById('expression-picker-wrap')
+  };
+
+  function updatePicker() {
+    const selectedType = typeSelect.value;
+    itemId.value = '';
+    Object.keys(wraps).forEach(function (key) {
+      wraps[key].classList.toggle('d-none', key !== selectedType);
+      pickers[key].required = key === selectedType;
+      if (key !== selectedType) pickers[key].value = '';
+    });
+  }
+
+  Object.keys(pickers).forEach(function (key) {
+    pickers[key].addEventListener('change', function () {
+      if (typeSelect.value === key) itemId.value = this.value;
+    });
+  });
+
+  typeSelect.addEventListener('change', updatePicker);
+  updatePicker();
+});
+</script>
 {% endblock %}
