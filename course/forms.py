@@ -62,10 +62,10 @@ class CourseForm(forms.ModelForm):
         choices=COMMON_TIMEZONE_CHOICES,
         initial="America/Chicago",
         required=True,
-        label="Schedule time zone",
+        label="Your time zone",
         help_text=(
-            "Enter the teaching schedule in this time zone. "
-            "Students will see it converted to their local time."
+            "Choose the time zone you use for this teaching schedule. "
+            "Students will see the session time converted to their local time."
         ),
     )
 
