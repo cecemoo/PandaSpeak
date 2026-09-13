@@ -40,15 +40,26 @@ def _visible_to_student(queryset, student):
 def _student_learning_items(student):
     levels = _allowed_levels(student)
     vocabulary = _visible_to_student(
-        Vocabulary.objects.filter(level__in=levels), student
-    ).order_by('word')
+        Vocabulary.objects.filter(level__in=levels).select_related('category'), student
+    ).order_by('category__category_name', 'word')
     sentences = _visible_to_student(
-        Sentence.objects.filter(level__in=levels), student
-    ).order_by('text')
+        Sentence.objects.filter(level__in=levels).select_related('category'), student
+    ).order_by('category__category_name', 'text')
     expressions = _visible_to_student(
-        Idiom.objects.filter(level__in=levels), student
-    ).order_by('idiom')
+        Idiom.objects.filter(level__in=levels).select_related('category'), student
+    ).order_by('category__category_name', 'idiom')
     return vocabulary, sentences, expressions
+
+
+def _categories_from_items(items):
+    categories = {}
+    for item in items:
+        if item.category_id and item.category:
+            categories[item.category_id] = item.category.category_name
+    return [
+        {'id': category_id, 'name': name}
+        for category_id, name in sorted(categories.items(), key=lambda pair: pair[1].lower())
+    ]
 
 
 def _vocabulary_cards(student):
@@ -164,6 +175,9 @@ def flashcards(request):
 @subscription_required
 def manage_personal_flashcards(request):
     vocabulary, sentences, expressions = _student_learning_items(request.user)
+    vocabulary = list(vocabulary)
+    sentences = list(sentences)
+    expressions = list(expressions)
 
     if request.method == 'POST':
         action = request.POST.get('action', 'manual')
@@ -174,19 +188,37 @@ def manage_personal_flashcards(request):
             source = None
 
             if item_type == 'vocabulary':
-                source = get_object_or_404(vocabulary, pk=item_id)
+                source = get_object_or_404(
+                    _visible_to_student(
+                        Vocabulary.objects.filter(level__in=_allowed_levels(request.user)),
+                        request.user,
+                    ),
+                    pk=item_id,
+                )
                 front = source.word
                 pinyin = source.pinyin or ''
                 meaning = source.meaning or ''
                 example = source.example_sentence or ''
             elif item_type == 'sentence':
-                source = get_object_or_404(sentences, pk=item_id)
+                source = get_object_or_404(
+                    _visible_to_student(
+                        Sentence.objects.filter(level__in=_allowed_levels(request.user)),
+                        request.user,
+                    ),
+                    pk=item_id,
+                )
                 front = source.text
                 pinyin = source.pinyin or ''
                 meaning = source.translation or ''
                 example = ''
             elif item_type == 'expression':
-                source = get_object_or_404(expressions, pk=item_id)
+                source = get_object_or_404(
+                    _visible_to_student(
+                        Idiom.objects.filter(level__in=_allowed_levels(request.user)),
+                        request.user,
+                    ),
+                    pk=item_id,
+                )
                 front = source.idiom
                 pinyin = source.pinyin or ''
                 meaning = source.meaning or source.english_translation or ''
@@ -240,6 +272,9 @@ def manage_personal_flashcards(request):
         'available_vocabulary': vocabulary,
         'available_sentences': sentences,
         'available_expressions': expressions,
+        'vocabulary_categories': _categories_from_items(vocabulary),
+        'sentence_categories': _categories_from_items(sentences),
+        'expression_categories': _categories_from_items(expressions),
     })
 
 
