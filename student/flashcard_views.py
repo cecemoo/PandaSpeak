@@ -128,8 +128,45 @@ def _expression_cards(student):
     return cards
 
 
+def _personal_card_audio(item):
+    if item.source_vocabulary and item.source_vocabulary.audio_file:
+        return item.source_vocabulary.audio_file.url
+    if item.source_sentence and item.source_sentence.audio_file:
+        return item.source_sentence.audio_file.url
+    if item.source_idiom and item.source_idiom.audio_scenario_file:
+        return item.source_idiom.audio_scenario_file.url
+
+    # Backward compatibility for cards created before source links were added.
+    vocabulary = Vocabulary.objects.filter(
+        word=item.front,
+        pinyin=item.pinyin,
+    ).exclude(audio_file='').first()
+    if vocabulary and vocabulary.audio_file:
+        return vocabulary.audio_file.url
+
+    sentence = Sentence.objects.filter(
+        text=item.front,
+        pinyin=item.pinyin,
+    ).exclude(audio_file='').first()
+    if sentence and sentence.audio_file:
+        return sentence.audio_file.url
+
+    idiom = Idiom.objects.filter(
+        idiom=item.front,
+        pinyin=item.pinyin,
+    ).exclude(audio_scenario_file='').first()
+    if idiom and idiom.audio_scenario_file:
+        return idiom.audio_scenario_file.url
+
+    return ''
+
+
 def _personal_cards(student):
-    items = PersonalFlashcard.objects.filter(student=student)
+    items = PersonalFlashcard.objects.filter(student=student).select_related(
+        'source_vocabulary',
+        'source_sentence',
+        'source_idiom',
+    )
     return [
         {
             'front': item.front,
@@ -139,7 +176,7 @@ def _personal_cards(student):
             'example': item.example or '',
             'example_pinyin': '',
             'example_translation': '',
-            'audio': '',
+            'audio': _personal_card_audio(item),
         }
         for item in items
     ]
@@ -186,6 +223,11 @@ def manage_personal_flashcards(request):
             item_type = (request.POST.get('item_type') or '').strip()
             item_id = request.POST.get('item_id')
             source = None
+            source_fields = {
+                'source_vocabulary': None,
+                'source_sentence': None,
+                'source_idiom': None,
+            }
 
             if item_type == 'vocabulary':
                 source = get_object_or_404(
@@ -199,6 +241,7 @@ def manage_personal_flashcards(request):
                 pinyin = source.pinyin or ''
                 meaning = source.meaning or ''
                 example = source.example_sentence or ''
+                source_fields['source_vocabulary'] = source
             elif item_type == 'sentence':
                 source = get_object_or_404(
                     _visible_to_student(
@@ -211,6 +254,7 @@ def manage_personal_flashcards(request):
                 pinyin = source.pinyin or ''
                 meaning = source.translation or ''
                 example = ''
+                source_fields['source_sentence'] = source
             elif item_type == 'expression':
                 source = get_object_or_404(
                     _visible_to_student(
@@ -223,17 +267,42 @@ def manage_personal_flashcards(request):
                 pinyin = source.pinyin or ''
                 meaning = source.meaning or source.english_translation or ''
                 example = source.example_sentence or ''
+                source_fields['source_idiom'] = source
             else:
                 messages.error(request, 'Please choose vocabulary, a sentence, or an expression.')
                 return redirect('student_personal_flashcards')
 
-            if PersonalFlashcard.objects.filter(
-                student=request.user,
-                front=front,
-                pinyin=pinyin,
-                meaning=meaning,
-                example=example,
-            ).exists():
+            source_filter = {'student': request.user}
+            if item_type == 'vocabulary':
+                source_filter['source_vocabulary'] = source
+            elif item_type == 'sentence':
+                source_filter['source_sentence'] = source
+            else:
+                source_filter['source_idiom'] = source
+
+            existing = PersonalFlashcard.objects.filter(**source_filter).first()
+            if not existing:
+                existing = PersonalFlashcard.objects.filter(
+                    student=request.user,
+                    front=front,
+                    pinyin=pinyin,
+                    meaning=meaning,
+                    example=example,
+                ).first()
+
+            if existing:
+                changed = False
+                if item_type == 'vocabulary' and not existing.source_vocabulary_id:
+                    existing.source_vocabulary = source
+                    changed = True
+                elif item_type == 'sentence' and not existing.source_sentence_id:
+                    existing.source_sentence = source
+                    changed = True
+                elif item_type == 'expression' and not existing.source_idiom_id:
+                    existing.source_idiom = source
+                    changed = True
+                if changed:
+                    existing.save()
                 messages.info(request, 'That item is already in My Flash Cards.')
             else:
                 PersonalFlashcard.objects.create(
@@ -242,6 +311,7 @@ def manage_personal_flashcards(request):
                     pinyin=pinyin,
                     meaning=meaning,
                     example=example,
+                    **source_fields,
                 )
                 messages.success(request, f'“{front}” was added to My Flash Cards.')
             return redirect('student_personal_flashcards')
