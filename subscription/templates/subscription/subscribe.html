@@ -18,10 +18,8 @@
       {% endif %}
 
       <div class="mt-4 d-grid gap-3" style="max-width: 420px; margin-left: auto; margin-right: auto;">
-        <form method="post" action="{% url 'subscribe' %}">
+        <form method="post" action="{% url 'stripe_subscription_checkout' %}">
           {% csrf_token %}
-          <input type="hidden" name="subscription_type" value="yearly">
-          <input type="hidden" name="payment_method" value="stripe">
           <button type="submit" class="btn btn-primary rounded-pill px-4 py-3 w-100" style="font-weight:700;">
             Pay with Credit or Debit Card - $15/year
           </button>
