@@ -11,15 +11,9 @@
             <div class="container">
                 <div class="row d-flex justify-content-center text-center">
                     <div class="col-lg-8">
-                        <h1 class="heading-title">
-                            {% if request.GET.session_type == 'group' %}Create Group Tutoring Session{% else %}Course Creation{% endif %}
-                        </h1>
+                        <h1 class="heading-title">Create Tutoring Session</h1>
                         <p class="mb-0">
-                            {% if request.GET.session_type == 'group' %}
-                                Welcome, Teacher {{ request.user.last_name }}, set the schedule, price per student, and maximum group size.
-                            {% else %}
-                                Welcome, Teacher {{ request.user.last_name }}, create either private or group tutoring availability.
-                            {% endif %}
+                            Welcome, Teacher {{ request.user.last_name }}, choose either a private or group tutoring session.
                         </p>
                     </div>
                 </div>
@@ -29,7 +23,7 @@
             <div class="container">
                 <ol>
                     <li><a href="{% url 'home' %}">Home</a></li>
-                    <li class="current">{% if request.GET.session_type == 'group' %}Create Group Session{% else %}Create Course{% endif %}</li>
+                    <li class="current">Create Tutoring Session</li>
                 </ol>
             </div>
         </nav>
@@ -37,26 +31,21 @@
 
     <section id="starter-section" class="starter-section section">
         <div class="container section-title" data-aos="fade-up">
-            <h2>{% if request.GET.session_type == 'group' %}Create Group Tutoring Session{% else %}Create Tutoring Class{% endif %}</h2>
-            <p>
-                {% if request.GET.session_type == 'group' %}
-                    Multiple students can book seats in the same PandaSpeak classroom. The price is charged separately to each student.
-                {% else %}
-                    Choose Private Tutoring for one student or Group Tutoring for multiple students in the same session.
-                {% endif %}
-            </p>
+            <h2>Create Tutoring Session</h2>
+            <p>Private Tutoring is always for 1 student. Group Tutoring is for 2 or more students in the same PandaSpeak classroom.</p>
         </div>
 
         <div class="container" data-aos="fade-up">
             <form method="post" action="{% url 'course:course_create' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form|crispy }}
-                <div id="group-session-note" class="alert alert-info d-none">
-                    The price is charged per student. Each generated time slot will allow up to the maximum number of students you set above.
+                <div id="private-session-note" class="alert alert-secondary d-none">
+                    Private Tutoring is limited to exactly 1 student per session.
                 </div>
-                <button class="btn btn-primary" type="submit">
-                    {% if request.GET.session_type == 'group' %}Create Group Session{% else %}Create Class{% endif %}
-                </button>
+                <div id="group-session-note" class="alert alert-info d-none">
+                    Group Tutoring requires at least 2 students. The price is charged separately to each student, and the number entered above is the maximum number of seats available in each session.
+                </div>
+                <button class="btn btn-primary" type="submit">Create Tutoring Session</button>
             </form>
         </div>
     </section>
@@ -68,13 +57,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const sessionType = document.getElementById('id_session_type');
     const maxStudents = document.getElementById('id_max_students');
     const initialCapacity = document.getElementById('id_initial_capacity');
+    const privateNote = document.getElementById('private-session-note');
     const groupNote = document.getElementById('group-session-note');
     const maxStudentsContainer = maxStudents ? (maxStudents.closest('.mb-3') || maxStudents.parentElement) : null;
-
-    {% if request.GET.session_type == 'group' %}
-    if (sessionType) sessionType.value = 'group';
-    if (maxStudents && parseInt(maxStudents.value || '0', 10) < 2) maxStudents.value = '2';
-    {% endif %}
 
     function updateSessionTypeFields() {
         if (!sessionType || !maxStudents) return;
@@ -83,14 +68,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (maxStudentsContainer) {
             maxStudentsContainer.style.display = isGroup ? '' : 'none';
         }
+        if (privateNote) {
+            privateNote.classList.toggle('d-none', isGroup);
+        }
         if (groupNote) {
             groupNote.classList.toggle('d-none', !isGroup);
         }
 
         if (!isGroup) {
             maxStudents.value = '1';
+            maxStudents.min = '1';
+            maxStudents.max = '1';
             if (initialCapacity) initialCapacity.value = '1';
         } else {
+            maxStudents.removeAttribute('max');
+            maxStudents.min = '2';
+            maxStudents.step = '1';
             const current = parseInt(maxStudents.value || '0', 10);
             if (!current || current < 2) maxStudents.value = '2';
             if (initialCapacity) initialCapacity.value = maxStudents.value;
@@ -98,8 +91,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (sessionType) sessionType.addEventListener('change', updateSessionTypeFields);
+
     if (maxStudents) {
         maxStudents.addEventListener('input', function () {
+            if (sessionType && sessionType.value === 'group') {
+                const current = parseInt(maxStudents.value || '0', 10);
+                if (current && current < 2) {
+                    maxStudents.value = '2';
+                }
+            } else {
+                maxStudents.value = '1';
+            }
+            if (initialCapacity) initialCapacity.value = maxStudents.value;
+        });
+
+        maxStudents.addEventListener('change', function () {
+            if (sessionType && sessionType.value === 'group') {
+                const current = parseInt(maxStudents.value || '0', 10);
+                if (!current || current < 2) maxStudents.value = '2';
+            } else {
+                maxStudents.value = '1';
+            }
             if (initialCapacity) initialCapacity.value = maxStudents.value;
         });
     }
