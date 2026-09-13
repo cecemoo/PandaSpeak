@@ -1,0 +1,33 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <section class="section">
+    <div class="container" style="max-width: 640px; padding-top: 48px; padding-bottom: 48px; text-align: center;">
+      <h2>Complete Your PandaSpeak Subscription</h2>
+      <p class="mt-3">Standard Access is $15 per year.</p>
+
+      {% if messages %}
+        <div class="mt-3 mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'subscribe' %}" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="subscription_type" value="yearly">
+        <button type="submit" class="btn rounded-pill px-4 py-2" style="background:#ffc439; color:#111; font-weight:700; border:0;">
+          Continue with PayPal - $15/year
+        </button>
+      </form>
+
+      <p class="mt-3 text-muted">You’ll be redirected securely to PayPal to approve the subscription.</p>
+      <a href="{% url 'subscription_plans' %}" class="btn btn-link mt-2">Back to Subscription Plans</a>
+    </div>
+  </section>
+</main>
+{% endblock %}
