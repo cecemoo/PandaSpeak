@@ -1,7 +1,7 @@
 {% extends "account/base.html" %}
 
- {% load static %}
- {% load crispy_forms_tags %}
+{% load static %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -10,74 +10,57 @@
     display: flex;
     justify-content: center;
   }
-  #paypal-button-container-P-0P38157063833905CNIYCD5A {
-    width:500px;
+  #paypal-button-container-P-6WU49349628878712NITRXWQ {
+    width: 500px;
     max-width: 100%;
   }
 </style>
 
-  <main class="main">
+<main class="main">
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Subscription Plans</h1>
+      <p>Welcome, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li class="current">Subscription Plans</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-      <div class="container position-relative">
-        <h1>Subscription Plans</h1>
-        <p>Welcome, {{ user.first_name }}!</p>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li class="current">Subscription Plans</li>
-          </ol>
-        </nav>
-      </div>
-    </div><!-- End Page Title -->
+  <section id="register-section" class="register-section section">
+    <div class="container section-title" data-aos="fade-up">
+      <h2>Subscription Plans - Standard Access</h2>
+    </div>
 
-    <!-- Register Section Section -->
-    <section id="register-section" class="register-section section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Subscription Plans - Standard Access</h2>
-        <!-- <p>Choose the plan that best suits your needs.</p> -->
-      </div><!-- End Section Title -->
-
-      <div class="container" data-aos="fade-up">
-     
-         <div id="paypal-button-container-P-6WU49349628878712NITRXWQ" style="max-width:500px; margin:0 auto;"></div>
-<script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-<script>
-  paypal.Buttons({
-      style: {
-          shape: 'pill',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-      },
-      createSubscription: function(data, actions) {
-        return actions.subscription.create({
-          /* Creates the subscription */
-          plan_id: 'P-1SD58047K0688043LNJR4JSQ'
-        });
-      },
-      onApprove: function(data, actions) {
-        window.location.href = "/subscription/success/?subscription_id=?" + data.subscriptionID;
-        alert(data.subscriptionID); 
-      }
-  }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ'); // Renders the PayPal button
-</script> 
-
-         
+    <div class="container" data-aos="fade-up">
+      <div class="paypal-wrapper">
+        <div id="paypal-button-container-P-6WU49349628878712NITRXWQ"></div>
       </div>
 
-    </section><!-- /Register Section Section -->
-
-  </main>
-
+      <script src="https://www.paypal.com/sdk/js?client-id=BAAleQamKjG2RZSlwks-ZKlwSeC2Ia4JDg57XLVQbl0ckOU5KNLTReEa4ooLN5beF0NiNDsOd9v_m7JOdo&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+      <script>
+        paypal.Buttons({
+          style: {
+            shape: 'pill',
+            color: 'gold',
+            layout: 'vertical',
+            label: 'subscribe'
+          },
+          createSubscription: function(data, actions) {
+            return actions.subscription.create({
+              plan_id: 'P-1SD58047K0688043LNJR4JSQ'
+            });
+          },
+          onApprove: function(data, actions) {
+            window.location.href = "/subscription/success/?subscription_id=" + encodeURIComponent(data.subscriptionID);
+          }
+        }).render('#paypal-button-container-P-6WU49349628878712NITRXWQ');
+      </script>
+    </div>
+  </section>
+</main>
 
 {% endblock %}
- 
-
-
-
-
- 
