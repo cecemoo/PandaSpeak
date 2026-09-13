@@ -55,9 +55,6 @@ class TestQuestion(models.Model):
         return f"{self.test.title} - Question {self.order}"
 
 
-
-
-
 class StudentTestSubmission(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     test = models.ForeignKey(LanguageTest, on_delete=models.CASCADE)
@@ -71,7 +68,6 @@ class StudentTestSubmission(models.Model):
         return f"{self.student.email} - {self.test.title}"
 
 
-
 class StudentListeningAnswer(models.Model):
     submission = models.ForeignKey(StudentTestSubmission, on_delete=models.CASCADE)
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
@@ -81,9 +77,6 @@ class StudentListeningAnswer(models.Model):
 
     def __str__(self):
         return f"{self.submission.student.email} - {self.question.test.title} - Question {self.question.order}"
-
-
-
 
 
 class StudentSpeakingAnswer(models.Model):
@@ -105,9 +98,6 @@ class StudentSpeakingAnswer(models.Model):
 
     def __str__(self):
         return f"{self.student.email} - {self.question.test.title} - Question {self.question.order}"
-
-
-
 
 
 class Favorite(models.Model):
@@ -140,7 +130,6 @@ class Favorite(models.Model):
         return f"{self.student} - Favorite"
 
 
-
 class LearnedItem(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -169,3 +158,24 @@ class LearnedItem(models.Model):
 
     def __str__(self):
         return f"{self.student} - Learned Item"
+
+
+class PersonalFlashcard(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='personal_flashcards',
+    )
+    front = models.CharField(max_length=300)
+    pinyin = models.CharField(max_length=300, blank=True)
+    meaning = models.CharField(max_length=500)
+    example = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student} - {self.front}"
