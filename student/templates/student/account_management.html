@@ -20,14 +20,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
   }
 
   .status-badge {
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 14px;
-    white-space: nowrap;
   }
 
   .status-badge.active {
@@ -38,16 +36,13 @@
     background: #6c757d;
   }
 
-  .status-badge.cancelled {
-    background: #fd7e14;
-  }
-
   .small-text {
     color: #ccc;
   }
 </style>
 <main class="main">
 
+  <!-- Page Title -->
   <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
     <div class="container position-relative">
       <h1>Subscription Management</h1>
@@ -59,21 +54,24 @@
         </ol>
       </nav>
     </div>
-  </div>
+  </div><!-- End Page Title -->
 
+  <!-- Subscription Management Section -->
   <section id="subscription-management-section" class="subscription-management-section section">
+
+    <!-- Section Title -->
     <div class="container section-title" data-aos="fade-up">
       <h2>My Subscription</h2>
-    </div>
+      <!-- <p>Manage your subscription</p> -->
+    </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
+
       <div class="subscription-card">
         <div class="subscription-header">
-          <h3>Current Subscription</h3>
+          <h3>Subscription</h3>
 
-          {% if subscription_active and is_cancelled %}
-          <span class="status-badge cancelled">Active · Renewal Canceled</span>
-          {% elif subscription_active %}
+          {% if has_subscription %}
           <span class="status-badge active">Active</span>
           {% else %}
           <span class="status-badge inactive">Inactive</span>
@@ -81,51 +79,43 @@
         </div>
 
         {% if has_subscription %}
-        <p class="mt-3"><strong>Plan:</strong> {{ SubPlan|default:"Standard"|title }}</p>
-        {% if subscription_cost %}
-        <p><strong>Price:</strong> ${{ subscription_cost }} / year</p>
-        {% endif %}
-        <p>
-          <strong>Status:</strong>
-          {% if subscription_active and is_cancelled %}
-            Active until the end of the current paid period; automatic renewal is canceled.
-          {% elif subscription_active %}
-            Active
-          {% else %}
-            Inactive
-          {% endif %}
-        </p>
+        <p>You currently have access to all PandaSpeak learning materials.</p>
+        <p class="small-text">Plan: {{ SubPlan|default:"Annual Learning Plan" }}</p>
 
-        {% if access_until %}
-        <p><strong>Access Until:</strong> {{ access_until|date:"F j, Y" }}</p>
-        {% endif %}
-
-        {% if subscription_active %}
         <a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">
           Start Learning
         </a>
-
-        {% if not is_cancelled %}
+        {% if is_cancelled %}
+        <p style="margin-top: 15px;">
+          <strong>Subscription Status:</strong> Canceled
+        </p>
+        {% if access_until %}
+        <p>
+          <strong>Access Until:</strong>
+          {{ access_until|date:"F j, Y" }}
+        </p>
+        {% endif %}
+        <p class="small-text">
+          Your automatic renewal has been canceled. You will not be charged again.
+        </p>
+        {% else %}
         <form method="POST" action="{% url 'cancel_subscription' %}" style="margin-top: 15px;"
-          onsubmit="return confirm('Are you sure you want to unsubscribe? You will keep access through the end of your current paid period.');">
+          onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger rounded-pill">
-            Unsubscribe
+            Cancel Subscription
           </button>
         </form>
         {% endif %}
-
         {% else %}
-        <a href="{% url 'subscription_plans' %}" class="btn btn-primary rounded-pill">View Subscription Plans</a>
-        {% endif %}
-
-        {% else %}
-        <p>You do not have a subscription yet.</p>
-        <a href="{% url 'subscription_plans' %}" class="btn btn-primary rounded-pill">View Subscription Plans</a>
+        <p>You do not have an active subscription yet.</p>
         {% endif %}
       </div>
     </div>
-  </section>
+
+  </section><!-- /Subscription Management Section -->
 
 </main>
 {% endblock %}
+
+<a href="{% url 'account_management_student' %}" class="btn btn-primary">Update Subscription</a>
