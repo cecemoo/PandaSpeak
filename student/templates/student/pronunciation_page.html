@@ -4,30 +4,185 @@
 {% load crispy_forms_tags %}
 {% block content %}
 <style>
-.vocab-pill{transition:all .3s ease;cursor:pointer}.vocab-pill:hover{transform:translateY(-8px);box-shadow:0 8px 20px rgba(0,0,0,.25)}.tone-learning-section{margin:40px auto;padding:30px;max-width:1000px;border-radius:22px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2)}.tone-learning-section h3,.tone-learning-section p{text-align:center}.tone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.tone-card{padding:20px;text-align:center}.tone-card audio{width:100%;max-width:100%}.tone-card:hover{transform:translateY(-5px)}.tone-symbol{font-size:42px;font-weight:bold}.tone-card button,.quiz-play-btn,.quiz-option button,.compare-btn{margin-top:12px;border:none;border-radius:20px;padding:8px 18px;background:#22c55e;color:#fff;font-weight:bold}.tone-detail-box,.tone-quiz-box{margin-top:30px;padding:25px;border-radius:18px;background:rgba(255,255,255,.1);color:#fff}.quiz-options{display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.quiz-stats{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:14px 0}.quiz-stat{padding:7px 14px;border-radius:18px;background:rgba(255,255,255,.12);font-weight:600}.compare-box{display:none;margin:16px auto 0;padding:15px;max-width:600px;border-radius:15px;background:rgba(255,255,255,.08);text-align:center}.compare-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.quiz-option-hidden{display:none!important}@media(max-width:700px){.tone-grid{grid-template-columns:repeat(2,1fr)}}
+.vocab-pill{transition:all .3s ease;cursor:pointer}.vocab-pill:hover{transform:translateY(-8px);box-shadow:0 8px 20px rgba(0,0,0,.25)}.tone-learning-section{margin:40px auto;padding:30px;max-width:1000px;border-radius:22px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2)}.tone-learning-section h3,.tone-learning-section p{text-align:center}.tone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.tone-card{padding:20px;text-align:center}.tone-card audio{width:100%;max-width:100%}.tone-card:hover{transform:translateY(-5px)}.tone-symbol{font-size:42px;font-weight:bold}.tone-card button,.quiz-play-btn,.quiz-options button,.compare-btn{margin-top:12px;border:none;border-radius:20px;padding:8px 18px;background:#22c55e;color:#fff;font-weight:bold}.tone-detail-box,.tone-quiz-box{margin-top:30px;padding:25px;border-radius:18px;background:rgba(255,255,255,.1);color:#fff}.quiz-options{display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.quiz-stats{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:14px 0}.quiz-stat{padding:7px 14px;border-radius:18px;background:rgba(255,255,255,.12);font-weight:600}.compare-box{display:none;margin:16px auto 0;padding:15px;max-width:600px;border-radius:15px;background:rgba(255,255,255,.08);text-align:center}.compare-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.quiz-option-hidden{display:none!important}@media(max-width:700px){.tone-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <main class="main">
-<div class="page-title dark-background" style="background-image:url(assets/img/education/showcase-1.webp);"><div class="container position-relative"><h1>Pronunciation Page</h1><p>Bopomofo (Zhuyin 注音) is a phonetic system used in Taiwan to help learners pronounce Mandarin Chinese accurately. Each symbol represents a specific sound, similar to letters in the English alphabet. Learning Bopomofo helps students build a strong foundation in listening, pronunciation, and reading Chinese.<br><br>Mandarin Chinese has four main tones. The meaning of a word can change completely depending on its tone. Mastering the four tones is essential for clear communication and understanding spoken Chinese. In this section, you will learn Bopomofo symbols, their corresponding Pinyin, example words, and correct pronunciation through audio practice.</p><nav class="breadcrumbs"><ol><li><a href="{% url 'home' %}">Home</a></li><li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li></ol></nav></div></div>
+<div class="page-title dark-background" style="background-image:url('{% static 'assets/img/education/showcase-1.webp' %}');"><div class="container position-relative"><h1>Pronunciation Page</h1><p>Bopomofo (Zhuyin 注音) is a phonetic system used in Taiwan to help learners pronounce Mandarin Chinese accurately. Each symbol represents a specific sound, similar to letters in the English alphabet. Learning Bopomofo helps students build a strong foundation in listening, pronunciation, and reading Chinese.<br><br>Mandarin Chinese has four main tones. The meaning of a word can change completely depending on its tone. Mastering the four tones is essential for clear communication and understanding spoken Chinese. In this section, you will learn Bopomofo symbols, their corresponding Pinyin, example words, and correct pronunciation through audio practice.</p><nav class="breadcrumbs"><ol><li><a href="{% url 'home' %}">Home</a></li><li><a href="{% url 'access_learning_materials' %}">Learning Materials</a></li></ol></nav></div></div>
 <section id="pronunciation-section" class="pronunciation-section section"><div id="four-tones" class="container section-title" data-aos="fade-up"><h2>Chinese Four Tones Practice</h2><div class="tone-learning-section"><p class="tone-intro">Click each tone to hear the sound and learn its shape. Then test yourself with an adaptive listening challenge.</p><div class="tone-grid">{% for tone in tones %}<div class="tone-card" onclick="selectTone('{{ forloop.counter }}')"><h4>{{ tone.name }}</h4><div class="tone-symbol">{{ tone.symbol }}</div><p>{{ tone.example }}</p><small>{{ tone.description }}</small>{% if tone.audio_file %}<audio id="tone{{ forloop.counter }}" onclick="event.stopPropagation()" controls preload="auto"><source src="{{ tone.audio_file.url }}"></audio>{% endif %}</div>{% endfor %}</div><div class="tone-detail-box" id="toneDetail"><h4>Select a tone to practice</h4><p>The tone explanation will appear here.</p></div>
 <div class="tone-quiz-box"><h3>Tone Listening Challenge</h3><p id="levelDescription">Level 1: Start by distinguishing Tone 1 and Tone 4.</p><div class="quiz-stats"><span class="quiz-stat" id="levelText">Level 1</span><span class="quiz-stat" id="streakText">🔥 Streak: 0</span><span class="quiz-stat" id="bestText">Best: 0</span></div><button type="button" class="quiz-play-btn" onclick="playQuizTone()">🔊 Play Quiz Sound</button><div class="quiz-options">{% for tone in tones %}<button type="button" id="toneOption{{ forloop.counter }}" onclick="checkAnswer('{{ forloop.counter }}')">{{ tone.tone_name }}</button>{% endfor %}</div><p id="quizResult"></p><p id="scoreText">Score: 0 / 0</p><div class="compare-box" id="compareBox"><strong>Hear the difference</strong><p id="compareMessage"></p><div class="compare-actions"><button type="button" class="compare-btn" id="chosenToneBtn" onclick="playComparison('chosen')">Your choice 🔊</button><button type="button" class="compare-btn" id="correctToneBtn" onclick="playComparison('correct')">Correct tone 🔊</button></div></div></div></div></div>
 <div id="bopomofo" class="container section-title" data-aos="fade-up"><h2>BoPoMoFo</h2></div><div class="container" data-aos="fade-up"><div class="word-container">{% for item in pronunciations %}<button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">{{ item.symbol }}</button><div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content text-dark"><div class="modal-header"><h5 class="modal-title">Symbol: {{ item.symbol }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p><strong>Pinyin:</strong> {{ item.pinyin }}</p><p><strong>Chinese Example:</strong> {{ item.chinese_example }}</p><p><strong>Pinyin Example:</strong> {{ item.pinyin_example }}</p><p><strong>English Example:</strong> {{ item.english_example }}</p>{% if item.audio_file %}<audio onclick="event.stopPropagation()" controls><source src="{{ item.audio_file.url }}"></audio>{% else %}<p>No audio available.</p>{% endif %}</div></div></div></div>{% empty %}<p>No vocabulary added yet.</p>{% endfor %}</div></div>
 <div class="container mb-5" data-aos="fade-up"><div class="tone-learning-section"><h3>BoPoMoFo & Pinyin Reference</h3><p>Use this table to match BoPoMoFo symbols with their corresponding Pinyin.</p><h4 class="mt-4 mb-3 text-center">Initials</h4><div class="table-responsive"><table class="table table-bordered table-hover text-center align-middle"><thead><tr><th>BoPoMoFo</th><th>Pinyin</th><th>BoPoMoFo</th><th>Pinyin</th></tr></thead><tbody><tr><td class="fs-3">ㄅ</td><td>b</td><td class="fs-3">ㄆ</td><td>p</td></tr><tr><td class="fs-3">ㄇ</td><td>m</td><td class="fs-3">ㄈ</td><td>f</td></tr><tr><td class="fs-3">ㄉ</td><td>d</td><td class="fs-3">ㄊ</td><td>t</td></tr><tr><td class="fs-3">ㄋ</td><td>n</td><td class="fs-3">ㄌ</td><td>l</td></tr><tr><td class="fs-3">ㄍ</td><td>g</td><td class="fs-3">ㄎ</td><td>k</td></tr><tr><td class="fs-3">ㄏ</td><td>h</td><td class="fs-3">ㄐ</td><td>j</td></tr><tr><td class="fs-3">ㄑ</td><td>q</td><td class="fs-3">ㄒ</td><td>x</td></tr><tr><td class="fs-3">ㄓ</td><td>zh</td><td class="fs-3">ㄔ</td><td>ch</td></tr><tr><td class="fs-3">ㄕ</td><td>sh</td><td class="fs-3">ㄖ</td><td>r</td></tr><tr><td class="fs-3">ㄗ</td><td>z</td><td class="fs-3">ㄘ</td><td>c</td></tr><tr><td class="fs-3">ㄙ</td><td>s</td><td></td><td></td></tr></tbody></table></div><h4 class="mt-5 mb-3 text-center">Finals</h4><div class="table-responsive"><table class="table table-bordered table-hover text-center align-middle"><thead><tr><th>BoPoMoFo</th><th>Pinyin</th><th>BoPoMoFo</th><th>Pinyin</th></tr></thead><tbody><tr><td class="fs-3">ㄚ</td><td>a</td><td class="fs-3">ㄛ</td><td>o</td></tr><tr><td class="fs-3">ㄜ</td><td>e</td><td class="fs-3">ㄝ</td><td>ê</td></tr><tr><td class="fs-3">ㄞ</td><td>ai</td><td class="fs-3">ㄟ</td><td>ei</td></tr><tr><td class="fs-3">ㄠ</td><td>ao</td><td class="fs-3">ㄡ</td><td>ou</td></tr><tr><td class="fs-3">ㄢ</td><td>an</td><td class="fs-3">ㄣ</td><td>en</td></tr><tr><td class="fs-3">ㄤ</td><td>ang</td><td class="fs-3">ㄥ</td><td>eng</td></tr><tr><td class="fs-3">ㄦ</td><td>er</td><td class="fs-3">ㄧ</td><td>i / yi</td></tr><tr><td class="fs-3">ㄨ</td><td>u / wu</td><td class="fs-3">ㄩ</td><td>ü / yu</td></tr></tbody></table></div></div></div></section></main>
 <script>
-let currentQuizTone=null,score=0,total=0,streak=0,lastChosenTone=null,lastCorrectTone=null,quizAudioContext=null;
-let level=Math.max(1,Math.min(4,Number(localStorage.getItem('pandaspeakToneLevel')||1)));let bestStreak=Number(localStorage.getItem('pandaspeakToneBest')||0);let recentResults=[];
-const levelTones={1:[1,4],2:[1,2,4],3:[1,2,3,4],4:[2,3]};
-const levelDescriptions={1:'Level 1: Distinguish the very different Tone 1 and Tone 4.',2:'Level 2: Tone 2 joins the challenge.',3:'Level 3: All four Mandarin tones.',4:'Level 4: Focus on the commonly confused Tone 2 and Tone 3.'};
-function getQuizAudioContext(){if(!quizAudioContext){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;quizAudioContext=new A()}if(quizAudioContext.state==='suspended')quizAudioContext.resume().catch(function(){});return quizAudioContext}
-function playEffectTone(freq,start,duration,volume,type){const ctx=getQuizAudioContext();if(!ctx)return;const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=type||'sine';osc.frequency.setValueAtTime(freq,ctx.currentTime+start);gain.gain.setValueAtTime(.0001,ctx.currentTime+start);gain.gain.exponentialRampToValueAtTime(volume||.08,ctx.currentTime+start+.01);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+start+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+duration+.02)}
-function playCorrectSound(){playEffectTone(740,0,.12,.16,'sine');playEffectTone(1047,.11,.20,.18,'triangle')}function playWrongSound(){playEffectTone(260,0,.18,.15,'sawtooth');playEffectTone(190,.14,.26,.13,'sawtooth')}
-const toneInfo={% for tone in tones %}"{{ forloop.counter }}":{title:"{{ tone.tone_name|escapejs }}: {{ tone.example|escapejs }}",text:"{{ tone.description|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}};
-function selectTone(n){document.getElementById('toneDetail').innerHTML=`<h4>${toneInfo[n].title}</h4><p>${toneInfo[n].text}</p>`}
-function updateGameUI(){document.getElementById('levelText').innerText=`Level ${level}`;document.getElementById('streakText').innerText=`🔥 Streak: ${streak}`;document.getElementById('bestText').innerText=`Best: ${bestStreak}`;document.getElementById('levelDescription').innerText=levelDescriptions[level];for(let i=1;i<=4;i++){const b=document.getElementById('toneOption'+i);if(b)b.classList.toggle('quiz-option-hidden',!levelTones[level].includes(i))}}
-function playToneNumber(n){const audio=document.getElementById('tone'+n);if(!audio){document.getElementById('quizResult').innerText='Audio for this tone is unavailable.';return false}audio.muted=false;audio.volume=1;try{audio.pause();audio.currentTime=0}catch(e){}const playPromise=audio.play();if(playPromise&&typeof playPromise.catch==='function'){playPromise.catch(function(){document.getElementById('quizResult').innerText='Could not play the tone audio. Please try the tone player above.'})}return true}
-function playQuizTone(){const pool=levelTones[level].filter(n=>document.getElementById('tone'+n));if(!pool.length){document.getElementById('quizResult').innerText='Tone audio is unavailable right now.';return}currentQuizTone=pool[Math.floor(Math.random()*pool.length)];document.getElementById('quizResult').innerText='';document.getElementById('compareBox').style.display='none';playToneNumber(currentQuizTone)}
-function adjustDifficulty(correct){recentResults.push(correct);if(recentResults.length>5)recentResults.shift();if(streak>=4&&level<4){level++;streak=0;recentResults=[];localStorage.setItem('pandaspeakToneLevel',level);document.getElementById('quizResult').innerText+=` 🎉 Level up to Level ${level}!`}else if(recentResults.length===5&&recentResults.filter(Boolean).length<=1&&level>1){level--;streak=0;recentResults=[];localStorage.setItem('pandaspeakToneLevel',level);document.getElementById('quizResult').innerText+=` Let's practice Level ${level} a little more.`}updateGameUI()}
-function checkAnswer(answer){answer=Number(answer);if(!currentQuizTone){document.getElementById('quizResult').innerText='Please play the quiz sound first.';return}total++;lastChosenTone=answer;lastCorrectTone=currentQuizTone;const correct=answer===currentQuizTone;if(correct){score++;streak++;if(streak>bestStreak){bestStreak=streak;localStorage.setItem('pandaspeakToneBest',bestStreak)}document.getElementById('quizResult').innerText=streak>=2?`Correct! 🔥 ${streak} in a row!`:'Correct!';document.getElementById('compareBox').style.display='none';playCorrectSound()}else{streak=0;document.getElementById('quizResult').innerText=`Not quite. The correct answer was Tone ${currentQuizTone}.`;document.getElementById('compareMessage').innerText=`Compare Tone ${answer} with Tone ${currentQuizTone}.`;document.getElementById('chosenToneBtn').innerText=`Your choice: Tone ${answer} 🔊`;document.getElementById('correctToneBtn').innerText=`Correct: Tone ${currentQuizTone} 🔊`;document.getElementById('compareBox').style.display='block';playWrongSound()}document.getElementById('scoreText').innerText=`Score: ${score} / ${total}`;currentQuizTone=null;adjustDifficulty(correct)}
-function playComparison(which){playToneNumber(which==='chosen'?lastChosenTone:lastCorrectTone)}
+let currentQuizTone = null;
+let score = 0;
+let total = 0;
+let streak = 0;
+let lastChosenTone = null;
+let lastCorrectTone = null;
+let quizAudioContext = null;
+let level = Math.max(1, Math.min(4, Number(localStorage.getItem('pandaspeakToneLevel') || 1)));
+let bestStreak = Number(localStorage.getItem('pandaspeakToneBest') || 0);
+let recentResults = [];
+
+const levelTones = {1:[1,4], 2:[1,2,4], 3:[1,2,3,4], 4:[2,3]};
+const levelDescriptions = {
+  1:'Level 1: Distinguish the very different Tone 1 and Tone 4.',
+  2:'Level 2: Tone 2 joins the challenge.',
+  3:'Level 3: All four Mandarin tones.',
+  4:'Level 4: Focus on the commonly confused Tone 2 and Tone 3.'
+};
+
+function getQuizAudioContext() {
+  if (!quizAudioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    quizAudioContext = new AudioContextClass();
+  }
+  if (quizAudioContext.state === 'suspended') {
+    quizAudioContext.resume().catch(function() {});
+  }
+  return quizAudioContext;
+}
+
+function playEffectTone(freq, start, duration, volume, type) {
+  const ctx = getQuizAudioContext();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+  gain.gain.exponentialRampToValueAtTime(volume || 0.08, ctx.currentTime + start + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime + start);
+  osc.stop(ctx.currentTime + start + duration + 0.02);
+}
+
+function playCorrectSound() {
+  playEffectTone(740, 0, 0.12, 0.16, 'sine');
+  playEffectTone(1047, 0.11, 0.20, 0.18, 'triangle');
+}
+
+function playWrongSound() {
+  playEffectTone(260, 0, 0.18, 0.15, 'sawtooth');
+  playEffectTone(190, 0.14, 0.26, 0.13, 'sawtooth');
+}
+
+function selectTone(n) {
+  const cards = document.querySelectorAll('.tone-card');
+  const card = cards[Number(n) - 1];
+  if (!card) return;
+  const title = card.querySelector('h4');
+  const example = card.querySelector('p');
+  const description = card.querySelector('small');
+  document.getElementById('toneDetail').innerHTML = '<h4>' + (title ? title.textContent : 'Tone') + ': ' + (example ? example.textContent : '') + '</h4><p>' + (description ? description.textContent : '') + '</p>';
+}
+
+function updateGameUI() {
+  document.getElementById('levelText').innerText = 'Level ' + level;
+  document.getElementById('streakText').innerText = '🔥 Streak: ' + streak;
+  document.getElementById('bestText').innerText = 'Best: ' + bestStreak;
+  document.getElementById('levelDescription').innerText = levelDescriptions[level];
+  for (let i = 1; i <= 4; i++) {
+    const b = document.getElementById('toneOption' + i);
+    if (b) b.classList.toggle('quiz-option-hidden', !levelTones[level].includes(i));
+  }
+}
+
+function playToneNumber(n) {
+  const audio = document.getElementById('tone' + n);
+  if (!audio) {
+    document.getElementById('quizResult').innerText = 'Audio for this tone is unavailable.';
+    return false;
+  }
+  audio.muted = false;
+  audio.volume = 1;
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+  } catch (e) {}
+  const playPromise = audio.play();
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch(function() {
+      document.getElementById('quizResult').innerText = 'Could not play the tone audio. Please try the tone player above.';
+    });
+  }
+  return true;
+}
+
+function playQuizTone() {
+  const pool = levelTones[level].filter(function(n) {
+    return document.getElementById('tone' + n);
+  });
+  if (!pool.length) {
+    document.getElementById('quizResult').innerText = 'Tone audio is unavailable right now.';
+    return;
+  }
+  currentQuizTone = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('quizResult').innerText = '';
+  document.getElementById('compareBox').style.display = 'none';
+  playToneNumber(currentQuizTone);
+}
+
+function adjustDifficulty(correct) {
+  recentResults.push(correct);
+  if (recentResults.length > 5) recentResults.shift();
+  if (streak >= 4 && level < 4) {
+    level++;
+    streak = 0;
+    recentResults = [];
+    localStorage.setItem('pandaspeakToneLevel', level);
+    document.getElementById('quizResult').innerText += ' 🎉 Level up to Level ' + level + '!';
+  } else if (recentResults.length === 5 && recentResults.filter(Boolean).length <= 1 && level > 1) {
+    level--;
+    streak = 0;
+    recentResults = [];
+    localStorage.setItem('pandaspeakToneLevel', level);
+    document.getElementById('quizResult').innerText += ' Let\'s practice Level ' + level + ' a little more.';
+  }
+  updateGameUI();
+}
+
+function checkAnswer(answer) {
+  answer = Number(answer);
+  if (!currentQuizTone) {
+    document.getElementById('quizResult').innerText = 'Please play the quiz sound first.';
+    return;
+  }
+  total++;
+  lastChosenTone = answer;
+  lastCorrectTone = currentQuizTone;
+  const correct = answer === currentQuizTone;
+  if (correct) {
+    score++;
+    streak++;
+    if (streak > bestStreak) {
+      bestStreak = streak;
+      localStorage.setItem('pandaspeakToneBest', bestStreak);
+    }
+    document.getElementById('quizResult').innerText = streak >= 2 ? 'Correct! 🔥 ' + streak + ' in a row!' : 'Correct!';
+    document.getElementById('compareBox').style.display = 'none';
+    playCorrectSound();
+  } else {
+    streak = 0;
+    document.getElementById('quizResult').innerText = 'Not quite. The correct answer was Tone ' + currentQuizTone + '.';
+    document.getElementById('compareMessage').innerText = 'Compare Tone ' + answer + ' with Tone ' + currentQuizTone + '.';
+    document.getElementById('chosenToneBtn').innerText = 'Your choice: Tone ' + answer + ' 🔊';
+    document.getElementById('correctToneBtn').innerText = 'Correct: Tone ' + currentQuizTone + ' 🔊';
+    document.getElementById('compareBox').style.display = 'block';
+    playWrongSound();
+  }
+  document.getElementById('scoreText').innerText = 'Score: ' + score + ' / ' + total;
+  currentQuizTone = null;
+  adjustDifficulty(correct);
+}
+
+function playComparison(which) {
+  playToneNumber(which === 'chosen' ? lastChosenTone : lastCorrectTone);
+}
+
 updateGameUI();
 </script>
 {% endblock %}
