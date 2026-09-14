@@ -19,6 +19,18 @@ def _subscription_api_key():
     return getattr(settings, "STRIPE_SUBSCRIPTION_SECRET_KEY", "") or settings.STRIPE_SECRET_KEY
 
 
+def _stripe_value(obj, key, default=None):
+    """Read a value from either a dict or a Stripe object safely."""
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    try:
+        return getattr(obj, key)
+    except (AttributeError, KeyError, TypeError):
+        return default
+
+
 def _annual_line_items():
     price_id = getattr(settings, "STRIPE_SUBSCRIPTION_PRICE_ID", "")
     if price_id:
@@ -82,18 +94,18 @@ def stripe_subscription_checkout(request):
 
 
 def _period_end_datetime(stripe_subscription):
-    period_end = stripe_subscription.get("current_period_end")
+    period_end = _stripe_value(stripe_subscription, "current_period_end")
     if not period_end:
         return None
     return datetime.fromtimestamp(period_end, tz=timezone.utc)
 
 
 def _sync_subscription_from_stripe(stripe_subscription, user=None):
-    metadata = stripe_subscription.get("metadata") or {}
-    if metadata.get("purpose") != "pandaspeak_annual_subscription":
+    metadata = _stripe_value(stripe_subscription, "metadata", {}) or {}
+    if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
         return
 
-    stripe_subscription_id = stripe_subscription.get("id")
+    stripe_subscription_id = _stripe_value(stripe_subscription, "id")
     if not stripe_subscription_id:
         return
 
@@ -111,7 +123,7 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
             stripe_subscription_id=stripe_subscription_id
         ).first()
         if local_subscription is None:
-            user_id = metadata.get("user_id")
+            user_id = _stripe_value(metadata, "user_id")
             if user_id:
                 try:
                     user = User.objects.get(pk=user_id)
@@ -128,8 +140,8 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
     if local_subscription is None:
         return
 
-    status = stripe_subscription.get("status")
-    cancel_at_period_end = bool(stripe_subscription.get("cancel_at_period_end"))
+    status = _stripe_value(stripe_subscription, "status")
+    cancel_at_period_end = bool(_stripe_value(stripe_subscription, "cancel_at_period_end", False))
 
     local_subscription.subscription_plan = "standard"
     local_subscription.subscription_cost = 15.00
@@ -157,20 +169,21 @@ def stripe_subscription_success(request):
         messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
-    metadata = checkout_session.get("metadata") or {}
+    metadata = _stripe_value(checkout_session, "metadata", {}) or {}
+    subscription_id = _stripe_value(checkout_session, "subscription")
     if (
-        checkout_session.get("mode") != "subscription"
-        or metadata.get("purpose") != "pandaspeak_annual_subscription"
-        or str(metadata.get("user_id")) != str(request.user.id)
-        or checkout_session.get("payment_status") not in ("paid", "no_payment_required")
-        or not checkout_session.get("subscription")
+        _stripe_value(checkout_session, "mode") != "subscription"
+        or _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription"
+        or str(_stripe_value(metadata, "user_id")) != str(request.user.id)
+        or _stripe_value(checkout_session, "payment_status") not in ("paid", "no_payment_required")
+        or not subscription_id
     ):
         messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
     try:
         stripe_subscription = stripe.Subscription.retrieve(
-            checkout_session.get("subscription"),
+            subscription_id,
             api_key=_subscription_api_key(),
         )
         _sync_subscription_from_stripe(stripe_subscription, user=request.user)
@@ -202,25 +215,27 @@ def stripe_subscription_webhook(request):
     except (ValueError, stripe.error.SignatureVerificationError):
         return HttpResponse(status=400)
 
-    event_type = event.get("type")
-    obj = event.get("data", {}).get("object", {})
+    event_type = _stripe_value(event, "type")
+    event_data = _stripe_value(event, "data", {}) or {}
+    obj = _stripe_value(event_data, "object", {}) or {}
 
     try:
         if event_type == "checkout.session.completed":
-            metadata = obj.get("metadata") or {}
+            metadata = _stripe_value(obj, "metadata", {}) or {}
+            subscription_id = _stripe_value(obj, "subscription")
             if (
-                obj.get("mode") == "subscription"
-                and metadata.get("purpose") == "pandaspeak_annual_subscription"
-                and obj.get("subscription")
+                _stripe_value(obj, "mode") == "subscription"
+                and _stripe_value(metadata, "purpose") == "pandaspeak_annual_subscription"
+                and subscription_id
             ):
-                user_id = metadata.get("user_id")
+                user_id = _stripe_value(metadata, "user_id")
                 try:
                     user = User.objects.get(pk=user_id)
                 except (User.DoesNotExist, ValueError, TypeError):
                     return HttpResponse(status=200)
 
                 stripe_subscription = stripe.Subscription.retrieve(
-                    obj.get("subscription"),
+                    subscription_id,
                     api_key=_subscription_api_key(),
                 )
                 _sync_subscription_from_stripe(stripe_subscription, user=user)
@@ -229,7 +244,7 @@ def stripe_subscription_webhook(request):
             _sync_subscription_from_stripe(obj)
 
         elif event_type in ("invoice.paid", "invoice.payment_failed"):
-            stripe_subscription_id = obj.get("subscription")
+            stripe_subscription_id = _stripe_value(obj, "subscription")
             if stripe_subscription_id:
                 stripe_subscription = stripe.Subscription.retrieve(
                     stripe_subscription_id,
