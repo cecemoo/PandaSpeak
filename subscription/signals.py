@@ -10,70 +10,119 @@ from account.push import send_push_to_user
 from .models import Subscription
 
 
+def _payment_method(subscription):
+    if subscription.stripe_subscription_id:
+        return "Stripe"
+    if subscription.paypal_subscription_id:
+        return "PayPal"
+    return "online payment"
+
+
+def _manager_queryset():
+    User = get_user_model()
+    return User.objects.filter(is_staff=True, is_active=True)
+
+
 @receiver(pre_save, sender=Subscription)
-def mark_subscription_activation(sender, instance, **kwargs):
-    """Track whether this save changes a subscription from inactive to active."""
+def mark_subscription_changes(sender, instance, **kwargs):
+    """Track activation and cancellation transitions for manager notifications."""
     if not instance.pk:
         instance._became_active = bool(instance.is_active)
+        instance._became_cancelled = bool(instance.is_cancelled)
         return
 
-    previous_is_active = (
+    previous = (
         Subscription.objects.filter(pk=instance.pk)
-        .values_list("is_active", flat=True)
+        .values("is_active", "is_cancelled")
         .first()
-    )
-    instance._became_active = bool(instance.is_active and not previous_is_active)
+    ) or {"is_active": False, "is_cancelled": False}
+
+    instance._became_active = bool(instance.is_active and not previous["is_active"])
+    instance._became_cancelled = bool(instance.is_cancelled and not previous["is_cancelled"])
 
 
 @receiver(post_save, sender=Subscription)
 def notify_managers_on_subscription(sender, instance, created, **kwargs):
-    """Notify PandaSpeak managers when a student becomes an active subscriber."""
-    if not getattr(instance, "_became_active", False):
+    """Notify PandaSpeak managers when a subscription is activated or cancelled."""
+    became_active = getattr(instance, "_became_active", False)
+    became_cancelled = getattr(instance, "_became_cancelled", False)
+    if not became_active and not became_cancelled:
         return
 
     student = instance.user
     student_name = student.get_full_name() or student.email or student.username
-
-    if instance.stripe_subscription_id:
-        payment_method = "Stripe"
-    elif instance.paypal_subscription_id:
-        payment_method = "PayPal"
-    else:
-        payment_method = "online payment"
-
-    title = "New Student Subscription"
-    message = (
-        f"{student_name} ({student.email}) subscribed to the PandaSpeak "
-        f"annual plan via {payment_method}."
-    )
+    payment_method = _payment_method(instance)
     link = reverse("manager_dashboard")
+    managers = _manager_queryset()
 
-    User = get_user_model()
-    managers = User.objects.filter(is_staff=True, is_active=True)
-
-    for manager in managers:
-        Notification.objects.create(
-            user=manager,
-            title=title,
-            message=message,
-            link=link,
+    if became_active:
+        title = "New Student Subscription"
+        message = (
+            f"{student_name} ({student.email}) subscribed to the PandaSpeak "
+            f"annual plan via {payment_method}."
         )
-        send_push_to_user(manager, title, message, link)
 
-    manager_emails = list(
-        managers.exclude(email="").values_list("email", flat=True).distinct()
-    )
-    if manager_emails:
-        send_mail(
-            subject="New PandaSpeak Student Subscription",
-            message=(
-                "A student subscription has been activated on PandaSpeak.\n\n"
-                f"Student: {student_name}\n"
-                f"Email: {student.email}\n"
-                "Plan: Annual\n"
-                f"Payment method: {payment_method}\n"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=manager_emails,
-            fail_silently=True,
+        for manager in managers:
+            Notification.objects.create(
+                user=manager,
+                title=title,
+                message=message,
+                link=link,
+            )
+            send_push_to_user(manager, title, message, link)
+
+        manager_emails = list(
+            managers.exclude(email="").values_list("email", flat=True).distinct()
         )
+        if manager_emails:
+            send_mail(
+                subject="New PandaSpeak Student Subscription",
+                message=(
+                    "A student subscription has been activated on PandaSpeak.\n\n"
+                    f"Student: {student_name}\n"
+                    f"Email: {student.email}\n"
+                    "Plan: Annual\n"
+                    f"Payment method: {payment_method}\n"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=manager_emails,
+                fail_silently=True,
+            )
+
+    if became_cancelled:
+        title = "Student Subscription Cancelled"
+        access_until = instance.access_until
+        access_text = access_until.strftime("%b %d, %Y") if access_until else "the end of the current paid period"
+        message = (
+            f"{student_name} ({student.email}) cancelled the PandaSpeak annual "
+            f"subscription via {payment_method}. Access remains available until {access_text}."
+        )
+
+        for manager in managers:
+            Notification.objects.create(
+                user=manager,
+                title=title,
+                message=message,
+                link=link,
+            )
+            send_push_to_user(manager, title, message, link)
+
+        manager_emails = list(
+            managers.exclude(email="").values_list("email", flat=True).distinct()
+        )
+        if manager_emails:
+            send_mail(
+                subject="PandaSpeak Student Subscription Cancelled",
+                message=(
+                    "A student has cancelled a PandaSpeak subscription.\n\n"
+                    f"Student: {student_name}\n"
+                    f"Email: {student.email}\n"
+                    "Plan: Annual\n"
+                    f"Payment method: {payment_method}\n"
+                    f"Access until: {access_text}\n\n"
+                    "The student should retain access through the current paid period and will not renew automatically."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=manager_emails,
+                fail_silently=True,
+            )
