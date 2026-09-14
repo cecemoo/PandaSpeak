@@ -391,6 +391,45 @@
   let currentQuizTone = null;
   let score = 0;
   let total = 0;
+  let quizAudioContext = null;
+
+  function getQuizAudioContext() {
+    if (!quizAudioContext) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      quizAudioContext = new AudioContextClass();
+    }
+    if (quizAudioContext.state === "suspended") {
+      quizAudioContext.resume().catch(function () {});
+    }
+    return quizAudioContext;
+  }
+
+  function playEffectTone(freq, start, duration, volume, type) {
+    const ctx = getQuizAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(volume || 0.08, ctx.currentTime + start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + start);
+    osc.stop(ctx.currentTime + start + duration + 0.02);
+  }
+
+  function playCorrectSound() {
+    playEffectTone(740, 0, 0.12, 0.16, "sine");
+    playEffectTone(1047, 0.11, 0.20, 0.18, "triangle");
+  }
+
+  function playWrongSound() {
+    playEffectTone(260, 0, 0.18, 0.15, "sawtooth");
+    playEffectTone(190, 0.14, 0.26, 0.13, "sawtooth");
+  }
 
   const toneInfo = {
     {% for tone in tones %}
@@ -433,9 +472,11 @@
     if (answer === currentQuizTone) {
       score++;
       document.getElementById("quizResult").innerText = "Correct!";
+      playCorrectSound();
     } else {
       document.getElementById("quizResult").innerText =
         "Try again. The correct answer was tone " + currentQuizTone;
+      playWrongSound();
     }
 
     document.getElementById("scoreText").innerText = `Score: ${score} / ${total}`;
