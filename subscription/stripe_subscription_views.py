@@ -109,39 +109,42 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
     if not stripe_subscription_id:
         return
 
-    local_subscription = None
-    if user is not None:
-        local_subscription, _ = Subscription.objects.get_or_create(
-            user=user,
-            defaults={
-                "subscription_plan": "standard",
-                "subscription_cost": 15.00,
-            },
-        )
-    else:
-        local_subscription = Subscription.objects.filter(
-            stripe_subscription_id=stripe_subscription_id
-        ).first()
-        if local_subscription is None:
-            user_id = _stripe_value(metadata, "user_id")
-            if user_id:
-                try:
-                    user = User.objects.get(pk=user_id)
-                except (User.DoesNotExist, ValueError, TypeError):
-                    return
-                local_subscription, _ = Subscription.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "subscription_plan": "standard",
-                        "subscription_cost": 15.00,
-                    },
-                )
-
-    if local_subscription is None:
-        return
-
     status = _stripe_value(stripe_subscription, "status")
     cancel_at_period_end = bool(_stripe_value(stripe_subscription, "cancel_at_period_end", False))
+
+    local_subscription = Subscription.objects.filter(
+        stripe_subscription_id=stripe_subscription_id
+    ).first()
+
+    if local_subscription is None:
+        if user is None:
+            user_id = _stripe_value(metadata, "user_id")
+            if not user_id:
+                return
+            try:
+                user = User.objects.get(pk=user_id)
+            except (User.DoesNotExist, ValueError, TypeError):
+                return
+
+        existing = Subscription.objects.filter(user=user).first()
+        if existing is not None:
+            # A Stripe event for a different subscription must never overwrite a
+            # currently active PandaSpeak subscription. This protects a valid
+            # subscription when an accidental duplicate is cancelled/refunded.
+            if (
+                existing.stripe_subscription_id
+                and existing.stripe_subscription_id != stripe_subscription_id
+                and existing.is_active
+                and not existing.is_cancelled
+            ):
+                return
+            local_subscription = existing
+        else:
+            local_subscription = Subscription.objects.create(
+                user=user,
+                subscription_plan="standard",
+                subscription_cost=15.00,
+            )
 
     local_subscription.subscription_plan = "standard"
     local_subscription.subscription_cost = 15.00
