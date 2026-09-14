@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
@@ -57,3 +59,21 @@ def notify_managers_on_subscription(sender, instance, created, **kwargs):
             link=link,
         )
         send_push_to_user(manager, title, message, link)
+
+    manager_emails = list(
+        managers.exclude(email="").values_list("email", flat=True).distinct()
+    )
+    if manager_emails:
+        send_mail(
+            subject="New PandaSpeak Student Subscription",
+            message=(
+                "A student subscription has been activated on PandaSpeak.\n\n"
+                f"Student: {student_name}\n"
+                f"Email: {student.email}\n"
+                "Plan: Annual\n"
+                f"Payment method: {payment_method}\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=manager_emails,
+            fail_silently=True,
+        )
