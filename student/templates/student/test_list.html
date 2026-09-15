@@ -15,7 +15,7 @@
         {% for test in tests %}<div class="col-md-6 mb-3"><div class="card h-100"><div class="card-body d-flex flex-column"><h5 class="card-title">{{ test.name }}</h5><p class="card-text">{{ test.description }}</p><a href="{% url 'take_test' test.id %}" class="btn btn-primary rounded-pill mt-auto">Start Test</a></div></div></div>{% endfor %}
       </div>
       {% else %}
-      <div class="alert alert-info text-center fw-semibold py-4" role="status">Currently no test available.</div>
+      <div class="alert alert-info text-center fw-semibold py-4" style="color:#111 !important;background-color:#d9f3ff !important;opacity:1;" role="status">Currently no test available.</div>
       {% endif %}
     </div>
   </section>
