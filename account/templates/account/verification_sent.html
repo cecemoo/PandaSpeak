@@ -1,0 +1,13 @@
+{% extends 'account/base.html' %}
+{% block content %}
+<main class="main">
+  <section class="section">
+    <div class="container" style="max-width:700px;padding-top:60px;padding-bottom:60px;text-align:center;">
+      <h2>Check Your Email</h2>
+      <p>We sent a verification link to <strong>{{ email }}</strong>.</p>
+      <p>Please open the email and click the verification link before signing in to PandaSpeak.</p>
+      <p>If you do not see the message, please check your spam or junk folder.</p>
+    </div>
+  </section>
+</main>
+{% endblock %}
