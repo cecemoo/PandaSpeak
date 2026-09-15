@@ -1,0 +1,50 @@
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import ContactForm
+
+
+def contact(request):
+    User = get_user_model()
+    instructor = None
+    instructor_id = request.GET.get('instructor') or request.POST.get('instructor')
+    course_id = request.GET.get('course') or request.POST.get('course')
+    if instructor_id:
+        instructor = get_object_or_404(User, pk=instructor_id, is_teacher=True)
+
+    initial = {}
+    if request.user.is_authenticated:
+        initial['name'] = request.user.get_full_name()
+        initial['email'] = request.user.email
+    if instructor:
+        initial['subject'] = f"Course inquiry for {instructor.get_full_name() or instructor.email}"
+
+    form = ContactForm(request.POST or None, initial=initial if request.method != 'POST' else None)
+    if request.method == 'POST' and form.is_valid():
+        recipient = instructor.email if instructor and instructor.email else settings.DEFAULT_FROM_EMAIL
+        send_mail(
+            subject=f"PandaSpeak Contact: {form.cleaned_data['subject']}",
+            message=(
+                f"From: {form.cleaned_data['name']} <{form.cleaned_data['email']}>\n"
+                f"Course ID: {course_id or 'N/A'}\n\n"
+                f"{form.cleaned_data['message']}"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient],
+            fail_silently=False,
+        )
+        if instructor and recipient != settings.DEFAULT_FROM_EMAIL:
+            send_mail(
+                subject=f"Copy - PandaSpeak Contact: {form.cleaned_data['subject']}",
+                message=f"A message was sent to instructor {recipient} from {form.cleaned_data['email']}.\n\n{form.cleaned_data['message']}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                fail_silently=True,
+            )
+        messages.success(request, 'Your message has been sent successfully.')
+        return redirect('contact')
+
+    return render(request, 'account/contact.html', {'form': form, 'instructor': instructor, 'course_id': course_id})
