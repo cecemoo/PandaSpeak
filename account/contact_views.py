@@ -24,13 +24,44 @@ def contact(request):
     form = ContactForm(request.POST or None, initial=initial if request.method != 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         recipient = instructor.email if instructor and instructor.email else settings.DEFAULT_FROM_EMAIL
+
+        if request.user.is_authenticated:
+            registration_status = 'Registered'
+            if request.user.is_staff or request.user.is_superuser:
+                role = 'Manager'
+            elif request.user.is_teacher:
+                role = 'Teacher'
+            else:
+                role = 'Student'
+
+            try:
+                subscription = request.user.subscription
+                if subscription.is_active and not subscription.is_cancelled:
+                    subscription_status = 'Active'
+                elif subscription.is_cancelled:
+                    subscription_status = 'Cancelled'
+                else:
+                    subscription_status = 'Not subscribed'
+            except Exception:
+                subscription_status = 'Not subscribed'
+        else:
+            registration_status = 'Not registered / not signed in'
+            role = 'Guest'
+            subscription_status = 'Not subscribed'
+
+        course_line = f"Course ID: {course_id}\n" if course_id else ''
+        contact_message = (
+            f"From: {form.cleaned_data['name']} <{form.cleaned_data['email']}>\n"
+            f"Registration status: {registration_status}\n"
+            f"Role: {role}\n"
+            f"Subscription status: {subscription_status}\n"
+            f"{course_line}\n"
+            f"{form.cleaned_data['message']}"
+        )
+
         send_mail(
             subject=f"PandaSpeak Contact: {form.cleaned_data['subject']}",
-            message=(
-                f"From: {form.cleaned_data['name']} <{form.cleaned_data['email']}>\n"
-                f"Course ID: {course_id or 'N/A'}\n\n"
-                f"{form.cleaned_data['message']}"
-            ),
+            message=contact_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[recipient],
             fail_silently=False,
@@ -38,7 +69,7 @@ def contact(request):
         if instructor and recipient != settings.DEFAULT_FROM_EMAIL:
             send_mail(
                 subject=f"Copy - PandaSpeak Contact: {form.cleaned_data['subject']}",
-                message=f"A message was sent to instructor {recipient} from {form.cleaned_data['email']}.\n\n{form.cleaned_data['message']}",
+                message=f"A message was sent to instructor {recipient} from {form.cleaned_data['email']}.\n\n{contact_message}",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[settings.DEFAULT_FROM_EMAIL],
                 fail_silently=True,
