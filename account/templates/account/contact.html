@@ -1,0 +1,5 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<main class="main"><div class="page-title dark-background"><div class="container position-relative"><h1>{% if instructor %}Contact Instructor{% else %}Contact PandaSpeak{% endif %}</h1><p>{% if instructor %}Send a course question to {{ instructor.get_full_name|default:instructor.email }}.{% else %}Questions, feedback, or support requests are welcome.{% endif %}</p></div></div><section class="section"><div class="container" style="max-width:760px"><div class="card shadow-sm"><div class="card-body p-4"><form method="post">{% csrf_token %}{% if instructor %}<input type="hidden" name="instructor" value="{{ instructor.id }}">{% endif %}{% if course_id %}<input type="hidden" name="course" value="{{ course_id }}">{% endif %}{{ form|crispy }}<button class="btn btn-success rounded-pill px-4" type="submit">Send Message</button></form></div></div></div></section></main>
+{% endblock %}

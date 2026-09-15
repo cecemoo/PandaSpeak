@@ -22,6 +22,7 @@ let streak = 0;
 let lastChosenTone = null;
 let lastCorrectTone = null;
 let quizAudioContext = null;
+let currentToneBase = '{% if tones %}{{ tones.0.base_pinyin|escapejs }}{% endif %}';
 let level = Math.max(1, Math.min(4, Number(localStorage.getItem('pandaspeakToneLevel') || 1)));
 let bestStreak = Number(localStorage.getItem('pandaspeakToneBest') || 0);
 let recentResults = [];
@@ -128,6 +129,58 @@ function playQuizTone() {
   playToneNumber(currentQuizTone);
 }
 
+function switchToneBase() {
+  const url = "{% url 'next_tone_base' %}?current=" + encodeURIComponent(currentToneBase);
+  return fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+    .then(function(response) {
+      if (!response.ok) throw new Error('Tone set unavailable');
+      return response.json();
+    })
+    .then(function(data) {
+      if (!data.tones || data.tones.length < 4) return;
+      currentToneBase = data.base_pinyin || currentToneBase;
+      const cards = document.querySelectorAll('.tone-card');
+      data.tones.forEach(function(tone, index) {
+        const number = index + 1;
+        const card = cards[index];
+        if (!card) return;
+        const title = card.querySelector('h4');
+        const symbol = card.querySelector('.tone-symbol');
+        const example = card.querySelector('p');
+        const description = card.querySelector('small');
+        if (title) title.textContent = tone.tone_name || ('Tone ' + number);
+        if (symbol) symbol.textContent = tone.symbol || '';
+        if (example) example.textContent = tone.example || '';
+        if (description) description.textContent = tone.description || '';
+        let audio = document.getElementById('tone' + number);
+        if (!audio && tone.audio_url) {
+          audio = document.createElement('audio');
+          audio.id = 'tone' + number;
+          audio.controls = true;
+          audio.preload = 'auto';
+          audio.onclick = function(event) { event.stopPropagation(); };
+          card.appendChild(audio);
+        }
+        if (audio) {
+          if (tone.audio_url) {
+            audio.src = tone.audio_url;
+            audio.load();
+            audio.style.display = '';
+          } else {
+            audio.removeAttribute('src');
+            audio.style.display = 'none';
+          }
+        }
+        const option = document.getElementById('toneOption' + number);
+        if (option) option.textContent = tone.tone_name || ('Tone ' + number);
+      });
+      document.getElementById('toneDetail').innerHTML = '<h4>New tone set: ' + currentToneBase + '</h4><p>Listen carefully—the base sound has changed for this level.</p>';
+    })
+    .catch(function() {
+      document.getElementById('quizResult').innerText += ' The new level is ready; the current tone set will continue for now.';
+    });
+}
+
 function adjustDifficulty(correct) {
   recentResults.push(correct);
   if (recentResults.length > 5) recentResults.shift();
@@ -137,6 +190,7 @@ function adjustDifficulty(correct) {
     recentResults = [];
     localStorage.setItem('pandaspeakToneLevel', level);
     document.getElementById('quizResult').innerText += ' 🎉 Level up to Level ' + level + '!';
+    switchToneBase();
   } else if (recentResults.length === 5 && recentResults.filter(Boolean).length <= 1 && level > 1) {
     level--;
     streak = 0;
