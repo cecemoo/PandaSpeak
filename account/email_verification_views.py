@@ -25,7 +25,11 @@ def _send_verification_email(request, user):
             'Thank you for registering with PandaSpeak. Please verify your email address by opening the link below:\n\n'
             f'{verification_url}\n\n'
             'After verification, you can sign in to PandaSpeak.\n\n'
-            'If you did not create this account, you can ignore this email.'
+            'If you did not create this account, you can ignore this email.\n\n'
+            'Best regards,\n'
+            'PandaSpeak\n'
+            'Learn Chinese. Speak with Confidence.\n'
+            'https://pandaspeak.org'
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
