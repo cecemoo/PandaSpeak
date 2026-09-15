@@ -27,7 +27,7 @@ class Command(BaseCommand):
             if subscription.is_active and not subscription.is_cancelled:
                 title = 'PandaSpeak Subscription Renewal Reminder'
                 message = f'Your PandaSpeak subscription is scheduled to renew on {target:%b %d, %Y}. It will renew automatically unless you cancel before then.'
-                email_message = message + '\n\nTo cancel automatic renewal, sign in to PandaSpeak and open Account Management.'
+                email_message = message + '\n\nTo cancel automatic renewal, sign in to PandaSpeak and open Subscription.'
             else:
                 title = 'Continue Your PandaSpeak Subscription'
                 message = f'Your PandaSpeak access ends on {target:%b %d, %Y}. Subscribe again to continue using subscriber learning materials.'
