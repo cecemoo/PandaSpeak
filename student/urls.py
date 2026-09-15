@@ -3,6 +3,7 @@ from . import views
 from . import bingo_views
 from . import flashcard_views
 from . import subscription_guard_views
+from . import tone_views
 from subscription.decorators import subscription_required
 
 
@@ -18,6 +19,7 @@ urlpatterns = [
     path('sentences/category/<int:category_id>/', views.sentence_category_page, name='sentence_category_page'),
     path('idioms/category/<int:category_id>/', views.idiom_category_page, name='idiom_category_page'),
     path('pronunciations/', views.pronunciation_page, name='pronunciation_page'),
+    path('pronunciations/next-tone-base/', tone_views.next_tone_base, name='next_tone_base'),
 
     path('flashcards/', flashcard_views.flashcards, name='student_flashcards'),
     path('flashcards/my-cards/', flashcard_views.manage_personal_flashcards, name='student_personal_flashcards'),
