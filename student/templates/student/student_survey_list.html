@@ -10,7 +10,7 @@
       {% if available_surveys %}
         {% for survey in available_surveys %}<div class="card shadow-sm border-0 mb-3"><div class="card-body p-4"><h4>{{ survey.title }}</h4>{% if survey.description %}<p class="text-muted">{{ survey.description }}</p>{% endif %}<a href="{% url 'take_learning_survey' survey.id %}" class="btn btn-success rounded-pill">Take Survey</a></div></div>{% endfor %}
       {% else %}
-        <div class="alert alert-info text-center fw-semibold py-4" role="status">Currently no survey available.</div>
+        <div class="alert alert-info text-center fw-semibold py-4" style="color:#111 !important;background-color:#d9f3ff !important;opacity:1;" role="status">Currently no survey available.</div>
       {% endif %}
     </div></div>
   </section>
