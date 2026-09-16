@@ -10,9 +10,36 @@
     <div class="container section-title" data-aos="fade-up"><h2>Chinese Speaking & Listening Tests</h2><p>Here are the available tests.</p></div>
     <div class="container" data-aos="fade-up">
       {% if tests %}
+      <div class="alert alert-warning" role="alert">
+        <strong>Important:</strong> Each test is available only during the time window set by your instructor. Please complete it before the deadline. After the availability window ends, the test will no longer appear on this page.
+      </div>
       <p class="text-muted">Select a test below to begin.</p>
       <div class="row">
-        {% for test in tests %}<div class="col-md-6 mb-3"><div class="card h-100"><div class="card-body d-flex flex-column"><h5 class="card-title">{{ test.name }}</h5><p class="card-text">{{ test.description }}</p><a href="{% url 'take_test' test.id %}" class="btn btn-primary rounded-pill mt-auto">Start Test</a></div></div></div>{% endfor %}
+        {% for test in tests %}
+        <div class="col-md-6 mb-3">
+          <div class="card h-100">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">{{ test.title }}</h5>
+              <p class="card-text">{{ test.description }}</p>
+
+              {% if test.available_from or test.available_until %}
+              <div class="alert alert-light border small mb-3" role="status">
+                <strong>Test availability:</strong><br>
+                {% if test.available_from %}
+                  Opens: {{ test.available_from|date:"M j, Y, g:i A" }}<br>
+                {% endif %}
+                {% if test.available_until %}
+                  <strong>Deadline: {{ test.available_until|date:"M j, Y, g:i A" }}</strong><br>
+                  <span class="text-danger">Please complete this test before the deadline. It will no longer be available after this time.</span>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <a href="{% url 'take_test' test.id %}" class="btn btn-primary rounded-pill mt-auto">Start Test</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
       {% else %}
       <div class="alert alert-info text-center fw-semibold py-4" style="color:#111 !important;background-color:#d9f3ff !important;opacity:1;" role="status">Currently no test available.</div>
