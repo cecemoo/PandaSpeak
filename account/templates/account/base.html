@@ -90,6 +90,7 @@
       <a href="{% url 'home' %}" class="logo d-flex align-items-center"><img src="{% static 'assets/img/logo.jpeg' %}" alt="PandaSpeak Logo"><h1 class="sitename">PandaSpeak</h1></a>
       <nav id="navmenu" class="navmenu"><ul>
         <li><a href="{% url 'home' %}" class="active">Home</a></li>
+        <li><a href="{% url 'about' %}">About Us</a></li>
         {% if user.is_authenticated %}
           {% if user.is_staff %}<li><a href="{% url 'manager_dashboard' %}">Dashboard</a></li><li><a href="{% url 'course:course_list' %}">Tutoring</a></li>
           {% elif user.is_teacher %}<li><a href="{% url 'teacher_dashboard' %}">Dashboard</a></li>
@@ -109,7 +110,7 @@
     <div class="container footer-top"><div class="row gy-4">
       <div class="col-lg-4 col-md-6 footer-about">
         <a href="{% url 'home' %}" class="logo d-flex align-items-center"><span class="sitename">PandaSpeak</span></a>
-        <div class="footer-contact pt-3"><p><strong>Online Chinese Learning • Available Worldwide</strong></p><p>Learning materials available 24/7</p><p>Tutoring across time zones</p><p><strong>Email:</strong> <span>pandaspeaksupport@gmail.com</span></p><p><small>PandaSpeak is owned by Orange Jump Jump.</small></p></div>
+        <div class="footer-contact pt-3"><p><strong>Online Chinese Learning Available Worldwide</strong></p><p>Learning materials available 24/7</p><p>Tutoring across time zones</p><p><strong>Email:</strong> <span>pandaspeaksupport@gmail.com</span></p></div>
       </div>
       <div class="col-lg-2 col-md-3 footer-links"><h4>Learning Materials</h4><ul>
         {% if user.is_authenticated %}{% if user.is_staff %}<li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>{% elif user.is_teacher %}<li><a href="{% url 'teacher_dashboard' %}">Teacher Dashboard</a></li>{% else %}<li><a href="{% url 'student_dashboard' %}">Vocabulary</a></li><li><a href="{% url 'student_dashboard' %}">Sentences</a></li><li><a href="{% url 'student_dashboard' %}">Chinese Idioms</a></li><li><a href="{% url 'student_dashboard' %}">Pronunciation</a></li>{% endif %}
