@@ -170,6 +170,12 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f"PandaSpeak Notifications <{EMAIL_HOST_USER}>"
 
+# Contact-form bot protection. Turnstile becomes active when both keys are set.
+TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
+TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
+CONTACT_RATE_LIMIT = int(os.getenv('CONTACT_RATE_LIMIT', '3'))
+CONTACT_RATE_WINDOW = int(os.getenv('CONTACT_RATE_WINDOW', '3600'))
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(

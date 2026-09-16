@@ -58,3 +58,10 @@ class ContactForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
     subject = forms.CharField(max_length=160, widget=forms.TextInput(attrs={'class': 'form-control'}))
     message = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 6}))
+    website = forms.CharField(required=False, widget=forms.HiddenInput, label='')
+
+    def clean_website(self):
+        value = self.cleaned_data.get('website', '')
+        if value:
+            raise forms.ValidationError('Invalid submission.')
+        return value

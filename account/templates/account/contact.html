@@ -24,6 +24,9 @@
               {% if instructor %}<input type="hidden" name="instructor" value="{{ instructor.id }}">{% endif %}
               {% if course_id %}<input type="hidden" name="course" value="{{ course_id }}">{% endif %}
               {{ form|crispy }}
+              {% if turnstile_site_key %}
+                <div class="cf-turnstile mb-3" data-sitekey="{{ turnstile_site_key }}"></div>
+              {% endif %}
               <button class="btn btn-success rounded-pill px-4" type="submit">Send Message</button>
             </form>
           {% endif %}
@@ -32,4 +35,7 @@
     </div>
   </section>
 </main>
+{% if turnstile_site_key %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endif %}
 {% endblock %}
