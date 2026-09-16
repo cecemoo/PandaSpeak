@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views
 from . import managers
 from . import announcement_views
@@ -11,7 +12,7 @@ urlpatterns = [
     path('news/unsubscribe/<str:token>/', announcement_views.unsubscribe, name='news_unsubscribe'),
     path('announcements/', announcement_views.compose, name='announcements'),
     path('announcements/<int:pk>/', announcement_views.preview, name='announcement_preview'),
-    path('', views.home, name='home'), path('about/', views.about, name='about'), path('register/', email_verification_views.register, name='register'), path('verify-email/<uidb64>/<token>/', email_verification_views.verify_email, name='verify_email'), path('my_login/', views.my_login, name='my_login'), path('user_logout/', views.user_logout, name='user_logout'),
+    path('', views.home, name='home'), path('about/', TemplateView.as_view(template_name='account/about.html'), name='about'), path('register/', email_verification_views.register, name='register'), path('verify-email/<uidb64>/<token>/', email_verification_views.verify_email, name='verify_email'), path('my_login/', views.my_login, name='my_login'), path('user_logout/', views.user_logout, name='user_logout'),
     path('contact/', contact_views.contact, name='contact'),
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='account/password_reset.html', email_template_name='account/password_reset_email.html', subject_template_name='account/password_reset_subject.txt'), name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='account/password_reset_done.html'), name='password_reset_done'), path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='account/password_reset_confirm.html'), name='password_reset_confirm'), path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(template_name='account/password_reset_complete.html'), name='password_reset_complete'),
