@@ -8,38 +8,44 @@ from subscription.decorators import subscription_required
 
 
 urlpatterns = [
+    # Keep the dashboard/account/subscription pages available so an
+    # unsubscribed student can sign in and purchase or manage access.
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
-    path('access_learning_materials/', views.access_learning_materials, name='access_learning_materials'),
-    path('learning_material_search/', views.learning_material_search, name='learning_material_search'),
     path('subscription_plans/', subscription_guard_views.guarded_subscription_plans, name='subscription_plans'),
-    path('account_management_student/', views.account_management, name='account_management_student'), 
-    path('subscription_locked/', views.subscription_locked, name='subscription_locked'),  
+    path('account_management_student/', views.account_management, name='account_management_student'),
+    path('subscription_locked/', views.subscription_locked, name='subscription_locked'),
 
-    path('vocabularies/category/<int:category_id>/', views.vocabulary_category_page, name='vocabulary_category_page'),
-    path('sentences/category/<int:category_id>/', views.sentence_category_page, name='sentence_category_page'),
-    path('idioms/category/<int:category_id>/', views.idiom_category_page, name='idiom_category_page'),
-    path('pronunciations/', views.pronunciation_page, name='pronunciation_page'),
-    path('pronunciations/next-tone-base/', tone_views.next_tone_base, name='next_tone_base'),
+    # All learning-material entry points require an active subscription.
+    # Several underlying views also use @subscription_required; wrapping the
+    # URLs provides a second, centralized guard so a direct URL cannot bypass
+    # subscription access control.
+    path('access_learning_materials/', subscription_required(views.access_learning_materials), name='access_learning_materials'),
+    path('learning_material_search/', subscription_required(views.learning_material_search), name='learning_material_search'),
+    path('vocabularies/category/<int:category_id>/', subscription_required(views.vocabulary_category_page), name='vocabulary_category_page'),
+    path('sentences/category/<int:category_id>/', subscription_required(views.sentence_category_page), name='sentence_category_page'),
+    path('idioms/category/<int:category_id>/', subscription_required(views.idiom_category_page), name='idiom_category_page'),
+    path('pronunciations/', subscription_required(views.pronunciation_page), name='pronunciation_page'),
+    path('pronunciations/next-tone-base/', subscription_required(tone_views.next_tone_base), name='next_tone_base'),
 
-    path('flashcards/', flashcard_views.flashcards, name='student_flashcards'),
-    path('flashcards/my-cards/', flashcard_views.manage_personal_flashcards, name='student_personal_flashcards'),
-    path('flashcards/my-cards/<int:pk>/delete/', flashcard_views.delete_personal_flashcard, name='delete_personal_flashcard'),
+    path('flashcards/', subscription_required(flashcard_views.flashcards), name='student_flashcards'),
+    path('flashcards/my-cards/', subscription_required(flashcard_views.manage_personal_flashcards), name='student_personal_flashcards'),
+    path('flashcards/my-cards/<int:pk>/delete/', subscription_required(flashcard_views.delete_personal_flashcard), name='delete_personal_flashcard'),
 
-    path('tests/', views.test_list, name='test_list'),
-    path('tests/<int:test_id>/', views.take_test, name='take_test'),
-    path('tests/question/<int:question_id>/submit-speaking/', views.submit_speaking_answer, name='submit_speaking_answer'),
-    path('tests/results/<int:submission_id>/', views.test_result, name='test_result'),
-    path('test-results/', views.student_test_results, name='student_test_results'),
-    path('surveys/<int:survey_id>/take/', views.take_learning_survey, name='take_learning_survey'),
-    path('surveys/', views.student_survey_list, name='student_survey_list'),
+    # Tests and surveys are subscriber learning features as well.
+    path('tests/', subscription_required(views.test_list), name='test_list'),
+    path('tests/<int:test_id>/', subscription_required(views.take_test), name='take_test'),
+    path('tests/question/<int:question_id>/submit-speaking/', subscription_required(views.submit_speaking_answer), name='submit_speaking_answer'),
+    path('tests/results/<int:submission_id>/', subscription_required(views.test_result), name='test_result'),
+    path('test-results/', subscription_required(views.student_test_results), name='student_test_results'),
+    path('surveys/<int:survey_id>/take/', subscription_required(views.take_learning_survey), name='take_learning_survey'),
+    path('surveys/', subscription_required(views.student_survey_list), name='student_survey_list'),
 
     path('bingo/', subscription_required(bingo_views.bingo_game_list), name='student_bingo_list'),
     path('bingo/<int:game_id>/play/', subscription_required(bingo_views.play_bingo), name='play_bingo'),
 
-    path('learning-materials/change-level/', views.change_learning_level, name='change_learning_level'),
-    path('favorites/toggle/<str:item_type>/<int:item_id>/', views.toggle_favorite, name='toggle_favorite'),
-    path('my-review/', views.my_review, name='my_review'),
-    path('learned/toggle/<str:item_type>/<int:item_id>/', views.toggle_learned, name='toggle_learned'),
-
-    path('learned/', views.learned_items, name='learned_items'),
+    path('learning-materials/change-level/', subscription_required(views.change_learning_level), name='change_learning_level'),
+    path('favorites/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_favorite), name='toggle_favorite'),
+    path('my-review/', subscription_required(views.my_review), name='my_review'),
+    path('learned/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_learned), name='toggle_learned'),
+    path('learned/', subscription_required(views.learned_items), name='learned_items'),
 ]
