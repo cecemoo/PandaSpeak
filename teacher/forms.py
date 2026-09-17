@@ -11,6 +11,7 @@ traditional_converter = OpenCC('s2tw')
 TRADITIONAL_CHINESE_EXCEPTIONS = {
     "出么蛾子",
     "草台班子",
+    "倒霉",
 }
 
 def validate_traditional_chinese(value):
