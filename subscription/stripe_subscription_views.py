@@ -59,6 +59,17 @@ def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
 
+    # Do not create another Stripe subscription Checkout for a user who already
+    # has an active PandaSpeak subscription. This prevents accidental duplicate
+    # subscriptions/charges from repeated clicks or revisiting the subscribe page.
+    existing = Subscription.objects.filter(user=request.user).first()
+    if existing and existing.is_active and not existing.is_cancelled:
+        messages.info(
+            request,
+            "You already have an active PandaSpeak subscription. No additional payment was created.",
+        )
+        return redirect("student_dashboard")
+
     api_key = _subscription_api_key()
     if not api_key:
         messages.error(request, "Card subscription checkout is not configured yet.")
