@@ -42,6 +42,17 @@ def stripe_webhook(request):
         session = event["data"]["object"]
         session_id = getattr(session, "id", None)
         payment_status = getattr(session, "payment_status", None)
+        mode = getattr(session, "mode", None)
+
+        # This endpoint creates tutoring bookings only. Subscription Checkout
+        # sessions are handled by the subscription payment flow.
+        if mode != "payment":
+            logger.info(
+                "Ignoring non-tutoring Checkout session: session=%s mode=%s",
+                session_id,
+                mode,
+            )
+            return HttpResponse(status=200)
 
         logger.info(
             "Checkout completed: session=%s payment_status=%s",
