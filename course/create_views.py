@@ -1,9 +1,39 @@
+from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
 
-from .forms import GroupCourseForm, PrivateCourseForm
+from .forms import CourseForm, PrivateCourseForm
 from .views import CourseCreateView
+
+
+class DedicatedGroupCourseForm(CourseForm):
+    """Group-only form: session type is fixed to group and is not shown to the teacher."""
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.setdefault('initial', {})
+        initial.setdefault('session_type', 'group')
+        super().__init__(*args, **kwargs)
+        self.fields['session_type'].initial = 'group'
+        self.fields['session_type'].widget = forms.HiddenInput()
+        self.fields['max_students'].label = 'Maximum group size'
+        self.fields['price'].label = 'Price per student'
+
+    def clean(self):
+        cleaned = super().clean()
+        cleaned['session_type'] = 'group'
+        max_students = cleaned.get('max_students') or 1
+        if max_students < 2:
+            self.add_error('max_students', 'A group class must allow at least 2 students.')
+        cleaned['initial_capacity'] = max_students
+        return cleaned
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.session_type = 'group'
+        obj.max_students = self.cleaned_data.get('max_students') or 2
+        if commit:
+            obj.save()
+        return obj
 
 
 class _DedicatedCourseCreateView(LoginRequiredMixin, View):
@@ -45,6 +75,6 @@ class PrivateCourseCreateView(_DedicatedCourseCreateView):
 
 
 class GroupCourseCreateView(_DedicatedCourseCreateView):
-    form_class = GroupCourseForm
+    form_class = DedicatedGroupCourseForm
     creation_mode = "group"
     page_title = "Create Group Class"
