@@ -9,6 +9,7 @@ WEEKDAY_CHOICES = [(0,'Monday'),(1,'Tuesday'),(2,'Wednesday'),(3,'Thursday'),(4,
 
 class Course(models.Model):
     SESSION_TYPE_CHOICES = (('private','Private Tutoring'),('group','Group Tutoring'))
+    ENROLLMENT_STATUS_CHOICES = (('open','Open for Enrollment'),('confirmed','Confirmed'),('proceed','Proceed Below Minimum'),('canceled','Canceled'))
     teacher = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name='courses')
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -18,6 +19,8 @@ class Course(models.Model):
     duration_minutes = models.PositiveIntegerField(default=60)
     session_type = models.CharField(max_length=10,choices=SESSION_TYPE_CHOICES,default='private')
     max_students = models.PositiveIntegerField(default=1,help_text='Maximum number of students who can book the same session.')
+    minimum_students = models.PositiveIntegerField(default=1,help_text='Minimum paid students required for a group class to proceed.')
+    enrollment_status = models.CharField(max_length=12,choices=ENROLLMENT_STATUS_CHOICES,default='open')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     start_date = models.DateField(blank=True,null=True)
@@ -29,9 +32,31 @@ class Course(models.Model):
     def __str__(self): return self.title
     @property
     def is_group_session(self): return self.session_type == 'group'
+    @property
+    def enrollment_deadline(self):
+        return self.start_date - timedelta(days=5) if self.session_type == 'group' and self.start_date else None
+    @property
+    def paid_student_count(self):
+        return Booking.objects.filter(timeslot__course=self,status='confirmed',paid_at__isnull=False,is_refunded=False).values('student_id').distinct().count()
+    @property
+    def minimum_enrollment_reached(self):
+        return self.session_type != 'group' or self.paid_student_count >= self.minimum_students
+    @property
+    def enrollment_is_open(self):
+        if self.session_type != 'group': return True
+        if self.enrollment_status == 'canceled': return False
+        deadline = self.enrollment_deadline
+        return not deadline or timezone.localdate() <= deadline
+    @property
+    def needs_enrollment_decision(self):
+        return self.session_type == 'group' and self.enrollment_deadline and timezone.localdate() > self.enrollment_deadline and not self.minimum_enrollment_reached and self.enrollment_status == 'open'
     def save(self,*args,**kwargs):
-        if self.session_type == 'private': self.max_students = 1
-        elif self.max_students < 2: self.max_students = 2
+        if self.session_type == 'private':
+            self.max_students = 1; self.minimum_students = 1; self.enrollment_status = 'confirmed'
+        else:
+            if self.max_students < 2: self.max_students = 2
+            if self.minimum_students < 2: self.minimum_students = 2
+            if self.minimum_students > self.max_students: self.minimum_students = self.max_students
         if self.video_url and 'drive.google.com/file/d/' in self.video_url:
             self.video_url = self.video_url.replace('/view?usp=sharing','/preview').replace('/view','/preview')
         super().save(*args,**kwargs)
@@ -45,7 +70,7 @@ class TimeSlot(models.Model):
     @property
     def remaining_slots(self): return max(self.capacity-self.bookings.filter(status='confirmed').count(),0)
     @property
-    def is_available(self): return self.remaining_slots > 0
+    def is_available(self): return self.remaining_slots > 0 and self.course.enrollment_is_open
 
 class Booking(models.Model):
     STATUS_CHOICES=(('pending','Pending'),('confirmed','Confirmed'),('canceled','Canceled'))
