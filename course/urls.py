@@ -5,6 +5,7 @@ from . import payment_views
 from . import test_booking_views
 from . import reschedule_views
 from . import group_request_views
+from . import create_views
 from .views import WeeklyScheduleView
 
 app_name = 'course'
@@ -13,11 +14,12 @@ urlpatterns = [
     path('course_list/', views.CourseListView.as_view(), name='course_list'),
     path('my_courses/', views.MyCourseListView.as_view(), name='my_courses'),
     path('course_create/', views.CourseCreateView.as_view(), name='course_create'),
+    path('course_create/private/', create_views.PrivateCourseCreateView.as_view(), name='private_course_create'),
+    path('course_create/group/', create_views.GroupCourseCreateView.as_view(), name='group_course_create'),
     path('course_detail/<int:pk>/', views.CourseDetailView.as_view(), name='course_detail'),
     path('course/<int:course_pk>/request-group-class/', group_request_views.request_group_class, name='request_group_class'),
     path('group-class-requests/mine/', group_request_views.my_group_requests, name='my_group_requests'),
     path('group-class-requests/teacher/', group_request_views.teacher_group_requests, name='teacher_group_requests'),
-    # Keep the specific create route before the generic <decision> route.
     path('group-class-requests/<int:request_pk>/create-class/', group_request_views.GroupRequestCourseCreateView.as_view(), name='create_group_class_from_request'),
     path('group-class-requests/<int:pk>/<str:decision>/', group_request_views.respond_group_request, name='respond_group_request'),
     path('<int:pk>/schedule/', WeeklyScheduleView.as_view(), name='weekly_schedule'),
