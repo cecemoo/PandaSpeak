@@ -37,6 +37,47 @@ def _send_verification_email(request, user):
     )
 
 
+def _send_teacher_stripe_reminder(request, user):
+    connect_path = reverse('course:stripe_connect_onboard')
+    connect_url = request.build_absolute_uri(connect_path)
+    title = 'Connect Stripe to Receive Tutoring Payments'
+    reminder_message = (
+        'Welcome to PandaSpeak! Before you can receive payment for tutoring '
+        'sessions, please connect your Stripe account. After verifying your '
+        'email and signing in, open the Stripe setup page to complete your '
+        'payout account.'
+    )
+
+    Notification.objects.create(
+        user=user,
+        title=title,
+        message=reminder_message,
+        link=connect_path,
+    )
+
+    send_mail(
+        subject='PandaSpeak Teacher Reminder: Connect Stripe to Get Paid',
+        message=(
+            f'Hello {user.first_name or "PandaSpeak Teacher"},\n\n'
+            'Welcome to PandaSpeak!\n\n'
+            'To receive payment for tutoring sessions, you need to connect '
+            'your Stripe account to PandaSpeak. Please verify your email and '
+            'sign in first, then complete your Stripe payout setup here:\n\n'
+            f'{connect_url}\n\n'
+            'You can create and manage your teaching activities, but tutoring '
+            'payments cannot be paid out to you until your Stripe account is '
+            'connected and ready to receive payouts.\n\n'
+            'Best regards,\n'
+            'PandaSpeak\n'
+            'Learn Chinese. Speak with Confidence.\n'
+            'https://pandaspeak.org'
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
 def register(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
@@ -53,6 +94,9 @@ def register(request):
         new_user.is_active = False
         new_user.save()
         _send_verification_email(request, new_user)
+
+        if new_user.is_teacher:
+            _send_teacher_stripe_reminder(request, new_user)
 
         user_type = 'Teacher' if new_user.is_teacher else 'Student'
         managers = CustomUser.objects.filter(is_staff=True, is_active=True)
