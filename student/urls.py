@@ -4,6 +4,7 @@ from . import bingo_views
 from . import flashcard_views
 from . import subscription_guard_views
 from . import tone_views
+from . import challenge_views
 from subscription.decorators import subscription_required
 
 
@@ -16,9 +17,6 @@ urlpatterns = [
     path('subscription_locked/', views.subscription_locked, name='subscription_locked'),
 
     # All learning-material entry points require an active subscription.
-    # Several underlying views also use @subscription_required; wrapping the
-    # URLs provides a second, centralized guard so a direct URL cannot bypass
-    # subscription access control.
     path('access_learning_materials/', subscription_required(views.access_learning_materials), name='access_learning_materials'),
     path('learning_material_search/', subscription_required(views.learning_material_search), name='learning_material_search'),
     path('vocabularies/category/<int:category_id>/', subscription_required(views.vocabulary_category_page), name='vocabulary_category_page'),
@@ -31,7 +29,6 @@ urlpatterns = [
     path('flashcards/my-cards/', subscription_required(flashcard_views.manage_personal_flashcards), name='student_personal_flashcards'),
     path('flashcards/my-cards/<int:pk>/delete/', subscription_required(flashcard_views.delete_personal_flashcard), name='delete_personal_flashcard'),
 
-    # Tests and surveys are subscriber learning features as well.
     path('tests/', subscription_required(views.test_list), name='test_list'),
     path('tests/<int:test_id>/', subscription_required(views.take_test), name='take_test'),
     path('tests/question/<int:question_id>/submit-speaking/', subscription_required(views.submit_speaking_answer), name='submit_speaking_answer'),
@@ -42,6 +39,8 @@ urlpatterns = [
 
     path('bingo/', subscription_required(bingo_views.bingo_game_list), name='student_bingo_list'),
     path('bingo/<int:game_id>/play/', subscription_required(bingo_views.play_bingo), name='play_bingo'),
+    path('chinese-challenge/', challenge_views.chinese_challenge, name='chinese_challenge'),
+    path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
 
     path('learning-materials/change-level/', subscription_required(views.change_learning_level), name='change_learning_level'),
     path('favorites/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_favorite), name='toggle_favorite'),
