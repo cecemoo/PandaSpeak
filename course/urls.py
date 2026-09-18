@@ -17,8 +17,9 @@ urlpatterns = [
     path('course/<int:course_pk>/request-group-class/', group_request_views.request_group_class, name='request_group_class'),
     path('group-class-requests/mine/', group_request_views.my_group_requests, name='my_group_requests'),
     path('group-class-requests/teacher/', group_request_views.teacher_group_requests, name='teacher_group_requests'),
-    path('group-class-requests/<int:pk>/<str:decision>/', group_request_views.respond_group_request, name='respond_group_request'),
+    # Keep the specific create route before the generic <decision> route.
     path('group-class-requests/<int:request_pk>/create-class/', group_request_views.GroupRequestCourseCreateView.as_view(), name='create_group_class_from_request'),
+    path('group-class-requests/<int:pk>/<str:decision>/', group_request_views.respond_group_request, name='respond_group_request'),
     path('<int:pk>/schedule/', WeeklyScheduleView.as_view(), name='weekly_schedule'),
     path('<int:pk>/timeslot/add/', views.TimeSlotCreateView.as_view(), name='timeslot_add'),
     path('courses/<int:pk>/timeslots/generate/', views.generate_more_timeslots, name='generate_more_timeslots'),
