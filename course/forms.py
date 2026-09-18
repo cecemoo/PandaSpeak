@@ -40,10 +40,10 @@ class CourseForm(forms.ModelForm):
             if self.instance.available_days:self.initial['available_days']=self.instance.available_days.split(',')
             self.initial['initial_capacity']=self.instance.max_students
     def clean(self):
-        cleaned=super().clean(); start_date=cleaned.get('start_date'); end_date=cleaned.get('end_date'); start_time=cleaned.get('daily_start_time'); end_time=cleaned.get('daily_end_time'); session_type=cleaned.get('session_type') or 'private'; max_students=cleaned.get('max_students') or 1
+        cleaned=super().clean(); start_date=cleaned.get('start_date'); end_date=cleaned.get('end_date'); start_time=cleaned.get('daily_start_time'); end_time=cleaned.get('daily_end_time'); session_type=cleaned.get('session_type') or getattr(self,'forced_session_type',None) or 'private'; max_students=cleaned.get('max_students') or getattr(self,'forced_max_students',None) or 1
         if start_date and end_date and end_date<start_date:raise ValidationError("End date must be on or after start date.")
-        if start_time: cleaned['daily_start_time']=time(int(start_time.split(':')[0]),0)
-        if end_time: cleaned['daily_end_time']=time(int(end_time.split(':')[0]),0)
+        if start_time: cleaned['daily_start_time']=time(int(start_time.split(':')[0]),int(start_time.split(':')[1]))
+        if end_time: cleaned['daily_end_time']=time(int(end_time.split(':')[0]),int(end_time.split(':')[1]))
         if cleaned.get('daily_start_time') and cleaned.get('daily_end_time') and cleaned['daily_end_time']<=cleaned['daily_start_time']:raise ValidationError("Daily end time must be after daily start time.")
         if session_type=='private':cleaned['max_students']=1; cleaned['initial_capacity']=1
         else:
@@ -57,8 +57,10 @@ class CourseForm(forms.ModelForm):
 
 class PrivateCourseForm(CourseForm):
     """Teacher form dedicated to one-student private tutoring."""
+    forced_session_type='private'
+    forced_max_students=1
     class Meta(CourseForm.Meta):
-        fields=['title','description','price','duration_minutes','image','video_url','start_date','end_date','available_days','daily_start_time','daily_end_time','teacher_timezone']
+        exclude=['session_type','max_students']
     def clean(self):
         cleaned=super().clean(); cleaned['session_type']='private'; cleaned['max_students']=1; cleaned['initial_capacity']=1; return cleaned
     def save(self,commit=True):
@@ -68,8 +70,9 @@ class PrivateCourseForm(CourseForm):
 
 class GroupCourseForm(CourseForm):
     """Teacher form dedicated to group tutoring."""
+    forced_session_type='group'
     class Meta(CourseForm.Meta):
-        fields=['title','description','max_students','price','duration_minutes','image','video_url','start_date','end_date','available_days','daily_start_time','daily_end_time','teacher_timezone']
+        exclude=['session_type']
         labels={**CourseForm.Meta.labels,'max_students':'Maximum group size','price':'Price per student'}
     def clean(self):
         cleaned=super().clean(); cleaned['session_type']='group'; max_students=cleaned.get('max_students') or 1
@@ -85,8 +88,8 @@ class GenerateMoreTimeSlotsForm(forms.Form):
     def clean(self):
         cleaned=super().clean(); sd=cleaned.get('start_date'); ed=cleaned.get('end_date'); st=cleaned.get('daily_start_time'); et=cleaned.get('daily_end_time')
         if sd and ed and ed<sd:raise ValidationError("End date must be on or after start date.")
-        if st:cleaned['daily_start_time']=time(int(st.split(':')[0]),0)
-        if et:cleaned['daily_end_time']=time(int(et.split(':')[0]),0)
+        if st:cleaned['daily_start_time']=time(int(st.split(':')[0]),int(st.split(':')[1]))
+        if et:cleaned['daily_end_time']=time(int(et.split(':')[0]),int(et.split(':')[1]))
         if cleaned.get('daily_start_time') and cleaned.get('daily_end_time') and cleaned['daily_end_time']<=cleaned['daily_start_time']:raise ValidationError("Daily end time must be after daily start time.")
         return cleaned
 
