@@ -16,6 +16,11 @@ from .models import Course, GroupClassRequest
 from .views import CourseCreateView
 
 
+def _email_name(user):
+    """Return a friendly name for PandaSpeak email greetings."""
+    return user.get_full_name().strip() or user.email or 'PandaSpeak User'
+
+
 def _requested_schedule_initial(gr):
     """Convert the next occurrence of the student's requested weekday/time to teacher time."""
     try:
@@ -73,7 +78,13 @@ def request_group_class(request, course_pk):
             gr=GroupClassRequest.objects.create(student=request.user,teacher=course.teacher,source_course=course,topic=topic,level=level,preferred_times=preferred_times,desired_group_size=desired_group_size,requested_price=requested_price,message=message)
             Notification.objects.create(user=course.teacher,title='New Group Class Request',message=f'{request.user.get_full_name() or request.user.email} requested a group class: {topic} at ${requested_price} per student.',link=reverse('course:teacher_group_requests'))
             if course.teacher.email:
-                send_mail('PandaSpeak - New Group Class Request',f'A student requested a group class.\n\nTopic: {topic}\nLevel: {gr.get_level_display()}\nPreferred time: {preferred_times}\nDesired group size: {desired_group_size}\nProposed price per student: ${requested_price}\n\nPlease sign in to PandaSpeak to accept or decline the request.',settings.DEFAULT_FROM_EMAIL,[course.teacher.email],fail_silently=True)
+                body=(f'Dear {_email_name(course.teacher)},\n\n'
+                      f'You have received a new group class request from {_email_name(request.user)}.\n\n'
+                      f'Topic: {topic}\nLevel: {gr.get_level_display()}\nPreferred time: {preferred_times}\nDesired group size: {desired_group_size}\nProposed price per student: ${requested_price}\n'
+                      f'{("Student message: " + message + chr(10)) if message else ""}\n'
+                      'Please sign in to PandaSpeak to review the request and choose whether to accept or decline it. You will be able to review the requested details before creating the class.\n\n'
+                      'Thank you for teaching with PandaSpeak.\n\nBest regards,\nPandaSpeak Team')
+                send_mail('PandaSpeak - New Group Class Request',body,settings.DEFAULT_FROM_EMAIL,[course.teacher.email],fail_silently=True)
             messages.success(request,'Your group class request was sent to the teacher. The teacher will decide whether to accept the requested class and price.')
             return redirect('course:my_group_requests')
     return render(request,'course/request_group_class.html',{'course':course})
@@ -95,7 +106,19 @@ def respond_group_request(request,pk,decision):
     if decision not in ('accepted','declined'): messages.error(request,'Invalid response.'); return redirect('course:teacher_group_requests')
     gr.status=decision; gr.save(update_fields=['status','updated_at'])
     Notification.objects.create(user=gr.student,title=f'Group Class Request {decision.title()}',message=f'Your request for “{gr.topic}” was {decision} by {request.user.get_full_name() or request.user.email}.',link=reverse('course:my_group_requests'))
-    if gr.student.email: send_mail(f'PandaSpeak - Group Class Request {decision.title()}',f'Your group class request for “{gr.topic}” was {decision}. Please sign in to PandaSpeak for details.',settings.DEFAULT_FROM_EMAIL,[gr.student.email],fail_silently=True)
+    if gr.student.email:
+        if decision == 'accepted':
+            body=(f'Dear {_email_name(gr.student)},\n\n'
+                  f'Good news! Your group class request for “{gr.topic}” has been accepted by {_email_name(request.user)}.\n\n'
+                  f'Requested time: {gr.preferred_times}\nDesired group size: {gr.desired_group_size}\nProposed price per student: ${gr.requested_price}\n\n'
+                  'The teacher will now finalize the class details. We will notify you again when the group class is available so you can review the final schedule and price before reserving and paying for a seat.\n\n'
+                  'Thank you for learning with PandaSpeak.\n\nBest regards,\nPandaSpeak Team')
+        else:
+            body=(f'Dear {_email_name(gr.student)},\n\n'
+                  f'Your group class request for “{gr.topic}” was not accepted at this time.\n\n'
+                  'You can sign in to PandaSpeak to review your requests and explore other available tutoring options. You may also submit another group class request when appropriate.\n\n'
+                  'Thank you for your interest in learning with PandaSpeak.\n\nBest regards,\nPandaSpeak Team')
+        send_mail(f'PandaSpeak - Group Class Request {decision.title()}',body,settings.DEFAULT_FROM_EMAIL,[gr.student.email],fail_silently=True)
     messages.success(request,f'Request {decision}.'); return redirect('course:teacher_group_requests')
 
 
@@ -119,6 +142,13 @@ class GroupRequestCourseCreateView(CourseCreateView):
             gr.created_course=course; gr.status='converted'; gr.save(update_fields=['created_course','status','updated_at'])
             course_url=reverse('course:course_detail',kwargs={'pk':course.pk})
             Notification.objects.create(user=gr.student,title='Requested Group Class Is Available',message=f'The group class “{course.title}” has been created. You can now view the schedule and reserve a seat.',link=course_url)
-            if gr.student.email: send_mail('PandaSpeak - Your Requested Group Class Is Available',f'The group class “{course.title}” has been created from your request. Sign in to PandaSpeak to view the schedule and reserve a seat.',settings.DEFAULT_FROM_EMAIL,[gr.student.email],fail_silently=True)
+            if gr.student.email:
+                body=(f'Dear {_email_name(gr.student)},\n\n'
+                      f'Your requested group class, “{course.title},” is now available on PandaSpeak.\n\n'
+                      f'Final price per student: ${course.price}\n'
+                      f'Duration: {course.duration_minutes} minutes\n\n'
+                      'Please sign in to PandaSpeak to review the final class schedule and details. If everything works for you, you can reserve and pay for your seat.\n\n'
+                      'We hope you enjoy your class!\n\nBest regards,\nPandaSpeak Team')
+                send_mail('PandaSpeak - Your Requested Group Class Is Available',body,settings.DEFAULT_FROM_EMAIL,[gr.student.email],fail_silently=True)
             messages.success(request,'Group class created. The requesting student has been notified and can now reserve a seat.'); return redirect('course:course_detail',pk=course.pk)
         return render(request,self.template_name,{'form':form,'group_request':gr,'creation_mode':'group','page_title':'Create Group Class from Request','requested_schedule_converted':bool(schedule)})
