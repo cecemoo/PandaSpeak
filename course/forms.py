@@ -57,7 +57,10 @@ class CourseForm(forms.ModelForm):
 
 class PrivateCourseForm(CourseForm):
     forced_session_type='private'; forced_max_students=1
-    class Meta(CourseForm.Meta): exclude=['session_type','max_students']
+    class Meta(CourseForm.Meta):
+        exclude=['session_type','max_students']
+        labels={**CourseForm.Meta.labels,'price':'Session price'}
+        help_texts={**CourseForm.Meta.help_texts,'price':'This is the amount charged to the student for each private tutoring session.'}
     def clean(self):
         cleaned=super().clean(); cleaned['session_type']='private'; cleaned['max_students']=1; cleaned['initial_capacity']=1; return cleaned
     def save(self,commit=True):
