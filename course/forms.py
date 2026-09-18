@@ -10,323 +10,121 @@ from .models import Course, StudentGroup, TimeSlot, WEEKDAY_CHOICES
 
 User = get_user_model()
 
-
 COMMON_TIMEZONE_CHOICES = [
-    ("America/Chicago", "Houston /Chicago"),
-    ("America/New_York", "New York"),
-    ("America/Los_Angeles", "Los Angeles"),
-    ("America/Denver", "Denver"),
-    ("America/Phoenix", "Phoenix"),
-    ("Pacific/Honolulu", "Hawaii"),
-    ("Asia/Tokyo", "Tokyo"),
-    ("Asia/Shanghai", "Shanghai"),
-    ("Asia/Singapore", "Singapore"),
-    ("Asia/Taipei", "Taipei"),
-    ("Asia/Seoul", "Seoul"),
-    ("Asia/Beijing", "Beijing"),
-    ("Europe/London", "London"),
-    ("Europe/Paris", "Paris"),
+    ("America/Chicago", "Houston /Chicago"), ("America/New_York", "New York"),
+    ("America/Los_Angeles", "Los Angeles"), ("America/Denver", "Denver"),
+    ("America/Phoenix", "Phoenix"), ("Pacific/Honolulu", "Hawaii"),
+    ("Asia/Tokyo", "Tokyo"), ("Asia/Shanghai", "Shanghai"),
+    ("Asia/Singapore", "Singapore"), ("Asia/Taipei", "Taipei"),
+    ("Asia/Seoul", "Seoul"), ("Asia/Beijing", "Beijing"),
+    ("Europe/London", "London"), ("Europe/Paris", "Paris"),
     ("Australia/Sydney", "Sydney"),
 ]
-
-
 HOUR_CHOICES = [(f"{h:02d}:00", f"{h:02d}:00") for h in range(24)]
 
-
 class CourseForm(forms.ModelForm):
-    available_days = forms.MultipleChoiceField(
-        choices=WEEKDAY_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
-        label='Teaching days',
-    )
-    initial_capacity = forms.IntegerField(
-        min_value=1,
-        initial=1,
-        required=False,
-        widget=forms.HiddenInput(),
-    )
-    daily_start_time = forms.ChoiceField(
-        choices=HOUR_CHOICES,
-        required=True,
-        label="Daily start time",
-        widget=forms.Select(),
-    )
-    daily_end_time = forms.ChoiceField(
-        choices=HOUR_CHOICES,
-        required=True,
-        label="Daily end time",
-        widget=forms.Select(),
-    )
-    teacher_timezone = forms.ChoiceField(
-        choices=COMMON_TIMEZONE_CHOICES,
-        initial="America/Chicago",
-        required=True,
-        label="Your time zone",
-        help_text=(
-            "Choose the time zone you use for this teaching schedule. "
-            "Students will see the session time converted to their local time."
-        ),
-    )
-
+    available_days = forms.MultipleChoiceField(choices=WEEKDAY_CHOICES,widget=forms.CheckboxSelectMultiple,required=True,label='Teaching days')
+    initial_capacity = forms.IntegerField(min_value=1,initial=1,required=False,widget=forms.HiddenInput())
+    daily_start_time = forms.ChoiceField(choices=HOUR_CHOICES,required=True,label="Daily start time",widget=forms.Select())
+    daily_end_time = forms.ChoiceField(choices=HOUR_CHOICES,required=True,label="Daily end time",widget=forms.Select())
+    teacher_timezone = forms.ChoiceField(choices=COMMON_TIMEZONE_CHOICES,initial="America/Chicago",required=True,label="Your time zone",help_text="Choose the time zone you use for this teaching schedule. Students will see the session time converted to their local time.")
     class Meta:
-        model = Course
-        fields = [
-            'title',
-            'description',
-            'session_type',
-            'max_students',
-            'price',
-            'duration_minutes',
-            'image',
-            'video_url',
-            'start_date',
-            'end_date',
-            'available_days',
-            'daily_start_time',
-            'daily_end_time',
-            'teacher_timezone',
-        ]
-        labels = {
-            'session_type': 'Tutoring session type',
-            'max_students': 'Maximum students per session',
-            'price': 'Price per student',
-        }
-        help_texts = {
-            'session_type': (
-                'Private Tutoring allows one student per session. Group Tutoring allows multiple students to book the same session.'
-            ),
-            'max_students': (
-                'For Group Tutoring, set how many students may book each session. Private Tutoring is always limited to one student.'
-            ),
-            'price': 'For Group Tutoring, this is the amount charged to each student who books a seat.',
-            'duration_minutes': (
-                'The weekly schedule table is designed in hourly time slots. '
-                'If the lesson is less than one hour, such as 30 minutes, '
-                'the timetable will still show one-hour availability.'
-            ),
-        }
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'session_type': forms.Select(attrs={'class': 'form-select'}),
-            'max_students': forms.NumberInput(attrs={'min': 1}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        model=Course
+        fields=['title','description','session_type','max_students','price','duration_minutes','image','video_url','start_date','end_date','available_days','daily_start_time','daily_end_time','teacher_timezone']
+        labels={'session_type':'Tutoring session type','max_students':'Maximum students per session','price':'Price per student'}
+        help_texts={'session_type':'Private Tutoring allows one student per session. Group Tutoring allows multiple students to book the same session.','max_students':'For Group Tutoring, set how many students may book each session. Private Tutoring is always limited to one student.','price':'For Group Tutoring, this is the amount charged to each student who books a seat.','duration_minutes':'The weekly schedule table is designed in hourly time slots. If the lesson is less than one hour, such as 30 minutes, the timetable will still show one-hour availability.'}
+        widgets={'start_date':forms.DateInput(attrs={'type':'date'}),'end_date':forms.DateInput(attrs={'type':'date'}),'session_type':forms.Select(attrs={'class':'form-select'}),'max_students':forms.NumberInput(attrs={'min':1})}
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
         if self.instance and self.instance.pk:
-            if self.instance.available_days:
-                self.initial['available_days'] = self.instance.available_days.split(',')
-            self.initial['initial_capacity'] = self.instance.max_students
-
+            if self.instance.available_days:self.initial['available_days']=self.instance.available_days.split(',')
+            self.initial['initial_capacity']=self.instance.max_students
     def clean(self):
-        cleaned = super().clean()
-        start_date = cleaned.get('start_date')
-        end_date = cleaned.get('end_date')
-        start_time = cleaned.get('daily_start_time')
-        end_time = cleaned.get('daily_end_time')
-        session_type = cleaned.get('session_type') or 'private'
-        max_students = cleaned.get('max_students') or 1
-
-        if start_date and end_date and end_date < start_date:
-            raise ValidationError("End date must be on or after start date.")
-
-        if start_time:
-            h = int(start_time.split(':')[0])
-            cleaned['daily_start_time'] = time(h, 0)
-        if end_time:
-            h = int(end_time.split(':')[0])
-            cleaned['daily_end_time'] = time(h, 0)
-
-        if cleaned.get('daily_start_time') and cleaned.get('daily_end_time'):
-            if cleaned['daily_end_time'] <= cleaned['daily_start_time']:
-                raise ValidationError("Daily end time must be after daily start time.")
-
-        if session_type == 'private':
-            cleaned['max_students'] = 1
-            cleaned['initial_capacity'] = 1
+        cleaned=super().clean(); start_date=cleaned.get('start_date'); end_date=cleaned.get('end_date'); start_time=cleaned.get('daily_start_time'); end_time=cleaned.get('daily_end_time'); session_type=cleaned.get('session_type') or 'private'; max_students=cleaned.get('max_students') or 1
+        if start_date and end_date and end_date<start_date:raise ValidationError("End date must be on or after start date.")
+        if start_time: cleaned['daily_start_time']=time(int(start_time.split(':')[0]),0)
+        if end_time: cleaned['daily_end_time']=time(int(end_time.split(':')[0]),0)
+        if cleaned.get('daily_start_time') and cleaned.get('daily_end_time') and cleaned['daily_end_time']<=cleaned['daily_start_time']:raise ValidationError("Daily end time must be after daily start time.")
+        if session_type=='private':cleaned['max_students']=1; cleaned['initial_capacity']=1
         else:
-            if max_students < 2:
-                self.add_error('max_students', 'Group tutoring must allow at least 2 students.')
-            cleaned['initial_capacity'] = max_students
-
+            if max_students<2:self.add_error('max_students','Group tutoring must allow at least 2 students.')
+            cleaned['initial_capacity']=max_students
         return cleaned
-
-    def save(self, commit=True):
-        obj = super().save(commit=False)
-        days = self.cleaned_data.get('available_days', [])
-        obj.available_days = ','.join(days)
-        obj.max_students = self.cleaned_data.get('max_students') or 1
-        if commit:
-            obj.save()
+    def save(self,commit=True):
+        obj=super().save(commit=False); obj.available_days=','.join(self.cleaned_data.get('available_days',[])); obj.max_students=self.cleaned_data.get('max_students') or 1
+        if commit:obj.save()
         return obj
 
+class PrivateCourseForm(CourseForm):
+    """Teacher form dedicated to one-student private tutoring."""
+    class Meta(CourseForm.Meta):
+        fields=['title','description','price','duration_minutes','image','video_url','start_date','end_date','available_days','daily_start_time','daily_end_time','teacher_timezone']
+    def clean(self):
+        cleaned=super().clean(); cleaned['session_type']='private'; cleaned['max_students']=1; cleaned['initial_capacity']=1; return cleaned
+    def save(self,commit=True):
+        obj=super().save(commit=False); obj.session_type='private'; obj.max_students=1
+        if commit:obj.save()
+        return obj
+
+class GroupCourseForm(CourseForm):
+    """Teacher form dedicated to group tutoring."""
+    class Meta(CourseForm.Meta):
+        fields=['title','description','max_students','price','duration_minutes','image','video_url','start_date','end_date','available_days','daily_start_time','daily_end_time','teacher_timezone']
+        labels={**CourseForm.Meta.labels,'max_students':'Maximum group size','price':'Price per student'}
+    def clean(self):
+        cleaned=super().clean(); cleaned['session_type']='group'; max_students=cleaned.get('max_students') or 1
+        if max_students<2:self.add_error('max_students','A group class must allow at least 2 students.')
+        cleaned['initial_capacity']=max_students; return cleaned
+    def save(self,commit=True):
+        obj=super().save(commit=False); obj.session_type='group'; obj.max_students=self.cleaned_data.get('max_students') or 2
+        if commit:obj.save()
+        return obj
 
 class GenerateMoreTimeSlotsForm(forms.Form):
-    start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-    end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-    available_days = forms.MultipleChoiceField(
-        choices=WEEKDAY_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
-        label='Teaching days',
-    )
-    daily_start_time = forms.ChoiceField(
-        choices=HOUR_CHOICES,
-        required=True,
-        label="Daily start time",
-        widget=forms.Select(),
-    )
-    daily_end_time = forms.ChoiceField(
-        choices=HOUR_CHOICES,
-        required=True,
-        label="Daily end time",
-        widget=forms.Select(),
-    )
-    capacity = forms.IntegerField(
-        min_value=1,
-        initial=1,
-        required=False,
-        label='Capacity per time slot',
-    )
-
+    start_date=forms.DateField(widget=forms.DateInput(attrs={'type':'date'})); end_date=forms.DateField(widget=forms.DateInput(attrs={'type':'date'})); available_days=forms.MultipleChoiceField(choices=WEEKDAY_CHOICES,widget=forms.CheckboxSelectMultiple,required=True,label='Teaching days'); daily_start_time=forms.ChoiceField(choices=HOUR_CHOICES,required=True,label="Daily start time",widget=forms.Select()); daily_end_time=forms.ChoiceField(choices=HOUR_CHOICES,required=True,label="Daily end time",widget=forms.Select()); capacity=forms.IntegerField(min_value=1,initial=1,required=False,label='Capacity per time slot')
     def clean(self):
-        cleaned = super().clean()
-        start_date = cleaned.get('start_date')
-        end_date = cleaned.get('end_date')
-        start_time = cleaned.get('daily_start_time')
-        end_time = cleaned.get('daily_end_time')
-
-        if start_date and end_date and end_date < start_date:
-            raise ValidationError("End date must be on or after start date.")
-        if start_time:
-            h = int(start_time.split(':')[0])
-            cleaned['daily_start_time'] = time(h, 0)
-        if end_time:
-            h = int(end_time.split(':')[0])
-            cleaned['daily_end_time'] = time(h, 0)
-        if cleaned.get('daily_start_time') and cleaned.get('daily_end_time'):
-            if cleaned['daily_end_time'] <= cleaned['daily_start_time']:
-                raise ValidationError("Daily end time must be after daily start time.")
+        cleaned=super().clean(); sd=cleaned.get('start_date'); ed=cleaned.get('end_date'); st=cleaned.get('daily_start_time'); et=cleaned.get('daily_end_time')
+        if sd and ed and ed<sd:raise ValidationError("End date must be on or after start date.")
+        if st:cleaned['daily_start_time']=time(int(st.split(':')[0]),0)
+        if et:cleaned['daily_end_time']=time(int(et.split(':')[0]),0)
+        if cleaned.get('daily_start_time') and cleaned.get('daily_end_time') and cleaned['daily_end_time']<=cleaned['daily_start_time']:raise ValidationError("Daily end time must be after daily start time.")
         return cleaned
 
-
 class TimeSlotForm(forms.ModelForm):
-    start_time = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        input_formats=['%Y-%m-%dT%H:%M'],
-    )
-    end_time = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        input_formats=['%Y-%m-%dT%H:%M'],
-    )
-
+    start_time=forms.DateTimeField(widget=forms.DateTimeInput(attrs={'type':'datetime-local'}),input_formats=['%Y-%m-%dT%H:%M']); end_time=forms.DateTimeField(widget=forms.DateTimeInput(attrs={'type':'datetime-local'}),input_formats=['%Y-%m-%dT%H:%M'])
     class Meta:
-        model = TimeSlot
-        fields = ['capacity', 'start_time', 'end_time']
-        labels = {
-            'start_time': 'Session start (date & time)',
-            'end_time': 'Session end (date & time)',
-        }
-
-    def __init__(self, *args, **kwargs):
-        self.course = kwargs.pop("course", None)
-        super().__init__(*args, **kwargs)
+        model=TimeSlot; fields=['capacity','start_time','end_time']; labels={'start_time':'Session start (date & time)','end_time':'Session end (date & time)'}
+    def __init__(self,*args,**kwargs):
+        self.course=kwargs.pop("course",None); super().__init__(*args,**kwargs)
         if self.course:
-            self.fields['capacity'].initial = self.course.max_students
-            if self.course.session_type == 'private':
-                self.fields['capacity'].widget = forms.HiddenInput()
-                self.fields['capacity'].initial = 1
-            else:
-                self.fields['capacity'].help_text = (
-                    f'This group course allows up to {self.course.max_students} students per session.'
-                )
-
+            self.fields['capacity'].initial=self.course.max_students
+            if self.course.session_type=='private':self.fields['capacity'].widget=forms.HiddenInput(); self.fields['capacity'].initial=1
+            else:self.fields['capacity'].help_text=f'This group course allows up to {self.course.max_students} students per session.'
     def clean(self):
-        cleaned_data = super().clean()
-        start = cleaned_data.get('start_time')
-        end = cleaned_data.get('end_time')
-
-        if not start or not end:
-            return cleaned_data
-
-        if end <= start:
-            raise ValidationError("End time must be after start time.")
-
-        course = self.course
+        cleaned=super().clean(); start=cleaned.get('start_time'); end=cleaned.get('end_time')
+        if not start or not end:return cleaned
+        if end<=start:raise ValidationError("End time must be after start time.")
+        course=self.course
         if course is None:
-            try:
-                course = self.instance.course
-            except ObjectDoesNotExist:
-                course = None
-
+            try:course=self.instance.course
+            except ObjectDoesNotExist:course=None
         if course:
-            if course.start_date and start.date() < course.start_date:
-                raise ValidationError(
-                    f"Time slot start time must be on or after {course.start_date}."
-                )
-            if course.end_date and start.date() > course.end_date:
-                raise ValidationError(
-                    f"Time slot start time must be on or before {course.end_date}."
-                )
-
-            if course.session_type == 'private':
-                cleaned_data['capacity'] = 1
+            if course.start_date and start.date()<course.start_date:raise ValidationError(f"Time slot start time must be on or after {course.start_date}.")
+            if course.end_date and start.date()>course.end_date:raise ValidationError(f"Time slot start time must be on or before {course.end_date}.")
+            if course.session_type=='private':cleaned['capacity']=1
             else:
-                capacity = cleaned_data.get('capacity') or course.max_students
-                if capacity < 2:
-                    self.add_error('capacity', 'A group session must allow at least 2 students.')
-                if capacity > course.max_students:
-                    self.add_error(
-                        'capacity',
-                        f'Capacity cannot exceed the course maximum of {course.max_students} students.'
-                    )
-
-        return cleaned_data
-
-
-TimeSlotFormSet = inlineformset_factory(
-    Course,
-    TimeSlot,
-    form=TimeSlotForm,
-    extra=5,
-    can_delete=True,
-)
-
+                capacity=cleaned.get('capacity') or course.max_students
+                if capacity<2:self.add_error('capacity','A group session must allow at least 2 students.')
+                if capacity>course.max_students:self.add_error('capacity',f'Capacity cannot exceed the course maximum of {course.max_students} students.')
+        return cleaned
+TimeSlotFormSet=inlineformset_factory(Course,TimeSlot,form=TimeSlotForm,extra=5,can_delete=True)
 
 class StudentChoiceField(forms.ModelMultipleChoiceField):
-    def label_from_instance(self, student):
-        full_name = student.get_full_name().strip()
-        if full_name:
-            return f"{full_name} — {student.email}"
-        return student.email
-
-
+    def label_from_instance(self,student):
+        full_name=student.get_full_name().strip(); return f"{full_name} — {student.email}" if full_name else student.email
 class StudentGroupForm(forms.ModelForm):
-    students = StudentChoiceField(
-        queryset=User.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            "class": "form-check-input",
-        }),
-    )
-
+    students=StudentChoiceField(queryset=User.objects.none(),required=False,widget=forms.CheckboxSelectMultiple(attrs={"class":"form-check-input"}))
     class Meta:
-        model = StudentGroup
-        fields = ["name", "students"]
-        widgets = {
-            "name": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Enter group name",
-            }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["students"].queryset = User.objects.filter(
-            is_teacher=False,
-            is_active=True,
-            is_staff=False,
-            is_superuser=False,
-        ).order_by("first_name", "last_name", "email")
+        model=StudentGroup; fields=["name","students"]; widgets={"name":forms.TextInput(attrs={"class":"form-control","placeholder":"Enter group name"})}
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs); self.fields["students"].queryset=User.objects.filter(is_teacher=False,is_active=True,is_staff=False,is_superuser=False).order_by("first_name","last_name","email")
