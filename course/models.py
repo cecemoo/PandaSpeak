@@ -123,6 +123,7 @@ class GroupClassRequest(models.Model):
     level=models.CharField(max_length=10,choices=LEVEL_CHOICES,default='level1')
     preferred_times=models.CharField(max_length=500)
     desired_group_size=models.PositiveIntegerField(default=4)
+    requested_price=models.PositiveIntegerField(blank=True,null=True,help_text='Price per student proposed by the student.')
     message=models.TextField(blank=True)
     status=models.CharField(max_length=12,choices=STATUS_CHOICES,default='pending')
     created_course=models.ForeignKey(Course,on_delete=models.SET_NULL,blank=True,null=True,related_name='originating_group_requests')
