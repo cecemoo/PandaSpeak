@@ -56,11 +56,8 @@ class CourseForm(forms.ModelForm):
         return obj
 
 class PrivateCourseForm(CourseForm):
-    """Teacher form dedicated to one-student private tutoring."""
-    forced_session_type='private'
-    forced_max_students=1
-    class Meta(CourseForm.Meta):
-        exclude=['session_type','max_students']
+    forced_session_type='private'; forced_max_students=1
+    class Meta(CourseForm.Meta): exclude=['session_type','max_students']
     def clean(self):
         cleaned=super().clean(); cleaned['session_type']='private'; cleaned['max_students']=1; cleaned['initial_capacity']=1; return cleaned
     def save(self,commit=True):
@@ -69,7 +66,6 @@ class PrivateCourseForm(CourseForm):
         return obj
 
 class GroupCourseForm(CourseForm):
-    """Teacher form dedicated to group tutoring."""
     forced_session_type='group'
     class Meta(CourseForm.Meta):
         exclude=['session_type']
@@ -80,6 +76,16 @@ class GroupCourseForm(CourseForm):
         cleaned['initial_capacity']=max_students; return cleaned
     def save(self,commit=True):
         obj=super().save(commit=False); obj.session_type='group'; obj.max_students=self.cleaned_data.get('max_students') or 2
+        if commit:obj.save()
+        return obj
+
+class RequestedGroupCourseForm(GroupCourseForm):
+    """Streamlined teacher form for a student-requested group class."""
+    class Meta(GroupCourseForm.Meta):
+        exclude=['session_type','description','image','video_url']
+        labels={**CourseForm.Meta.labels,'max_students':'Maximum group size','price':'Price per student'}
+    def save(self,commit=True):
+        obj=super().save(commit=False); obj.description=''
         if commit:obj.save()
         return obj
 
