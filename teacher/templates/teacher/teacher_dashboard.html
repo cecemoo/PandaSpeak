@@ -7,19 +7,17 @@
 {% block content %}
 
 <style>
-  .dashboard-card {
-    min-height: 160px;
-    border-radius: 15px;
-    transition: 0.3s;
-  }
-
-  .dashboard-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .teacher-session-card {
-    border-radius: 15px;
-  }
+  .dashboard-card { min-height: 190px; border-radius: 15px; transition: .3s; }
+  .dashboard-card:hover { transform: translateY(-5px); }
+  .teacher-session-card { border-radius: 15px; }
+  .dashboard-card .card-body { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem; }
+  .dashboard-card-icon { font-size:2.2rem; line-height:1; margin-bottom:.75rem; }
+  .dashboard-card p { margin-bottom:1rem; }
+  .dashboard-action { margin-top:auto; }
+  .private-card .dashboard-card-icon { color:#a66cff; }
+  .group-card .dashboard-card-icon { color:#39e6a2; }
+  .manage-card .dashboard-card-icon { color:#49a7ff; }
+  .request-card .dashboard-card-icon { color:#ffd84d; }
 </style>
 <main class="main">
 
@@ -27,235 +25,54 @@
     <div class="container position-relative">
       <h1>Teacher Dashboard</h1>
       <p>Welcome, Teacher {{ user.last_name }}!</p>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="{% url 'home' %}">Home</a></li>
-          <li class="current">Teacher Dashboard</li>
-        </ol>
-      </nav>
+      <nav class="breadcrumbs"><ol><li><a href="{% url 'home' %}">Home</a></li><li class="current">Teacher Dashboard</li></ol></nav>
     </div>
   </div>
 
   <section id="teacher-dashboard-section" class="teacher-dashboard-section section">
-    <div class="container section-title" data-aos="fade-up">
-      <h2>Teacher Dashboard Section</h2>
-    </div>
+    <div class="container section-title" data-aos="fade-up"><h2>Teacher Dashboard Section</h2></div>
 
     <div class="container" data-aos="fade-up">
-      <div class="card mb-4">
-        <div class="card-body">
-          <h4>Welcome back, Teacher {{ request.user.last_name }}!</h4>
-          <p>Manage your classes, bookings, and learning materials.</p>
-        </div>
-      </div>
+      <div class="card mb-4"><div class="card-body"><h4>Welcome back, Teacher {{ request.user.last_name }}!</h4><p>Manage your classes, bookings, and learning materials.</p></div></div>
 
       {% if recent_bookings %}
-      <div class="card teacher-session-card mb-4 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <h4 class="mb-0">My Tutoring Sessions</h4>
-            <a href="{% url 'course:teacher_bookings' %}" class="btn btn-outline-secondary rounded-pill">View All Sessions</a>
-          </div>
-
-          <div class="row g-3">
-            {% for booking in recent_bookings %}
-              {% if booking.status == 'confirmed' and booking|tutoring_session_visible %}
-              <div class="col-lg-6">
-                <div class="border rounded-3 p-3 h-100">
-                  <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                    <div>
-                      <h5 class="mb-1">{{ booking.timeslot.course.title }}</h5>
-                      <div class="text-muted small">
-                        Student: {{ booking.student.get_full_name|default:booking.student.email }}
-                      </div>
-                    </div>
-                    <div class="text-end">
-                      {% if booking.is_test_booking %}
-                        <span class="badge bg-warning text-dark">Test Session</span>
-                      {% endif %}
-                      <span class="badge bg-secondary">{{ booking.get_session_status_display }}</span>
-                    </div>
-                  </div>
-
-                  <p class="mb-2">
-                    <strong>Scheduled:</strong>
-                    {% if booking.teacher_local_start %}
-                      {{ booking.teacher_local_start|date:"M j, Y g:i A" }}
-                    {% else %}
-                      {{ booking.timeslot.start_time|date:"M j, Y g:i A" }}
-                    {% endif %}
-                  </p>
-
-                  {% if booking.session_status != 'completed' %}
-                  <a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-primary rounded-pill">
-                    Enter Classroom
-                  </a>
-                  {% endif %}
-                </div>
-              </div>
-              {% endif %}
-            {% endfor %}
-          </div>
+      <div class="card teacher-session-card mb-4 shadow-sm"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"><h4 class="mb-0">My Tutoring Sessions</h4><a href="{% url 'course:teacher_bookings' %}" class="btn btn-outline-secondary rounded-pill">View All Sessions</a></div>
+        <div class="row g-3">
+          {% for booking in recent_bookings %}{% if booking.status == 'confirmed' and booking|tutoring_session_visible %}
+          <div class="col-lg-6"><div class="border rounded-3 p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2"><div><h5 class="mb-1">{{ booking.timeslot.course.title }}</h5><div class="text-muted small">Student: {{ booking.student.get_full_name|default:booking.student.email }}</div></div><div class="text-end">{% if booking.is_test_booking %}<span class="badge bg-warning text-dark">Test Session</span>{% endif %}<span class="badge bg-secondary">{{ booking.get_session_status_display }}</span></div></div>
+            <p class="mb-2"><strong>Scheduled:</strong> {% if booking.teacher_local_start %}{{ booking.teacher_local_start|date:"M j, Y g:i A" }}{% else %}{{ booking.timeslot.start_time|date:"M j, Y g:i A" }}{% endif %}</p>
+            {% if booking.session_status != 'completed' %}<a href="{% url 'course:tutoring_session' booking.pk %}" class="btn btn-primary rounded-pill">Enter Classroom</a>{% endif %}
+          </div></div>
+          {% endif %}{% endfor %}
         </div>
-      </div>
+      </div></div>
       {% endif %}
 
       <div class="row g-4">
+        <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card private-card"><div class="card-body"><i class="bi bi-person-fill dashboard-card-icon"></i><h5>Create Private Tutoring Session</h5><p>Create a private session for 1 student.</p><a href="{% url 'course:course_create' %}" class="btn btn-outline-primary rounded-pill dashboard-action">Create Private Session</a></div></div></div>
 
-        <div class="col-md-4">
-          <a href="{% url 'course:course_create' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Create Tutoring Session</h5>
-                <p>Create either a private session for 1 student or a group session for 2 or more students.</p>
-              </div>
-            </div>
-          </a>
-        </div>
+        <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card group-card"><div class="card-body"><i class="bi bi-people-fill dashboard-card-icon"></i><h5>Create Group Class</h5><p>Create a group session for 2 or more students. You can also create a class directly from an accepted request.</p><a href="{% url 'course:course_create' %}" class="btn btn-outline-success rounded-pill dashboard-action">Create Group Class</a></div></div></div>
 
-        <div class="col-md-4">
-            {% if user.is_authenticated and user.is_teacher %}
-            {% if user.stripe_account_id %}
-            <a href="{% url 'course:stripe_connect_onboard' %}" class="text-decoration-none">
-              <div class="card text-center dashboard-card">
-                <div class="card-body">
-                  <h5>Connect Stripe Account</h5>
-                  <p>Connect your Stripe account to receive payments.</p>
-                </div>
-              </div>
-            </a>
-            {% else %}
-            <a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-primary rounded-pill">
-              Connect Stripe account
-            </a>
-            {% endif %}
-            {% endif %}
-        </div>
+        <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card manage-card"><div class="card-body"><i class="bi bi-calendar3 dashboard-card-icon"></i><h5>Manage Tutoring Classes</h5><p>View and edit your private and group tutoring classes.</p><a href="{% url 'teacher_course_bookings' %}" class="btn btn-outline-info rounded-pill dashboard-action">Manage Classes</a></div></div></div>
 
-        <div class="col-md-4">
-          <a href="{% url 'teacher_course_bookings' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Manage Tutoring Classes</h5>
-                <p>View and edit your tutoring classes.</p>
-              </div>
-            </div>
-          </a>
-        </div>
+        <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card request-card"><div class="card-body"><i class="bi bi-people-fill dashboard-card-icon"></i><h5>Group Class Requests</h5><p>View student requests for group classes and take action.</p><a href="{% url 'course:teacher_group_requests' %}" class="btn btn-outline-warning rounded-pill dashboard-action">View Requests</a></div></div></div>
 
-        <div class="col-md-4">
-          <a href="{% url 'student_group_list' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Student Group</h5>
-                <p>Create groups and add or remove students from your existing groups.</p>
-              </div>
-            </div>
-          </a>
-        </div>
+        <div class="col-md-4">{% if user.is_authenticated and user.is_teacher %}{% if user.stripe_account_id %}<a href="{% url 'course:stripe_connect_onboard' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Connect Stripe Account</h5><p>Connect your Stripe account to receive payments.</p></div></div></a>{% else %}<a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-primary rounded-pill">Connect Stripe account</a>{% endif %}{% endif %}</div>
 
-        <div class="col-md-4">
-          <a href="{% url 'add_vocabulary' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Add Vocabulary</h5>
-                <p>Create new words for students.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'add_sentence' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Add Sentence</h5>
-                <p>Add useful sentence practice.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'add_idiom' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Add Chinese Expressions</h5>
-                <p>Add Chinese expressions and usage examples.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'teacher_create_test' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Create Tests</h5>
-                <p>Create new tests for students.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'teacher_test_list' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>View Created Tests</h5>
-                <p>View and manage your created tests.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'teacher_student_test_results' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>View Student Test Results</h5>
-                <p>View and manage student test results.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'create_learning_survey' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Create Learning Surveys</h5>
-                <p>Create new learning surveys for students.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'teacher_survey_list' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Learning Surveys</h5>
-                <p>View and manage your learning surveys.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="{% url 'teacher_bingo_list' %}" class="text-decoration-none">
-            <div class="card text-center dashboard-card">
-              <div class="card-body">
-                <h5>Chinese Bingo</h5>
-                <p>Create and manage Bingo practice games for student groups.</p>
-              </div>
-            </div>
-          </a>
-        </div>
-
+        <div class="col-md-4"><a href="{% url 'student_group_list' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Student Group</h5><p>Create groups and add or remove students from your existing groups.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'add_vocabulary' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Add Vocabulary</h5><p>Create new words for students.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'add_sentence' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Add Sentence</h5><p>Add useful sentence practice.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'add_idiom' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Add Chinese Expressions</h5><p>Add Chinese expressions and usage examples.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'teacher_create_test' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Create Tests</h5><p>Create new tests for students.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'teacher_test_list' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>View Created Tests</h5><p>View and manage your created tests.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'teacher_student_test_results' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>View Student Test Results</h5><p>View and manage student test results.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'create_learning_survey' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Create Learning Surveys</h5><p>Create new learning surveys for students.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'teacher_survey_list' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Learning Surveys</h5><p>View and manage your learning surveys.</p></div></div></a></div>
+        <div class="col-md-4"><a href="{% url 'teacher_bingo_list' %}" class="text-decoration-none"><div class="card text-center dashboard-card"><div class="card-body"><h5>Chinese Bingo</h5><p>Create and manage Bingo practice games for student groups.</p></div></div></a></div>
       </div>
     </div>
   </section>
-
 </main>
 {% endblock %}
