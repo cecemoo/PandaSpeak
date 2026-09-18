@@ -5,6 +5,7 @@ from . import payment_views
 from . import test_booking_views
 from . import reschedule_views
 from . import group_request_views
+from . import group_enrollment_views
 from . import create_views
 from .views import WeeklyScheduleView
 
@@ -22,6 +23,8 @@ urlpatterns = [
     path('group-class-requests/teacher/', group_request_views.teacher_group_requests, name='teacher_group_requests'),
     path('group-class-requests/<int:request_pk>/create-class/', group_request_views.GroupRequestCourseCreateView.as_view(), name='create_group_class_from_request'),
     path('group-class-requests/<int:pk>/<str:decision>/', group_request_views.respond_group_request, name='respond_group_request'),
+    path('group-enrollment/<int:pk>/', group_enrollment_views.group_enrollment, name='group_enrollment'),
+    path('group-enrollment/<int:pk>/<str:decision>/', group_enrollment_views.group_enrollment_decision, name='group_enrollment_decision'),
     path('<int:pk>/schedule/', WeeklyScheduleView.as_view(), name='weekly_schedule'),
     path('<int:pk>/timeslot/add/', views.TimeSlotCreateView.as_view(), name='timeslot_add'),
     path('courses/<int:pk>/timeslots/generate/', views.generate_more_timeslots, name='generate_more_timeslots'),
