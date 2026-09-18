@@ -19,7 +19,9 @@ def request_group_class(request, course_pk):
 
     if request.method == 'POST':
         topic = request.POST.get('topic', '').strip()
-        preferred_times = request.POST.get('preferred_times', '').strip()
+        preferred_day = request.POST.get('preferred_day', '').strip()
+        preferred_time = request.POST.get('preferred_time', '').strip()
+        preferred_timezone = request.POST.get('preferred_timezone', '').strip()
         message = request.POST.get('message', '').strip()
         level = request.POST.get('level', request.user.learning_level)
         try:
@@ -27,9 +29,10 @@ def request_group_class(request, course_pk):
         except (TypeError, ValueError):
             desired_group_size = 4
 
-        if not topic or not preferred_times:
-            messages.error(request, "Please provide a topic and preferred date/time.")
+        if not topic or not preferred_day or not preferred_time or not preferred_timezone:
+            messages.error(request, "Please provide a topic, preferred day, time, and time zone.")
         else:
+            preferred_times = f'{preferred_day}, {preferred_time} ({preferred_timezone})'
             group_request = GroupClassRequest.objects.create(
                 student=request.user,
                 teacher=course.teacher,
