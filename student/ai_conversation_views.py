@@ -1,5 +1,7 @@
+import hashlib
 import json
 import os
+from decimal import Decimal
 
 import requests
 from django.contrib.auth.decorators import login_required
@@ -8,59 +10,34 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 from subscription.decorators import subscription_required
+from .models import AIConversationUsage, AICachedSpeech
 
-
-SCENARIOS = {
-    "self_intro": "Self Introduction",
-    "restaurant": "Restaurant",
-    "shopping": "Shopping",
-    "directions": "Asking Directions",
-    "travel": "Hotel / Travel",
-    "plans": "Making Plans with a Friend",
-    "family": "Family Conversation",
-    "free": "Free Conversation",
-}
-
-LEVEL_GUIDANCE = {
-    "1": "Use short beginner-friendly sentences, common vocabulary, and one idea at a time.",
-    "2": "Use natural everyday Chinese with moderately varied vocabulary and sentence patterns.",
-    "3": "Use natural, fluent Chinese, including appropriate idiomatic or colloquial expressions when useful.",
-}
-
+SCENARIOS={"self_intro":"Self Introduction","restaurant":"Restaurant","shopping":"Shopping","directions":"Asking Directions","travel":"Hotel / Travel","plans":"Making Plans with a Friend","family":"Family Conversation","free":"Free Conversation"}
+LEVEL_GUIDANCE={"1":"Use short beginner-friendly sentences, common vocabulary, and one idea at a time.","2":"Use natural everyday Chinese with moderately varied vocabulary and sentence patterns.","3":"Use natural, fluent Chinese, including appropriate idiomatic or colloquial expressions when useful."}
 
 def _student_level(user):
-    for attr in ("learning_level", "level", "student_level"):
-        value = getattr(user, attr, None)
+    for attr in ("learning_level","level","student_level"):
+        value=getattr(user,attr,None)
         if value:
-            text = str(value).lower()
-            if "3" in text or "iii" in text:
-                return "3"
-            if "2" in text or "ii" in text:
-                return "2"
+            text=str(value).lower()
+            if "3" in text or "iii" in text:return "3"
+            if "2" in text or "ii" in text:return "2"
     return "1"
 
-
 def _daily_limit():
-    try:
-        return max(1, int(os.getenv("AI_CONVERSATION_DAILY_LIMIT", "10")))
-    except ValueError:
-        return 10
-
+    try:return max(1,int(os.getenv("AI_CONVERSATION_DAILY_LIMIT","10")))
+    except ValueError:return 10
 
 def _usage_key():
     from django.utils import timezone
     return f"ai_conversation_turns_{timezone.localdate().isoformat()}"
 
+def _remaining(request):return max(0,_daily_limit()-int(request.session.get(_usage_key(),0)))
 
-def _remaining(request):
-    used = int(request.session.get(_usage_key(), 0))
-    return max(0, _daily_limit() - used)
-
-
-def _system_prompt(level, scenario):
+def _system_prompt(level,scenario):
     return f"""You are PandaSpeak AI Conversation Practice, a supportive Mandarin Chinese conversation partner for adult learners.
 The learner is PandaSpeak Level {level}. {LEVEL_GUIDANCE[level]}
-Scenario: {SCENARIOS.get(scenario, 'Free Conversation')}.
+Scenario: {SCENARIOS.get(scenario,'Free Conversation')}.
 Use Traditional Chinese, not Simplified Chinese.
 Keep each conversational reply concise (usually 1-3 sentences) and keep the role-play moving by asking a natural follow-up when appropriate.
 Do not give an English translation unless the learner asks for help.
@@ -68,123 +45,81 @@ If the learner makes an important error, respond naturally first; then add one s
 If the learner asks for a hint, give a short hint with useful Traditional Chinese wording and optional pinyin.
 Never claim to be a human teacher. This is language practice, not professional advice."""
 
-
 def _api_key():
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is not configured on the server.")
-    return api_key
+    key=os.getenv("OPENAI_API_KEY","")
+    if not key:raise RuntimeError("OPENAI_API_KEY is not configured on the server.")
+    return key
 
+def _reply_cost(input_tokens,output_tokens):
+    # Defaults are configurable so pricing changes do not require a deployment.
+    in_rate=Decimal(os.getenv("AI_REPLY_INPUT_USD_PER_MILLION","0.20"));out_rate=Decimal(os.getenv("AI_REPLY_OUTPUT_USD_PER_MILLION","1.20"))
+    return (Decimal(input_tokens)*in_rate+Decimal(output_tokens)*out_rate)/Decimal(1000000)
 
-def _call_openai(messages, level, scenario):
-    model = os.getenv("OPENAI_AI_CONVERSATION_MODEL", "gpt-5.6-luna")
-    payload = {
-        "model": model,
-        "input": [{"role": "system", "content": _system_prompt(level, scenario)}] + messages,
-        "max_output_tokens": 350,
-    }
-    response = requests.post(
-        "https://api.openai.com/v1/responses",
-        headers={"Authorization": f"Bearer {_api_key()}", "Content-Type": "application/json"},
-        json=payload,
-        timeout=30,
-    )
-    response.raise_for_status()
-    data = response.json()
-    if data.get("output_text"):
-        return data["output_text"].strip()
-    parts = []
-    for item in data.get("output", []):
-        for content in item.get("content", []):
-            if content.get("type") == "output_text" and content.get("text"):
-                parts.append(content["text"])
-    text = "\n".join(parts).strip()
+def _speech_cost(text):
+    # Approximation for internal cost monitoring; override rate in .env as pricing changes.
+    chars=len(text);rate=Decimal(os.getenv("AI_TTS_ESTIMATED_USD_PER_1K_CHARS","0.015"))
+    return Decimal(chars)*rate/Decimal(1000)
+
+def _call_openai(messages,level,scenario):
+    model=os.getenv("OPENAI_AI_CONVERSATION_MODEL","gpt-5.6-luna")
+    payload={"model":model,"input":[{"role":"system","content":_system_prompt(level,scenario)}]+messages,"max_output_tokens":350}
+    r=requests.post("https://api.openai.com/v1/responses",headers={"Authorization":f"Bearer {_api_key()}","Content-Type":"application/json"},json=payload,timeout=30);r.raise_for_status();data=r.json()
+    text=data.get("output_text","").strip()
     if not text:
-        raise RuntimeError("The AI service returned an empty response.")
-    return text
-
+        parts=[]
+        for item in data.get("output",[]):
+            for content in item.get("content",[]):
+                if content.get("type")=="output_text" and content.get("text"):parts.append(content["text"])
+        text="\n".join(parts).strip()
+    if not text:raise RuntimeError("The AI service returned an empty response.")
+    usage=data.get("usage") or {};return text,model,int(usage.get("input_tokens",0) or 0),int(usage.get("output_tokens",0) or 0)
 
 @login_required
 @subscription_required
 def ai_conversation(request):
-    return render(request, "student/ai_conversation.html", {
-        "scenarios": SCENARIOS,
-        "student_level": _student_level(request.user),
-        "daily_limit": _daily_limit(),
-        "remaining": _remaining(request),
-    })
-
+    return render(request,"student/ai_conversation.html",{"scenarios":SCENARIOS,"student_level":_student_level(request.user),"daily_limit":_daily_limit(),"remaining":_remaining(request)})
 
 @login_required
 @subscription_required
 @require_POST
 def ai_conversation_reply(request):
-    if _remaining(request) <= 0:
-        return JsonResponse({"error": "You have reached today's AI conversation practice limit.", "remaining": 0}, status=429)
-    try:
-        body = json.loads(request.body.decode("utf-8"))
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse({"error": "Invalid request."}, status=400)
-    message = str(body.get("message", "")).strip()
-    scenario = str(body.get("scenario", "free"))
-    history = body.get("history", [])
-    if not message or scenario not in SCENARIOS:
-        return JsonResponse({"error": "Please enter a message and choose a valid scenario."}, status=400)
-    safe_history = []
-    if isinstance(history, list):
+    if _remaining(request)<=0:return JsonResponse({"error":"You have reached today's AI conversation practice limit.","remaining":0},status=429)
+    try:body=json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError,UnicodeDecodeError):return JsonResponse({"error":"Invalid request."},status=400)
+    message=str(body.get("message","")).strip();scenario=str(body.get("scenario","free"));history=body.get("history",[])
+    if not message or scenario not in SCENARIOS:return JsonResponse({"error":"Please enter a message and choose a valid scenario."},status=400)
+    safe=[]
+    if isinstance(history,list):
         for item in history[-12:]:
-            if isinstance(item, dict) and item.get("role") in ("user", "assistant"):
-                text = str(item.get("content", "")).strip()[:1500]
-                if text:
-                    safe_history.append({"role": item["role"], "content": text})
-    safe_history.append({"role": "user", "content": message[:1500]})
-    try:
-        reply = _call_openai(safe_history, _student_level(request.user), scenario)
-    except requests.RequestException:
-        return JsonResponse({"error": "AI conversation is temporarily unavailable. Please try again shortly."}, status=503)
-    except RuntimeError as exc:
-        return JsonResponse({"error": str(exc)}, status=503)
-    request.session[_usage_key()] = int(request.session.get(_usage_key(), 0)) + 1
-    request.session.modified = True
-    return JsonResponse({"reply": reply, "remaining": _remaining(request)})
-
+            if isinstance(item,dict) and item.get("role") in ("user","assistant"):
+                text=str(item.get("content","")).strip()[:1500]
+                if text:safe.append({"role":item["role"],"content":text})
+    safe.append({"role":"user","content":message[:1500]})
+    try:reply,model,input_tokens,output_tokens=_call_openai(safe,_student_level(request.user),scenario)
+    except requests.RequestException:return JsonResponse({"error":"AI conversation is temporarily unavailable. Please try again shortly."},status=503)
+    except RuntimeError as exc:return JsonResponse({"error":str(exc)},status=503)
+    AIConversationUsage.objects.create(student=request.user,kind='reply',model_name=model,input_units=input_tokens,output_units=output_tokens,estimated_cost_usd=_reply_cost(input_tokens,output_tokens))
+    request.session[_usage_key()]=int(request.session.get(_usage_key(),0))+1;request.session.modified=True
+    return JsonResponse({"reply":reply,"remaining":_remaining(request)})
 
 @login_required
 @subscription_required
 @require_POST
 def ai_conversation_speech(request):
-    """Generate Standard Mandarin speech while keeping the UI text in Traditional Chinese."""
+    try:body=json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError,UnicodeDecodeError):return JsonResponse({"error":"Invalid request."},status=400)
+    text=str(body.get("text","")).strip()[:2000];choice=str(body.get("voice","female")).lower()
+    if not text:return JsonResponse({"error":"No text to speak."},status=400)
+    voice="onyx" if choice=="male" else "coral";model=os.getenv("OPENAI_AI_TTS_MODEL","gpt-4o-mini-tts")
+    key=hashlib.sha256(f"{model}|{voice}|{text}".encode("utf-8")).hexdigest();cached=AICachedSpeech.objects.filter(cache_key=key).first()
+    if cached:
+        AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=0,cached=True)
+        return HttpResponse(bytes(cached.audio),content_type="audio/mpeg",headers={"X-PandaSpeak-AI-Cache":"HIT"})
+    payload={"model":model,"voice":voice,"input":text,"instructions":"Speak exactly the supplied Chinese text in clear, natural Standard Mandarin (標準國語/標準普通話). Use standard Mandarin pronunciation and tones, with no Taiwanese, Cantonese, or other regional accent. Do not translate, paraphrase, add, omit, or explain any words. Read Traditional Chinese characters naturally.","response_format":"mp3"}
     try:
-        body = json.loads(request.body.decode("utf-8"))
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse({"error": "Invalid request."}, status=400)
-
-    text = str(body.get("text", "")).strip()[:2000]
-    voice_choice = str(body.get("voice", "female")).lower()
-    if not text:
-        return JsonResponse({"error": "No text to speak."}, status=400)
-
-    # OpenAI TTS handles Traditional Chinese directly. The instruction fixes the
-    # spoken register to clear Standard Mandarin rather than a regional accent.
-    voice = "onyx" if voice_choice == "male" else "coral"
-    payload = {
-        "model": os.getenv("OPENAI_AI_TTS_MODEL", "gpt-4o-mini-tts"),
-        "voice": voice,
-        "input": text,
-        "instructions": "Speak exactly the supplied Chinese text in clear, natural Standard Mandarin (標準國語/標準普通話). Use standard Mandarin pronunciation and tones, with no Taiwanese, Cantonese, or other regional accent. Do not translate, paraphrase, add, omit, or explain any words. Read Traditional Chinese characters naturally.",
-        "response_format": "mp3",
-    }
-    try:
-        response = requests.post(
-            "https://api.openai.com/v1/audio/speech",
-            headers={"Authorization": f"Bearer {_api_key()}", "Content-Type": "application/json"},
-            json=payload,
-            timeout=45,
-        )
-        response.raise_for_status()
-    except requests.RequestException:
-        return JsonResponse({"error": "Standard Mandarin voice is temporarily unavailable."}, status=503)
-    except RuntimeError as exc:
-        return JsonResponse({"error": str(exc)}, status=503)
-
-    return HttpResponse(response.content, content_type="audio/mpeg")
+        r=requests.post("https://api.openai.com/v1/audio/speech",headers={"Authorization":f"Bearer {_api_key()}","Content-Type":"application/json"},json=payload,timeout=45);r.raise_for_status()
+    except requests.RequestException:return JsonResponse({"error":"Standard Mandarin voice is temporarily unavailable."},status=503)
+    except RuntimeError as exc:return JsonResponse({"error":str(exc)},status=503)
+    AICachedSpeech.objects.update_or_create(cache_key=key,defaults={"voice":voice,"text":text,"audio":r.content})
+    AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=_speech_cost(text),cached=False)
+    return HttpResponse(r.content,content_type="audio/mpeg",headers={"X-PandaSpeak-AI-Cache":"MISS"})
