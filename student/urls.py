@@ -43,6 +43,7 @@ urlpatterns = [
     path('chinese-challenge/', challenge_views.chinese_challenge, name='chinese_challenge'),
     path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
     path('ai-conversation/', ai_conversation_views.ai_conversation, name='ai_conversation'),
+    path('ai-conversation/traditionalize/', ai_conversation_views.ai_conversation_traditionalize, name='ai_conversation_traditionalize'),
     path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),
     path('ai-conversation/speech/', ai_conversation_views.ai_conversation_speech, name='ai_conversation_speech'),
 
