@@ -16,6 +16,9 @@ from .models import AIConversationUsage, AICachedSpeech
 SCENARIOS={"self_intro":"Self Introduction","restaurant":"Restaurant","shopping":"Shopping","directions":"Asking Directions","travel":"Hotel / Travel","plans":"Making Plans with a Friend","family":"Family Conversation","free":"Free Conversation"}
 LEVEL_GUIDANCE={"1":"Use short beginner-friendly sentences, common vocabulary, and one idea at a time.","2":"Use natural everyday Chinese with moderately varied vocabulary and sentence patterns.","3":"Use natural, fluent Chinese, including appropriate idiomatic or colloquial expressions when useful."}
 TRADITIONAL_CONVERTER=OpenCC('s2t')
+# Speech input is converted separately to Simplified Chinese only for the TTS engine.
+# The learner still sees and enters Traditional Chinese everywhere in PandaSpeak.
+MANDARIN_SPEECH_CONVERTER=OpenCC('t2s')
 
 def _traditional(text):
     return TRADITIONAL_CONVERTER.convert(str(text or ''))
@@ -127,12 +130,18 @@ def ai_conversation_speech(request):
     except (json.JSONDecodeError,UnicodeDecodeError):return JsonResponse({"error":"Invalid request."},status=400)
     text=_traditional(str(body.get("text","")).strip())[:2000];choice=str(body.get("voice","female")).lower()
     if not text:return JsonResponse({"error":"No text to speak."},status=400)
+
+    # Traditional characters can cause a multilingual TTS model to infer Cantonese.
+    # Give TTS a Mainland-standard character representation while keeping the UI text Traditional.
+    # The wording/meaning is unchanged; only the character form sent to speech generation differs.
+    speech_text=MANDARIN_SPEECH_CONVERTER.convert(text)
     voice="onyx" if choice=="male" else "coral";model=os.getenv("OPENAI_AI_TTS_MODEL","gpt-4o-mini-tts")
-    key=hashlib.sha256(f"{model}|{voice}|{text}".encode("utf-8")).hexdigest();cached=AICachedSpeech.objects.filter(cache_key=key).first()
+    cache_version="standard-mandarin-v2"
+    key=hashlib.sha256(f"{cache_version}|{model}|{voice}|{speech_text}".encode("utf-8")).hexdigest();cached=AICachedSpeech.objects.filter(cache_key=key).first()
     if cached:
         AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=0,cached=True)
         return HttpResponse(bytes(cached.audio),content_type="audio/mpeg",headers={"X-PandaSpeak-AI-Cache":"HIT"})
-    payload={"model":model,"voice":voice,"input":text,"instructions":"Speak exactly the supplied Chinese text in clear, natural Standard Mandarin (標準國語/標準普通話). Use standard Mandarin pronunciation and tones, with no Taiwanese, Cantonese, or other regional accent. Do not translate, paraphrase, add, omit, or explain any words. Read Traditional Chinese characters naturally.","response_format":"mp3"}
+    payload={"model":model,"voice":voice,"input":speech_text,"instructions":"Speak the supplied text exactly as written in Standard Mandarin Chinese (Putonghua / 標準國語). Mandarin only. Do NOT speak Cantonese, Taiwanese Hokkien, or any other Chinese language or regional reading. Use clear standard Mandarin pronunciation and tones. Do not translate, paraphrase, add, omit, or explain any words.","response_format":"mp3"}
     try:
         r=requests.post("https://api.openai.com/v1/audio/speech",headers={"Authorization":f"Bearer {_api_key()}","Content-Type":"application/json"},json=payload,timeout=45);r.raise_for_status()
     except requests.RequestException:return JsonResponse({"error":"Standard Mandarin voice is temporarily unavailable."},status=503)
