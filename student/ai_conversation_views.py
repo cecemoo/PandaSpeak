@@ -15,13 +15,25 @@ from .models import AIConversationUsage, AICachedSpeech
 
 SCENARIOS={"self_intro":"Self Introduction","restaurant":"Restaurant","shopping":"Shopping","directions":"Asking Directions","travel":"Hotel / Travel","plans":"Making Plans with a Friend","family":"Family Conversation","free":"Free Conversation"}
 LEVEL_GUIDANCE={"1":"Use short beginner-friendly sentences, common vocabulary, and one idea at a time.","2":"Use natural everyday Chinese with moderately varied vocabulary and sentence patterns.","3":"Use natural, fluent Chinese, including appropriate idiomatic or colloquial expressions when useful."}
-TRADITIONAL_CONVERTER=OpenCC('s2t')
-# Speech input is converted separately to Simplified Chinese only for the TTS engine.
-# The learner still sees and enters Traditional Chinese everywhere in PandaSpeak.
+# s2twp converts Simplified Chinese to natural Taiwan/Standard-Mandarin Traditional
+# wording where OpenCC has a phrase-level mapping, rather than only swapping glyphs.
+TRADITIONAL_CONVERTER=OpenCC('s2twp')
 MANDARIN_SPEECH_CONVERTER=OpenCC('t2s')
 
+# Keep learner-facing wording in common modern Standard Mandarin. These replacements
+# also guard against occasional literary/Cantonese-looking forms returned by the model.
+STANDARD_MANDARIN_REPLACEMENTS={
+    '喫':'吃',
+    '哪兒':'哪裡',
+    '這兒':'這裡',
+    '那兒':'那裡',
+}
+
 def _traditional(text):
-    return TRADITIONAL_CONVERTER.convert(str(text or ''))
+    value=TRADITIONAL_CONVERTER.convert(str(text or ''))
+    for source,target in STANDARD_MANDARIN_REPLACEMENTS.items():
+        value=value.replace(source,target)
+    return value
 
 def _student_level(user):
     for attr in ("learning_level","level","student_level"):
@@ -46,15 +58,16 @@ def _system_prompt(level,scenario):
     return f"""You are PandaSpeak AI Conversation Practice, a supportive Standard Mandarin Chinese conversation partner for adult learners.
 The learner is PandaSpeak Level {level}. {LEVEL_GUIDANCE[level]}
 Scenario: {SCENARIOS.get(scenario,'Free Conversation')}.
-Always write your replies in Traditional Chinese, never Simplified Chinese.
-Use Standard Mandarin (Putonghua / 標準國語) vocabulary, grammar, and expressions only. Do not use Cantonese vocabulary, Cantonese grammar, Cantonese particles, Taiwanese Hokkien, or other regional Chinese-language wording.
-Use modern, commonly taught Traditional Chinese forms. Prefer common forms such as「吃」rather than uncommon variants such as「喫」when both represent the same Standard Mandarin word.
+Write every Chinese character in Traditional Chinese. Never output Simplified Chinese characters.
+Speak and write natural modern Standard Mandarin (標準國語). Do not write Cantonese, Cantonese-style written Chinese, Taiwanese Hokkien, or regional dialect grammar.
+Use vocabulary natural to Standard Mandarin written in Traditional Chinese. Use「吃」not「喫」,「哪裡」not「哪兒」,「這裡」not「這兒」, and「那裡」not「那兒」.
+Avoid Cantonese sentence-final particles or wording such as「嘅」「咁」「喺」「冇」「唔」「佢」「哋」「啲」「咗」「緊」「嚟」「啦」when they are being used as Cantonese grammar.
 Keep each conversational reply concise (usually 1-3 sentences) and keep the role-play moving by asking a natural follow-up when appropriate.
 Do not give an English translation unless the learner asks for help.
 Prioritize natural conversation. Do not look for mistakes merely to provide a correction.
-Only add a correction beginning with '小提醒：' when the learner has made a genuine, meaningful Chinese language error that you can identify with high confidence (for example, clearly incorrect grammar or word choice).
+Only add a correction beginning with '小提醒：' when the learner has made a genuine, meaningful Chinese language error that you can identify with high confidence.
 The learner's speech transcription is automatically converted to Traditional Chinese before you receive it. Never add a reminder merely about Simplified versus Traditional character forms.
-Never tell the learner to use Traditional Chinese when the learner's wording is already correctly written in Traditional Chinese. Do not explain or praise a character merely because it is a Traditional character. For example, 中國人, 休士頓, 美國, 認識, 喜歡, 學習, 現在, and 哪裡 are already valid Traditional Chinese forms and must not trigger a Traditional-Chinese reminder.
+Never tell the learner to use Traditional Chinese when the learner's wording is already correctly written in Traditional Chinese.
 If you are uncertain whether something is an error, do not correct it; simply continue the conversation naturally.
 If the learner asks for a hint, give a short hint with useful Traditional Chinese wording and optional pinyin.
 Never claim to be a human teacher. This is language practice, not professional advice."""
@@ -132,13 +145,9 @@ def ai_conversation_speech(request):
     except (json.JSONDecodeError,UnicodeDecodeError):return JsonResponse({"error":"Invalid request."},status=400)
     text=_traditional(str(body.get("text","")).strip())[:2000];choice=str(body.get("voice","female")).lower()
     if not text:return JsonResponse({"error":"No text to speak."},status=400)
-
-    # Traditional characters can cause a multilingual TTS model to infer Cantonese.
-    # Give TTS a Mainland-standard character representation while keeping the UI text Traditional.
-    # The wording/meaning is unchanged; only the character form sent to speech generation differs.
     speech_text=MANDARIN_SPEECH_CONVERTER.convert(text)
     voice="onyx" if choice=="male" else "coral";model=os.getenv("OPENAI_AI_TTS_MODEL","gpt-4o-mini-tts")
-    cache_version="standard-mandarin-v3"
+    cache_version="standard-mandarin-v4"
     key=hashlib.sha256(f"{cache_version}|{model}|{voice}|{speech_text}".encode("utf-8")).hexdigest();cached=AICachedSpeech.objects.filter(cache_key=key).first()
     if cached:
         AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=0,cached=True)
