@@ -43,10 +43,12 @@ def _usage_key():
 def _remaining(request):return max(0,_daily_limit()-int(request.session.get(_usage_key(),0)))
 
 def _system_prompt(level,scenario):
-    return f"""You are PandaSpeak AI Conversation Practice, a supportive Mandarin Chinese conversation partner for adult learners.
+    return f"""You are PandaSpeak AI Conversation Practice, a supportive Standard Mandarin Chinese conversation partner for adult learners.
 The learner is PandaSpeak Level {level}. {LEVEL_GUIDANCE[level]}
 Scenario: {SCENARIOS.get(scenario,'Free Conversation')}.
 Always write your replies in Traditional Chinese, never Simplified Chinese.
+Use Standard Mandarin (Putonghua / 標準國語) vocabulary, grammar, and expressions only. Do not use Cantonese vocabulary, Cantonese grammar, Cantonese particles, Taiwanese Hokkien, or other regional Chinese-language wording.
+Use modern, commonly taught Traditional Chinese forms. Prefer common forms such as「吃」rather than uncommon variants such as「喫」when both represent the same Standard Mandarin word.
 Keep each conversational reply concise (usually 1-3 sentences) and keep the role-play moving by asking a natural follow-up when appropriate.
 Do not give an English translation unless the learner asks for help.
 Prioritize natural conversation. Do not look for mistakes merely to provide a correction.
@@ -136,12 +138,12 @@ def ai_conversation_speech(request):
     # The wording/meaning is unchanged; only the character form sent to speech generation differs.
     speech_text=MANDARIN_SPEECH_CONVERTER.convert(text)
     voice="onyx" if choice=="male" else "coral";model=os.getenv("OPENAI_AI_TTS_MODEL","gpt-4o-mini-tts")
-    cache_version="standard-mandarin-v2"
+    cache_version="standard-mandarin-v3"
     key=hashlib.sha256(f"{cache_version}|{model}|{voice}|{speech_text}".encode("utf-8")).hexdigest();cached=AICachedSpeech.objects.filter(cache_key=key).first()
     if cached:
         AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=0,cached=True)
         return HttpResponse(bytes(cached.audio),content_type="audio/mpeg",headers={"X-PandaSpeak-AI-Cache":"HIT"})
-    payload={"model":model,"voice":voice,"input":speech_text,"instructions":"Speak the supplied text exactly as written in Standard Mandarin Chinese (Putonghua / 標準國語). Mandarin only. Do NOT speak Cantonese, Taiwanese Hokkien, or any other Chinese language or regional reading. Use clear standard Mandarin pronunciation and tones. Do not translate, paraphrase, add, omit, or explain any words.","response_format":"mp3"}
+    payload={"model":model,"voice":voice,"input":speech_text,"instructions":"Read the supplied Chinese text verbatim in Standard Mandarin Chinese (Putonghua / 標準國語) pronunciation. The language is Mandarin Chinese, not Cantonese. Use standard Mandarin phonology and tones for every Chinese character. Do NOT use Cantonese pronunciation, Cantonese readings, Cantonese particles, Taiwanese Hokkien, or any other regional reading. Do not translate, paraphrase, add, omit, or explain any words.","response_format":"mp3"}
     try:
         r=requests.post("https://api.openai.com/v1/audio/speech",headers={"Authorization":f"Bearer {_api_key()}","Content-Type":"application/json"},json=payload,timeout=45);r.raise_for_status()
     except requests.RequestException:return JsonResponse({"error":"Standard Mandarin voice is temporarily unavailable."},status=503)
