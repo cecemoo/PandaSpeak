@@ -5,6 +5,7 @@ from . import flashcard_views
 from . import subscription_guard_views
 from . import tone_views
 from . import challenge_views
+from . import ai_conversation_views
 from subscription.decorators import subscription_required
 
 
@@ -41,6 +42,8 @@ urlpatterns = [
     path('bingo/<int:game_id>/play/', subscription_required(bingo_views.play_bingo), name='play_bingo'),
     path('chinese-challenge/', challenge_views.chinese_challenge, name='chinese_challenge'),
     path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
+    path('ai-conversation/', ai_conversation_views.ai_conversation, name='ai_conversation'),
+    path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),
 
     path('learning-materials/change-level/', subscription_required(views.change_learning_level), name='change_learning_level'),
     path('favorites/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_favorite), name='toggle_favorite'),
