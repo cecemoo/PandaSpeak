@@ -60,7 +60,7 @@ class VocabularyForm(ModelForm):
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
     class Meta:
         model = Vocabulary
-        exclude = ['translation']
+        exclude = ['english_translation']
 
 class SentenceForm(ModelForm):
     def clean_text(self):
@@ -105,7 +105,7 @@ class IdiomForm(ModelForm):
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
     class Meta:
         model = Idiom
-        exclude = ['translation']
+        exclude = ['english_translation']
         labels = {'idiom': 'Chinese Expression'}
 
 class ToneForm(ModelForm):
