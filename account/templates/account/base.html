@@ -92,10 +92,11 @@
       <nav id="navmenu" class="navmenu"><ul>
         <li><a href="{% url 'home' %}" class="active">Home</a></li>
         <li><a href="{% url 'about' %}">About Us</a></li>
+        <li><a href="{% url 'course:course_list' %}">Tutoring</a></li>
         {% if user.is_authenticated %}
-          {% if user.is_staff %}<li><a href="{% url 'manager_dashboard' %}">Dashboard</a></li><li><a href="{% url 'course:course_list' %}">Tutoring</a></li>
+          {% if user.is_staff %}<li><a href="{% url 'manager_dashboard' %}">Dashboard</a></li>
           {% elif user.is_teacher %}<li><a href="{% url 'teacher_dashboard' %}">Dashboard</a></li>
-          {% else %}<li><a href="{% url 'student_dashboard' %}">Dashboard</a></li><li><a href="{% url 'course:course_list' %}">Tutoring</a></li>{% endif %}
+          {% else %}<li><a href="{% url 'student_dashboard' %}">Dashboard</a></li>{% endif %}
           <li><a href="{% url 'notifications' %}">🔔{% if unread_notification_count > 0 %}<span class="badge bg-danger">{{ unread_notification_count }}</span>{% endif %}</a></li>
           {% if not user.is_staff and not user.is_superuser %}<li><a href="{% url 'email_preferences' %}">Announcement</a></li>{% endif %}
           <li><a href="{% url 'user_logout' %}">Logout</a></li>
