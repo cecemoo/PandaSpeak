@@ -44,6 +44,7 @@ urlpatterns = [
     path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
     path('ai-conversation/', ai_conversation_views.ai_conversation, name='ai_conversation'),
     path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),
+    path('ai-conversation/speech/', ai_conversation_views.ai_conversation_speech, name='ai_conversation_speech'),
 
     path('learning-materials/change-level/', subscription_required(views.change_learning_level), name='change_learning_level'),
     path('favorites/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_favorite), name='toggle_favorite'),
