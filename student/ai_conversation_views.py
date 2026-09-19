@@ -3,7 +3,7 @@ import os
 
 import requests
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
@@ -69,11 +69,14 @@ If the learner asks for a hint, give a short hint with useful Traditional Chines
 Never claim to be a human teacher. This is language practice, not professional advice."""
 
 
-def _call_openai(messages, level, scenario):
+def _api_key():
     api_key = os.getenv("OPENAI_API_KEY", "")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured on the server.")
+    return api_key
 
+
+def _call_openai(messages, level, scenario):
     model = os.getenv("OPENAI_AI_CONVERSATION_MODEL", "gpt-5.6-luna")
     payload = {
         "model": model,
@@ -82,7 +85,7 @@ def _call_openai(messages, level, scenario):
     }
     response = requests.post(
         "https://api.openai.com/v1/responses",
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        headers={"Authorization": f"Bearer {_api_key()}", "Content-Type": "application/json"},
         json=payload,
         timeout=30,
     )
@@ -118,18 +121,15 @@ def ai_conversation(request):
 def ai_conversation_reply(request):
     if _remaining(request) <= 0:
         return JsonResponse({"error": "You have reached today's AI conversation practice limit.", "remaining": 0}, status=429)
-
     try:
         body = json.loads(request.body.decode("utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse({"error": "Invalid request."}, status=400)
-
     message = str(body.get("message", "")).strip()
     scenario = str(body.get("scenario", "free"))
     history = body.get("history", [])
     if not message or scenario not in SCENARIOS:
         return JsonResponse({"error": "Please enter a message and choose a valid scenario."}, status=400)
-
     safe_history = []
     if isinstance(history, list):
         for item in history[-12:]:
@@ -138,14 +138,53 @@ def ai_conversation_reply(request):
                 if text:
                     safe_history.append({"role": item["role"], "content": text})
     safe_history.append({"role": "user", "content": message[:1500]})
-
     try:
         reply = _call_openai(safe_history, _student_level(request.user), scenario)
     except requests.RequestException:
         return JsonResponse({"error": "AI conversation is temporarily unavailable. Please try again shortly."}, status=503)
     except RuntimeError as exc:
         return JsonResponse({"error": str(exc)}, status=503)
-
     request.session[_usage_key()] = int(request.session.get(_usage_key(), 0)) + 1
     request.session.modified = True
     return JsonResponse({"reply": reply, "remaining": _remaining(request)})
+
+
+@login_required
+@subscription_required
+@require_POST
+def ai_conversation_speech(request):
+    """Generate Standard Mandarin speech while keeping the UI text in Traditional Chinese."""
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    text = str(body.get("text", "")).strip()[:2000]
+    voice_choice = str(body.get("voice", "female")).lower()
+    if not text:
+        return JsonResponse({"error": "No text to speak."}, status=400)
+
+    # OpenAI TTS handles Traditional Chinese directly. The instruction fixes the
+    # spoken register to clear Standard Mandarin rather than a regional accent.
+    voice = "onyx" if voice_choice == "male" else "coral"
+    payload = {
+        "model": os.getenv("OPENAI_AI_TTS_MODEL", "gpt-4o-mini-tts"),
+        "voice": voice,
+        "input": text,
+        "instructions": "Speak exactly the supplied Chinese text in clear, natural Standard Mandarin (標準國語/標準普通話). Use standard Mandarin pronunciation and tones, with no Taiwanese, Cantonese, or other regional accent. Do not translate, paraphrase, add, omit, or explain any words. Read Traditional Chinese characters naturally.",
+        "response_format": "mp3",
+    }
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/audio/speech",
+            headers={"Authorization": f"Bearer {_api_key()}", "Content-Type": "application/json"},
+            json=payload,
+            timeout=45,
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return JsonResponse({"error": "Standard Mandarin voice is temporarily unavailable."}, status=503)
+    except RuntimeError as exc:
+        return JsonResponse({"error": str(exc)}, status=503)
+
+    return HttpResponse(response.content, content_type="audio/mpeg")
