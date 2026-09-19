@@ -4,7 +4,10 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-    dependencies = [('student', '0021_personalflashcard')]
+    dependencies = [
+        ('student', '0017_personalflashcard_source_links'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
     operations = [
         migrations.CreateModel(
             name='AICachedSpeech',
