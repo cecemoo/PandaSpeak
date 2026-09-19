@@ -1,17 +1,42 @@
+{% load ai_usage %}
 <div class="col-md-3">
-                    <div class="nav flex-column nav-pills bg-light" aria-orientation="vertical">
-                        <a href="{% url 'manager_dashboard' %}" class="nav-link text-dark{% if request.path == '/manager_dashboard/' %} bg-warning{% endif %}">Dashboard</a>
-                        <a href="{% url 'categories' %}" class="nav-link text-dark{% if request.path == '/categories/' %} bg-warning{% endif %}">Categories</a>
-                        <a href="{% url 'vocabularies' %}" class="nav-link text-dark{% if request.path == '/vocabularies/' %} bg-warning{% endif %}">Vocabularies</a>
-                        <a href="{% url 'sentences' %}" class="nav-link text-dark{% if request.path == '/sentences/' %} bg-warning{% endif %}">Sentences</a>
-                        <a href="{% url 'idioms' %}" class="nav-link text-dark{% if request.path == '/idioms/' %} bg-warning{% endif %}">Chinese Expressions</a>
-                        <a href="{% url 'pronunciations' %}" class="nav-link text-dark{% if request.path == '/pronunciations/' %} bg-warning{% endif %}">BoPoMoFo</a>
-                        <a href="{% url 'tones' %}" class="nav-link text-dark{% if request.path == '/tones/' %} bg-warning{% endif %}">Tones</a>
-                        <a href="{% url 'lessons' %}" class="nav-link text-dark{% if request.path == '/lessons/' %} bg-warning{% endif %}">Lessons</a>
-                        <a href="{% url 'manage_placement_questions' %}" class="nav-link text-dark{% if request.path == '/manage_placement_questions/' %} bg-warning{% endif %}">Placement Questions</a>
-                        <a href="{% url 'course:create_test_tutoring_booking' %}" class="nav-link text-dark">Test Tutoring Booking</a>
-                         
+    <div class="nav flex-column nav-pills bg-light" aria-orientation="vertical">
+        <a href="{% url 'manager_dashboard' %}" class="nav-link text-dark{% if request.path == '/manager_dashboard/' %} bg-warning{% endif %}">Dashboard</a>
+        <a href="{% url 'categories' %}" class="nav-link text-dark{% if request.path == '/categories/' %} bg-warning{% endif %}">Categories</a>
+        <a href="{% url 'vocabularies' %}" class="nav-link text-dark{% if request.path == '/vocabularies/' %} bg-warning{% endif %}">Vocabularies</a>
+        <a href="{% url 'sentences' %}" class="nav-link text-dark{% if request.path == '/sentences/' %} bg-warning{% endif %}">Sentences</a>
+        <a href="{% url 'idioms' %}" class="nav-link text-dark{% if request.path == '/idioms/' %} bg-warning{% endif %}">Chinese Expressions</a>
+        <a href="{% url 'pronunciations' %}" class="nav-link text-dark{% if request.path == '/pronunciations/' %} bg-warning{% endif %}">BoPoMoFo</a>
+        <a href="{% url 'tones' %}" class="nav-link text-dark{% if request.path == '/tones/' %} bg-warning{% endif %}">Tones</a>
+        <a href="{% url 'lessons' %}" class="nav-link text-dark{% if request.path == '/lessons/' %} bg-warning{% endif %}">Lessons</a>
+        <a href="{% url 'manage_placement_questions' %}" class="nav-link text-dark{% if request.path == '/manage_placement_questions/' %} bg-warning{% endif %}">Placement Questions</a>
+        <a href="{% url 'course:create_test_tutoring_booking' %}" class="nav-link text-dark">Test Tutoring Booking</a>
+    </div>
 
+    {% if request.resolver_match.url_name == 'manager_dashboard' %}
+        {% ai_usage_summary as ai_usage %}
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-header fw-bold">AI Usage &amp; Estimated Cost</div>
+            <div class="card-body small">
+                <div class="fw-bold mb-1">Today</div>
+                <div>{{ ai_usage.today.replies }} replies · {{ ai_usage.today.speech }} speech</div>
+                <div>{{ ai_usage.today.students }} student{{ ai_usage.today.students|pluralize }}</div>
+                <div class="mb-3"><strong>${{ ai_usage.today.estimated_cost|floatformat:4 }}</strong> estimated</div>
 
-                    </div>
-                </div>
+                <div class="fw-bold mb-1">This month</div>
+                <div>{{ ai_usage.month.replies }} replies · {{ ai_usage.month.speech }} speech</div>
+                <div>{{ ai_usage.month.students }} student{{ ai_usage.month.students|pluralize }}</div>
+                <div>{{ ai_usage.month.cached_speech }} cached speech request{{ ai_usage.month.cached_speech|pluralize }}</div>
+                <div class="mb-3"><strong>${{ ai_usage.month.estimated_cost|floatformat:4 }}</strong> estimated</div>
+
+                <div class="fw-bold mb-1">All time</div>
+                <div>{{ ai_usage.all.replies }} replies · {{ ai_usage.all.speech }} speech</div>
+                <div>{{ ai_usage.all.students }} student{{ ai_usage.all.students|pluralize }}</div>
+                <div><strong>${{ ai_usage.all.estimated_cost|floatformat:4 }}</strong> estimated</div>
+
+                <hr class="my-2">
+                <div class="text-muted">Use these real usage numbers before setting an AI upgrade price.</div>
+            </div>
+        </div>
+    {% endif %}
+</div>
