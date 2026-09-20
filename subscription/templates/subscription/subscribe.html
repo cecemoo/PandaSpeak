@@ -1,11 +1,23 @@
 {% extends "account/base.html" %}
 
 {% block content %}
+<style>
+  .checkout-wrap { max-width: 760px; padding-top: 48px; padding-bottom: 56px; text-align: center; }
+  .checkout-options { max-width: 520px; margin: 28px auto 0; }
+  .checkout-help { color: rgba(255,255,255,.82); font-size: .95rem; line-height: 1.55; margin: 10px 12px 18px; }
+  .checkout-divider { display: flex; align-items: center; gap: 16px; margin: 18px 0; color: rgba(255,255,255,.9); font-size: .85rem; font-weight: 700; text-transform: uppercase; }
+  .checkout-divider::before, .checkout-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.48); }
+  .ach-btn { background: #fff; color: #122a55; border: 1px solid rgba(255,255,255,.65); font-weight: 700; }
+  .ach-btn:hover { background: #f5f7fb; color: #122a55; }
+  .renewal-note { color: rgba(255,255,255,.82) !important; }
+</style>
+
 <main class="main">
   <section class="section">
-    <div class="container" style="max-width: 640px; padding-top: 48px; padding-bottom: 48px; text-align: center;">
+    <div class="container checkout-wrap">
       <h2>Complete Your PandaSpeak Subscription</h2>
-      <p class="mt-3">Standard Access is $15 per year.</p>
+      <p class="mt-3 mb-1"><strong>Standard Access is $15 per year.</strong></p>
+      <p class="checkout-help mt-1">Choose the payment method that works best for you.</p>
 
       {% if messages %}
         <div class="mt-3 mb-3">
@@ -17,21 +29,26 @@
         </div>
       {% endif %}
 
-      <div class="mt-4 d-grid gap-3" style="max-width: 420px; margin-left: auto; margin-right: auto;">
+      <div class="checkout-options">
         <form method="post" action="{% url 'stripe_subscription_checkout' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-primary rounded-pill px-4 py-3 w-100" style="font-weight:700;">
-            Pay with Credit or Debit Card - $15/year
+            💳 &nbsp; Pay with Card - $15/year
           </button>
         </form>
+        <div class="checkout-help">Secure checkout powered by Stripe. Works on phone, tablet, and computer.</div>
 
-        <div class="text-muted small">Secure card checkout powered by Stripe. Works on phone, tablet, and computer.</div>
+        <div class="checkout-divider"><span>or</span></div>
 
-        <div class="d-flex align-items-center gap-3 my-1" aria-hidden="true">
-          <hr class="flex-grow-1 my-0">
-          <span class="text-muted small">or</span>
-          <hr class="flex-grow-1 my-0">
-        </div>
+        <form method="post" action="{% url 'stripe_subscription_checkout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn ach-btn rounded-pill px-4 py-3 w-100">
+            🏦 &nbsp; Pay with US Bank Account (ACH) - $15/year
+          </button>
+        </form>
+        <div class="checkout-help">Pay securely with your U.S. bank account through Stripe.<br>ACH payments typically take a few business days to confirm.</div>
+
+        <div class="checkout-divider"><span>or</span></div>
 
         <form method="post" action="{% url 'subscribe' %}">
           {% csrf_token %}
@@ -41,9 +58,10 @@
             Continue with PayPal - $15/year
           </button>
         </form>
+        <div class="checkout-help">Use your PayPal account or available PayPal checkout options.</div>
       </div>
 
-      <p class="mt-4 text-muted small">Your subscription renews annually until canceled. You can cancel future renewals from your PandaSpeak account.</p>
+      <p class="mt-4 small renewal-note">Your subscription renews annually until canceled. You can cancel future renewals from your PandaSpeak account.</p>
       <a href="{% url 'subscription_plans' %}" class="btn btn-link mt-2">Back to Subscription Plans</a>
     </div>
   </section>
