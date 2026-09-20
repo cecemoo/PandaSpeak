@@ -4,25 +4,13 @@
 </style>
 <section class="achievement-section" aria-labelledby="achievement-heading" data-achievement-user="{{ request.user.pk }}">
   <div class="achievement-heading-row">
-    <div>
-      <h3 id="achievement-heading">🏆 My Achievements</h3>
-      <p>Celebrate milestones as you explore Chinese language and culture.</p>
-    </div>
+    <div><h3 id="achievement-heading">🏆 My Achievements</h3><p>Celebrate milestones as you explore Chinese language and culture.</p></div>
     <div class="achievement-total">{{ earned_count }} / {{ total_count }} earned</div>
   </div>
   <div class="achievement-grid">
     {% for achievement in achievements %}
       <div class="achievement-card{% if achievement.earned %} earned{% else %} locked{% endif %}" data-achievement-name="{{ achievement.name|escape }}" data-achievement-earned="{% if achievement.earned %}1{% else %}0{% endif %}">
-        <div class="achievement-icon">{{ achievement.icon }}</div>
-        <div class="achievement-copy">
-          <div class="achievement-name">{{ achievement.name }}</div>
-          <div class="achievement-description">{{ achievement.description }}</div>
-          {% if achievement.earned %}
-            <span class="achievement-badge">✓ Earned</span>
-          {% else %}
-            <span class="achievement-progress">{{ achievement.progress }} / {{ achievement.goal }} completed</span>
-          {% endif %}
-        </div>
+        <div class="achievement-icon">{{ achievement.icon }}</div><div class="achievement-copy"><div class="achievement-name">{{ achievement.name }}</div><div class="achievement-description">{{ achievement.description }}</div>{% if achievement.earned %}<span class="achievement-badge">✓ Earned</span>{% else %}<span class="achievement-progress">{{ achievement.progress }} / {{ achievement.goal }} completed</span>{% endif %}</div>
       </div>
     {% endfor %}
   </div>
@@ -41,14 +29,18 @@
   const newlyEarned=earnedCards.filter(card=>!seen.includes(card.dataset.achievementName));
   localStorage.setItem(key,JSON.stringify([...new Set([...seen,...earnedNames])]));
   if(!newlyEarned.length)return;
-  const card=newlyEarned[0];
-  card.classList.add('just-earned');
-  const celebration=document.createElement('div');
-  celebration.className='achievement-celebration';
-  celebration.setAttribute('aria-hidden','true');
-  celebration.innerHTML='<div class="achievement-celebration-box"><span class="achievement-spark s1">✨</span><span class="achievement-spark s2">⭐</span><span class="achievement-spark s3">✨</span><span class="achievement-spark s4">⭐</span><span class="achievement-celebration-icon">🏆</span><div class="achievement-celebration-title">Achievement Unlocked!</div><div class="achievement-celebration-name"></div></div>';
-  celebration.querySelector('.achievement-celebration-name').textContent=card.dataset.achievementName;
-  document.body.appendChild(celebration);
+  function playAchievementSound(){
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+      const ctx=new AC();
+      const notes=[523.25,659.25,783.99,1046.50];
+      notes.forEach(function(freq,i){const start=ctx.currentTime+i*.14;const osc=ctx.createOscillator();const gain=ctx.createGain();osc.type=i===3?'triangle':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(i===3?.16:.11,start+.025);gain.gain.exponentialRampToValueAtTime(.0001,start+(i===3?.48:.24));osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+(i===3?.5:.26));});
+      setTimeout(function(){try{ctx.close();}catch(e){}},1500);
+    }catch(e){}
+  }
+  const card=newlyEarned[0];card.classList.add('just-earned');
+  const celebration=document.createElement('div');celebration.className='achievement-celebration';celebration.setAttribute('aria-hidden','true');celebration.innerHTML='<div class="achievement-celebration-box"><span class="achievement-spark s1">✨</span><span class="achievement-spark s2">⭐</span><span class="achievement-spark s3">✨</span><span class="achievement-spark s4">⭐</span><span class="achievement-celebration-icon">🏆</span><div class="achievement-celebration-title">Achievement Unlocked!</div><div class="achievement-celebration-name"></div></div>';celebration.querySelector('.achievement-celebration-name').textContent=card.dataset.achievementName;document.body.appendChild(celebration);
+  playAchievementSound();
   if(navigator.vibrate){try{navigator.vibrate([60,40,90]);}catch(e){}}
   setTimeout(()=>celebration.remove(),5200);
 })();
