@@ -59,10 +59,7 @@ def stripe_subscription_checkout(request):
 
     existing = Subscription.objects.filter(user=request.user).first()
     if existing and existing.is_active and not existing.is_cancelled:
-        messages.info(
-            request,
-            "You already have an active PandaSpeak subscription. No additional payment was created.",
-        )
+        messages.info(request, "You already have an active PandaSpeak subscription. No additional payment was created.")
         return redirect("student_dashboard")
 
     api_key = _subscription_api_key()
@@ -74,32 +71,15 @@ def stripe_subscription_checkout(request):
         checkout_session = stripe.checkout.Session.create(
             api_key=api_key,
             mode="subscription",
-            # Offer the existing card checkout plus US ACH Direct Debit in the
-            # same Stripe-hosted Checkout. Stripe handles bank linking,
-            # verification and the ACH mandate; PandaSpeak never receives bank
-            # account/routing numbers.
             payment_method_types=["card", "us_bank_account"],
-            payment_method_options={
-                "us_bank_account": {
-                    "verification_method": "automatic",
-                }
-            },
+            payment_method_options={"us_bank_account": {"verification_method": "automatic"}},
             customer_email=request.user.email or None,
             line_items=_annual_line_items(),
-            success_url=(
-                request.build_absolute_uri("/subscription/stripe/success/")
-                + "?session_id={CHECKOUT_SESSION_ID}"
-            ),
+            success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri("/subscription/subscribe/"),
-            metadata={
-                "purpose": "pandaspeak_annual_subscription",
-                "user_id": str(request.user.id),
-            },
+            metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)},
             subscription_data={
-                "metadata": {
-                    "purpose": "pandaspeak_annual_subscription",
-                    "user_id": str(request.user.id),
-                },
+                "metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)},
                 "payment_settings": {
                     "payment_method_types": ["card", "us_bank_account"],
                     "save_default_payment_method": "on_subscription",
@@ -119,7 +99,7 @@ def _period_end_datetime(stripe_subscription):
     return datetime.fromtimestamp(period_end, tz=timezone.utc)
 
 
-def _sync_subscription_from_stripe(stripe_subscription, user=None):
+def _sync_subscription_from_stripe(stripe_subscription, user=None, payment_confirmed=None):
     metadata = _stripe_value(stripe_subscription, "metadata", {}) or {}
     if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
         return
@@ -131,10 +111,7 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
     status = _stripe_value(stripe_subscription, "status")
     cancel_at_period_end = bool(_stripe_value(stripe_subscription, "cancel_at_period_end", False))
 
-    local_subscription = Subscription.objects.filter(
-        stripe_subscription_id=stripe_subscription_id
-    ).first()
-
+    local_subscription = Subscription.objects.filter(stripe_subscription_id=stripe_subscription_id).first()
     if local_subscription is None:
         if user is None:
             user_id = _stripe_value(metadata, "user_id")
@@ -144,30 +121,30 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
                 user = User.objects.get(pk=user_id)
             except (User.DoesNotExist, ValueError, TypeError):
                 return
-
         existing = Subscription.objects.filter(user=user).first()
         if existing is not None:
-            if (
-                existing.stripe_subscription_id
-                and existing.stripe_subscription_id != stripe_subscription_id
-                and existing.is_active
-                and not existing.is_cancelled
-            ):
+            if existing.stripe_subscription_id and existing.stripe_subscription_id != stripe_subscription_id and existing.is_active and not existing.is_cancelled:
                 return
             local_subscription = existing
         else:
-            local_subscription = Subscription.objects.create(
-                user=user,
-                subscription_plan="standard",
-                subscription_cost=15.00,
-            )
+            local_subscription = Subscription.objects.create(user=user, subscription_plan="standard", subscription_cost=15.00)
 
     local_subscription.subscription_plan = "standard"
     local_subscription.subscription_cost = 15.00
     local_subscription.paypal_subscription_id = None
     local_subscription.stripe_subscription_id = stripe_subscription_id
-    local_subscription.is_active = status in ("active", "trialing")
-    local_subscription.is_cancelled = cancel_at_period_end or status in ("canceled", "unpaid", "incomplete_expired")
+
+    terminal = status in ("canceled", "unpaid", "incomplete_expired")
+    if payment_confirmed is True:
+        local_subscription.is_active = status in ("active", "trialing")
+    elif payment_confirmed is False:
+        local_subscription.is_active = False
+    elif terminal:
+        local_subscription.is_active = False
+    # Otherwise preserve the current access state. A subscription status change
+    # alone must not turn a pending ACH debit into paid access.
+
+    local_subscription.is_cancelled = cancel_at_period_end or terminal
     local_subscription.access_until = _period_end_datetime(stripe_subscription)
     local_subscription.save()
 
@@ -180,48 +157,35 @@ def stripe_subscription_success(request):
         return redirect("subscribe")
 
     try:
-        checkout_session = stripe.checkout.Session.retrieve(
-            session_id,
-            api_key=_subscription_api_key(),
-        )
+        checkout_session = stripe.checkout.Session.retrieve(session_id, api_key=_subscription_api_key())
     except stripe.error.StripeError:
         messages.error(request, "We could not verify your Stripe subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
     metadata = _stripe_value(checkout_session, "metadata", {}) or {}
     subscription_id = _stripe_value(checkout_session, "subscription")
-    if (
-        _stripe_value(checkout_session, "mode") != "subscription"
-        or _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription"
-        or str(_stripe_value(metadata, "user_id")) != str(request.user.id)
-        or not subscription_id
-    ):
+    if (_stripe_value(checkout_session, "mode") != "subscription" or
+        _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription" or
+        str(_stripe_value(metadata, "user_id")) != str(request.user.id) or not subscription_id):
         messages.error(request, "We could not verify your Stripe subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
+    payment_status = _stripe_value(checkout_session, "payment_status")
     try:
-        stripe_subscription = stripe.Subscription.retrieve(
-            subscription_id,
-            api_key=_subscription_api_key(),
+        stripe_subscription = stripe.Subscription.retrieve(subscription_id, api_key=_subscription_api_key())
+        _sync_subscription_from_stripe(
+            stripe_subscription,
+            user=request.user,
+            payment_confirmed=(payment_status == "paid") if payment_status in ("paid", "unpaid") else None,
         )
-        _sync_subscription_from_stripe(stripe_subscription, user=request.user)
     except stripe.error.StripeError:
-        messages.error(request, "Your checkout completed, but PandaSpeak could not finish verification yet. The Stripe webhook will continue processing it; please contact support if access is not enabled after the bank payment settles.")
-        return redirect("subscribe")
+        return render(request, "subscription/ach_pending.html", {"user": request.user})
 
     local_subscription = Subscription.objects.filter(user=request.user).first()
-    if not local_subscription or not local_subscription.is_active:
-        messages.info(
-            request,
-            "Your bank payment is being processed. PandaSpeak will activate access automatically after Stripe confirms the ACH payment.",
-        )
-        return redirect("subscribe")
+    if payment_status != "paid" or not local_subscription or not local_subscription.is_active:
+        return render(request, "subscription/ach_pending.html", {"user": request.user})
 
-    return render(
-        request,
-        "subscription/success.html",
-        {"user": request.user, "first_name": request.user.first_name},
-    )
+    return render(request, "subscription/success.html", {"user": request.user, "first_name": request.user.first_name})
 
 
 @csrf_exempt
@@ -235,7 +199,6 @@ def stripe_subscription_webhook(request):
 
     payload = request.body
     signature = request.META.get("HTTP_STRIPE_SIGNATURE", "")
-
     try:
         event = stripe.Webhook.construct_event(payload, signature, webhook_secret)
     except (ValueError, stripe.error.SignatureVerificationError):
@@ -249,27 +212,22 @@ def stripe_subscription_webhook(request):
         if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
             metadata = _stripe_value(obj, "metadata", {}) or {}
             subscription_id = _stripe_value(obj, "subscription")
-            if (
-                _stripe_value(obj, "mode") == "subscription"
-                and _stripe_value(metadata, "purpose") == "pandaspeak_annual_subscription"
-                and subscription_id
-            ):
+            if (_stripe_value(obj, "mode") == "subscription" and
+                _stripe_value(metadata, "purpose") == "pandaspeak_annual_subscription" and subscription_id):
                 user_id = _stripe_value(metadata, "user_id")
                 try:
                     user = User.objects.get(pk=user_id)
                 except (User.DoesNotExist, ValueError, TypeError):
                     return HttpResponse(status=200)
-
-                stripe_subscription = stripe.Subscription.retrieve(
-                    subscription_id,
-                    api_key=_subscription_api_key(),
-                )
-                _sync_subscription_from_stripe(stripe_subscription, user=user)
+                stripe_subscription = stripe.Subscription.retrieve(subscription_id, api_key=_subscription_api_key())
+                confirmed = event_type == "checkout.session.async_payment_succeeded" or _stripe_value(obj, "payment_status") == "paid"
+                _sync_subscription_from_stripe(stripe_subscription, user=user, payment_confirmed=confirmed)
 
         elif event_type == "checkout.session.async_payment_failed":
-            # Do not grant access. The later subscription/invoice events remain
-            # authoritative and the student can retry with another payment method.
-            return HttpResponse(status=200)
+            subscription_id = _stripe_value(obj, "subscription")
+            if subscription_id:
+                stripe_subscription = stripe.Subscription.retrieve(subscription_id, api_key=_subscription_api_key())
+                _sync_subscription_from_stripe(stripe_subscription, payment_confirmed=False)
 
         elif event_type in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
             _sync_subscription_from_stripe(obj)
@@ -277,11 +235,8 @@ def stripe_subscription_webhook(request):
         elif event_type in ("invoice.paid", "invoice.payment_failed"):
             stripe_subscription_id = _stripe_value(obj, "subscription")
             if stripe_subscription_id:
-                stripe_subscription = stripe.Subscription.retrieve(
-                    stripe_subscription_id,
-                    api_key=_subscription_api_key(),
-                )
-                _sync_subscription_from_stripe(stripe_subscription)
+                stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id, api_key=_subscription_api_key())
+                _sync_subscription_from_stripe(stripe_subscription, payment_confirmed=(event_type == "invoice.paid"))
 
     except stripe.error.StripeError:
         return HttpResponse(status=500)
