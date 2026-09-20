@@ -36,8 +36,6 @@ def _annual_line_items():
     if price_id:
         return [{"price": price_id, "quantity": 1}]
 
-    # Safe fallback so production checkout keeps working until the live Price ID
-    # is added to the server environment.
     return [
         {
             "price_data": {
@@ -59,9 +57,6 @@ def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
 
-    # Do not create another Stripe subscription Checkout for a user who already
-    # has an active PandaSpeak subscription. This prevents accidental duplicate
-    # subscriptions/charges from repeated clicks or revisiting the subscribe page.
     existing = Subscription.objects.filter(user=request.user).first()
     if existing and existing.is_active and not existing.is_cancelled:
         messages.info(
@@ -72,14 +67,23 @@ def stripe_subscription_checkout(request):
 
     api_key = _subscription_api_key()
     if not api_key:
-        messages.error(request, "Card subscription checkout is not configured yet.")
+        messages.error(request, "Stripe subscription checkout is not configured yet.")
         return redirect("subscribe")
 
     try:
         checkout_session = stripe.checkout.Session.create(
             api_key=api_key,
             mode="subscription",
-            payment_method_types=["card"],
+            # Offer the existing card checkout plus US ACH Direct Debit in the
+            # same Stripe-hosted Checkout. Stripe handles bank linking,
+            # verification and the ACH mandate; PandaSpeak never receives bank
+            # account/routing numbers.
+            payment_method_types=["card", "us_bank_account"],
+            payment_method_options={
+                "us_bank_account": {
+                    "verification_method": "automatic",
+                }
+            },
             customer_email=request.user.email or None,
             line_items=_annual_line_items(),
             success_url=(
@@ -95,12 +99,16 @@ def stripe_subscription_checkout(request):
                 "metadata": {
                     "purpose": "pandaspeak_annual_subscription",
                     "user_id": str(request.user.id),
-                }
+                },
+                "payment_settings": {
+                    "payment_method_types": ["card", "us_bank_account"],
+                    "save_default_payment_method": "on_subscription",
+                },
             },
         )
         return redirect(checkout_session.url)
     except stripe.error.StripeError:
-        messages.error(request, "Unable to start card checkout right now. Please try again.")
+        messages.error(request, "Unable to start Stripe checkout right now. Please try again.")
         return redirect("subscribe")
 
 
@@ -139,9 +147,6 @@ def _sync_subscription_from_stripe(stripe_subscription, user=None):
 
         existing = Subscription.objects.filter(user=user).first()
         if existing is not None:
-            # A Stripe event for a different subscription must never overwrite a
-            # currently active PandaSpeak subscription. This protects a valid
-            # subscription when an accidental duplicate is cancelled/refunded.
             if (
                 existing.stripe_subscription_id
                 and existing.stripe_subscription_id != stripe_subscription_id
@@ -180,7 +185,7 @@ def stripe_subscription_success(request):
             api_key=_subscription_api_key(),
         )
     except stripe.error.StripeError:
-        messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
+        messages.error(request, "We could not verify your Stripe subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
     metadata = _stripe_value(checkout_session, "metadata", {}) or {}
@@ -189,10 +194,9 @@ def stripe_subscription_success(request):
         _stripe_value(checkout_session, "mode") != "subscription"
         or _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription"
         or str(_stripe_value(metadata, "user_id")) != str(request.user.id)
-        or _stripe_value(checkout_session, "payment_status") not in ("paid", "no_payment_required")
         or not subscription_id
     ):
-        messages.error(request, "We could not verify your card subscription. Please contact PandaSpeak support if you were charged.")
+        messages.error(request, "We could not verify your Stripe subscription. Please contact PandaSpeak support if you were charged.")
         return redirect("subscribe")
 
     try:
@@ -202,7 +206,15 @@ def stripe_subscription_success(request):
         )
         _sync_subscription_from_stripe(stripe_subscription, user=request.user)
     except stripe.error.StripeError:
-        messages.error(request, "Your payment completed, but PandaSpeak could not finish verification yet. Please contact support if access is not enabled.")
+        messages.error(request, "Your checkout completed, but PandaSpeak could not finish verification yet. The Stripe webhook will continue processing it; please contact support if access is not enabled after the bank payment settles.")
+        return redirect("subscribe")
+
+    local_subscription = Subscription.objects.filter(user=request.user).first()
+    if not local_subscription or not local_subscription.is_active:
+        messages.info(
+            request,
+            "Your bank payment is being processed. PandaSpeak will activate access automatically after Stripe confirms the ACH payment.",
+        )
         return redirect("subscribe")
 
     return render(
@@ -234,7 +246,7 @@ def stripe_subscription_webhook(request):
     obj = _stripe_value(event_data, "object", {}) or {}
 
     try:
-        if event_type == "checkout.session.completed":
+        if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
             metadata = _stripe_value(obj, "metadata", {}) or {}
             subscription_id = _stripe_value(obj, "subscription")
             if (
@@ -254,6 +266,11 @@ def stripe_subscription_webhook(request):
                 )
                 _sync_subscription_from_stripe(stripe_subscription, user=user)
 
+        elif event_type == "checkout.session.async_payment_failed":
+            # Do not grant access. The later subscription/invoice events remain
+            # authoritative and the student can retry with another payment method.
+            return HttpResponse(status=200)
+
         elif event_type in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
             _sync_subscription_from_stripe(obj)
 
@@ -267,7 +284,6 @@ def stripe_subscription_webhook(request):
                 _sync_subscription_from_stripe(stripe_subscription)
 
     except stripe.error.StripeError:
-        # Return 500 so Stripe retries transient API failures.
         return HttpResponse(status=500)
 
     return HttpResponse(status=200)
