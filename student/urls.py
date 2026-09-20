@@ -11,7 +11,6 @@ from . import culture_completion_views
 from . import plus_views
 from subscription.decorators import subscription_required
 
-
 urlpatterns = [
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
     path('subscription_plans/', subscription_guard_views.guarded_subscription_plans, name='subscription_plans'),
@@ -47,6 +46,7 @@ urlpatterns = [
     path('ai-conversation/traditionalize/', ai_conversation_views.ai_conversation_traditionalize, name='ai_conversation_traditionalize'),
     path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),
     path('ai-conversation/speech/', ai_conversation_views.ai_conversation_speech, name='ai_conversation_speech'),
+    path('ai-usage-manager/', ai_conversation_views.ai_usage_manager, name='ai_usage_manager'),
     path('learning-materials/change-level/', subscription_required(views.change_learning_level), name='change_learning_level'),
     path('favorites/toggle/<str:item_type>/<int:item_id>/', subscription_required(views.toggle_favorite), name='toggle_favorite'),
     path('my-review/', subscription_required(views.my_review), name='my_review'),
