@@ -8,6 +8,7 @@ from . import cancel_views
 urlpatterns = [
     path('subscribe/', subscription_guard_views.guarded_subscribe, name='subscribe'),
     path('stripe/checkout/', subscription_guard_views.guarded_stripe_subscription_checkout, name='stripe_subscription_checkout'),
+    path('stripe/upgrade-plus/', stripe_subscription_views.stripe_plus_upgrade, name='stripe_plus_upgrade'),
     path('stripe/success/', stripe_subscription_views.stripe_subscription_success, name='stripe_subscription_success'),
     path('stripe/webhook/', stripe_subscription_views.stripe_subscription_webhook, name='stripe_subscription_webhook'),
     path('paypal/webhook/', paypal_subscription_views.paypal_subscription_webhook, name='paypal_subscription_webhook'),
