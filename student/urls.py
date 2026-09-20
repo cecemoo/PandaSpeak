@@ -8,12 +8,14 @@ from . import challenge_views
 from . import ai_conversation_views
 from . import culture_views
 from . import culture_completion_views
+from . import plus_views
 from subscription.decorators import subscription_required
 
 
 urlpatterns = [
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
     path('subscription_plans/', subscription_guard_views.guarded_subscription_plans, name='subscription_plans'),
+    path('plus/', plus_views.plus_upgrade, name='plus_upgrade'),
     path('account_management_student/', views.account_management, name='account_management_student'),
     path('subscription_locked/', views.subscription_locked, name='subscription_locked'),
     path('access_learning_materials/', subscription_required(views.access_learning_materials), name='access_learning_materials'),
