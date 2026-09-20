@@ -16,6 +16,25 @@
     {% endfor %}
   </div>
   <div class="chest-box {{ chest.class }}"><span class="chest-icon">{{ chest.icon }}</span><div><div class="chest-name">{{ chest.name }}</div><div class="chest-message">{{ chest.message }}</div></div></div>
+
+  <div class="culture-chest {{ culture_chest.class }}">
+    <div class="culture-chest-art" aria-hidden="true">
+      <span class="culture-panda">🐼</span>
+      <span class="culture-treasure">🎁</span>
+      {% if culture_chest.stage >= 1 %}<span class="culture-lantern">🏮</span>{% endif %}
+      {% if culture_chest.stage >= 2 %}<span class="culture-blossom one">🌸</span><span class="culture-blossom two">🌸</span>{% endif %}
+      {% if culture_chest.stage >= 3 %}<span class="culture-globe">🌏</span><span class="culture-sparkle">✨</span>{% endif %}
+    </div>
+    <div class="culture-chest-copy">
+      <div class="culture-chest-kicker">Cultural Reward</div>
+      <div class="culture-chest-title">{{ culture_chest.title }}</div>
+      <div class="culture-chest-message">{{ culture_chest.message }}</div>
+      <div class="culture-chest-next">{{ culture_chest.next }}</div>
+    </div>
+  </div>
 </div>
+<style>
+.culture-chest{margin-top:12px;display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:14px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(15,23,42,.16));overflow:hidden;position:relative}.culture-chest-art{position:relative;flex:0 0 92px;height:72px;border-radius:16px;background:radial-gradient(circle at 50% 45%,rgba(253,224,71,.25),transparent 68%)}.culture-panda{position:absolute;font-size:2.35rem;left:29px;top:0;z-index:4;filter:drop-shadow(0 3px 4px rgba(0,0,0,.22))}.culture-treasure{position:absolute;font-size:2.7rem;left:23px;bottom:0;z-index:2}.culture-lantern{position:absolute;font-size:1.65rem;left:3px;bottom:11px;z-index:3}.culture-blossom{position:absolute;font-size:1.05rem;z-index:5}.culture-blossom.one{right:5px;top:11px}.culture-blossom.two{right:1px;bottom:5px}.culture-globe{position:absolute;font-size:1.7rem;right:8px;bottom:5px;z-index:5}.culture-sparkle{position:absolute;font-size:1.05rem;right:0;top:0}.culture-chest-copy{min-width:0}.culture-chest-kicker{text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;font-weight:900;color:#fde68a}.culture-chest-title{font-weight:900;font-size:.9rem;color:#fff;margin:2px 0}.culture-chest-message{font-size:.72rem;line-height:1.35;color:#f8fafc}.culture-chest-next{margin-top:4px;font-size:.66rem;color:#dbeafe;font-weight:700}.culture-chest.culture-explorer{background:linear-gradient(135deg,rgba(180,83,9,.34),rgba(8,145,178,.24))}.culture-chest.culture-level2{background:linear-gradient(135deg,rgba(219,39,119,.28),rgba(37,99,235,.28));box-shadow:inset 0 0 22px rgba(244,114,182,.12)}.culture-chest.culture-level3{background:linear-gradient(135deg,rgba(124,58,237,.36),rgba(14,116,144,.34));border-color:rgba(253,224,71,.5);box-shadow:inset 0 0 24px rgba(253,224,71,.1)}
+</style>
 {% my_achievements %}
 {% endif %}
