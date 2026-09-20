@@ -1,0 +1,30 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<style>
+  .pending-card { max-width: 620px; margin: 55px auto; padding: 40px; background: #fff; color: #333; border-radius: 24px; text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,.15); }
+  .pending-icon { font-size: 52px; margin-bottom: 12px; }
+  .pending-card h2 { margin-bottom: 18px; }
+  .pending-card p { font-size: 17px; line-height: 1.65; }
+  .pending-note { background: #fff3cd; border-radius: 14px; padding: 16px; margin: 24px 0; }
+  .pending-btn { display: inline-block; padding: 12px 28px; border-radius: 999px; background: #f4a261; color: white; text-decoration: none; font-weight: 600; }
+</style>
+
+<main class="main">
+  <section class="section">
+    <div class="container">
+      <div class="pending-card">
+        <div class="pending-icon">🏦</div>
+        <h2>Bank Payment Processing</h2>
+        <p>Thank you{% if user.first_name %}, {{ user.first_name }}{% endif %}. Your PandaSpeak subscription request was received.</p>
+        <div class="pending-note">
+          <strong>Your bank payment is still being confirmed.</strong><br>
+          ACH bank payments can take a few business days to complete. Your PandaSpeak learning-material access will remain pending until Stripe confirms that the payment was successful.
+        </div>
+        <p>You do not need to submit another payment while this bank payment is processing. PandaSpeak will activate your subscription automatically after confirmation.</p>
+        <a href="{% url 'student_dashboard' %}" class="pending-btn">Return to Dashboard</a>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
