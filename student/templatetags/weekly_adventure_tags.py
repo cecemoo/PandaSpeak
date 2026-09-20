@@ -3,7 +3,7 @@ from datetime import timedelta
 from django import template
 from django.utils import timezone
 
-from student.models import AIConversationUsage, LearnedItem, PersonalFlashcard, StudentTestSubmission
+from student.models import AIConversationUsage, CulturalInsightCompletion, LearnedItem, PersonalFlashcard, StudentTestSubmission
 from teacher.bingo_models import BingoCard
 
 register = template.Library()
@@ -46,6 +46,11 @@ def weekly_adventure(context):
         submitted_at__gte=week_start,
         submitted_at__lt=week_end,
     ).exists()
+    culture_done = CulturalInsightCompletion.objects.filter(
+        student=user,
+        completed_at__gte=week_start,
+        completed_at__lt=week_end,
+    ).exists()
 
     missions = [
         {'icon': '📚', 'label': 'Learn 10 new items', 'done': learned_count >= 10, 'detail': f'{min(learned_count, 10)} / 10'},
@@ -54,10 +59,23 @@ def weekly_adventure(context):
         {'icon': '🎯', 'label': 'Complete a Bingo', 'done': bingo_done, 'detail': 'Done' if bingo_done else '0 / 1'},
         {'icon': '📋', 'label': 'Complete a test', 'done': test_done, 'detail': 'Done' if test_done else '0 / 1'},
     ]
-    completed = sum(1 for mission in missions if mission['done'])
-    progress = completed * 20
 
-    if completed >= 5:
+    # Cultural Insights are available when the student selects Level II or III.
+    # Add this mission only for students who can actually access the feature.
+    learning_level = getattr(user, 'learning_level', 'level1') or 'level1'
+    if learning_level in ('level2', 'level3'):
+        missions.append({
+            'icon': '🏮',
+            'label': 'Explore Chinese culture',
+            'done': culture_done,
+            'detail': 'Done' if culture_done else 'Complete 1 Cultural Insight',
+        })
+
+    completed = sum(1 for mission in missions if mission['done'])
+    mission_total = len(missions)
+    progress = round((completed / mission_total) * 100) if mission_total else 0
+
+    if completed >= mission_total and mission_total:
         chest = {'name': 'Legendary Panda Chest', 'icon': '👑🎁', 'class': 'legendary', 'message': 'Amazing! You completed every mission this week.'}
     elif completed >= 3:
         chest = {'name': 'Rare Panda Chest', 'icon': '✨🎁', 'class': 'rare', 'message': 'Great progress — your Rare Chest is unlocked!'}
@@ -70,6 +88,7 @@ def weekly_adventure(context):
     return {
         'missions': missions,
         'completed': completed,
+        'mission_total': mission_total,
         'progress': progress,
         'chest': chest,
         'days_left': days_left,
