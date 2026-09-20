@@ -25,7 +25,7 @@ def _manager_queryset():
 
 @receiver(pre_save, sender=Subscription)
 def mark_subscription_changes(sender, instance, **kwargs):
-    """Track activation and cancellation transitions for manager notifications."""
+    """Track activation and cancellation transitions for notifications."""
     if not instance.pk:
         instance._became_active = bool(instance.is_active)
         instance._became_cancelled = bool(instance.is_cancelled)
@@ -43,7 +43,7 @@ def mark_subscription_changes(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Subscription)
 def notify_managers_on_subscription(sender, instance, created, **kwargs):
-    """Notify PandaSpeak managers when a subscription is activated or cancelled."""
+    """Notify the student and PandaSpeak managers on activation or cancellation."""
     became_active = getattr(instance, "_became_active", False)
     became_cancelled = getattr(instance, "_became_cancelled", False)
     if not became_active and not became_cancelled:
@@ -56,6 +56,28 @@ def notify_managers_on_subscription(sender, instance, created, **kwargs):
     managers = _manager_queryset()
 
     if became_active:
+        # The activation transition occurs only after the payment flow has
+        # confirmed payment, so this also covers delayed ACH confirmation.
+        if student.email:
+            greeting_name = student.first_name or student.get_full_name() or "Student"
+            access_until = instance.access_until
+            access_text = access_until.strftime("%b %d, %Y") if access_until else None
+            access_line = f"\nYour current subscription period is active through {access_text}." if access_text else ""
+            send_mail(
+                subject="Your PandaSpeak Subscription Is Active",
+                message=(
+                    f"Dear {greeting_name},\n\n"
+                    "Good news! Your PandaSpeak subscription payment has been confirmed. "
+                    "Your subscription is now active, and you can access the PandaSpeak learning materials."
+                    f"{access_line}\n\n"
+                    "Thank you for subscribing to PandaSpeak.\n\n"
+                    "PandaSpeak Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[student.email],
+                fail_silently=True,
+            )
+
         title = "New Student Subscription"
         message = (
             f"{student_name} ({student.email}) subscribed to the PandaSpeak "
