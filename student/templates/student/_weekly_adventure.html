@@ -1,3 +1,4 @@
+{% load achievement_tags %}
 {% if missions %}
 <div class="weekly-adventure">
   <div class="adventure-head">
@@ -16,4 +17,5 @@
   </div>
   <div class="chest-box {{ chest.class }}"><span class="chest-icon">{{ chest.icon }}</span><div><div class="chest-name">{{ chest.name }}</div><div class="chest-message">{{ chest.message }}</div></div></div>
 </div>
+{% my_achievements %}
 {% endif %}
