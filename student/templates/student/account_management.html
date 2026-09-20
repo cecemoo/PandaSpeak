@@ -1,121 +1,17 @@
 {% extends "account/base.html" %}
-
 {% load static %}
 {% load crispy_forms_tags %}
-
 {% block content %}
-
 <style>
-  .subscription-card {
-    max-width: 650px;
-    margin: 30px auto;
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 18px;
-    color: white;
-  }
-
-  .subscription-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .status-badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-  }
-
-  .status-badge.active {
-    background: #28a745;
-  }
-
-  .status-badge.inactive {
-    background: #6c757d;
-  }
-
-  .small-text {
-    color: #ccc;
-  }
+.subscription-card{max-width:720px;margin:30px auto;padding:30px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:22px;color:#fff}.subscription-header{display:flex;justify-content:space-between;align-items:center;gap:15px}.subscription-header h3{margin:0}.status-badge{padding:6px 14px;border-radius:20px;font-size:14px;font-weight:800}.status-badge.active{background:#28a745}.status-badge.inactive{background:#6c757d}.plan-badge{display:inline-block;margin:14px 0 8px;padding:7px 12px;border-radius:999px;background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.4);color:#e0e7ff;font-weight:800;text-transform:capitalize}.plan-badge.plus{background:rgba(245,158,11,.14);border-color:rgba(251,191,36,.45);color:#fde68a}.small-text{color:#ccc}.subscription-details{margin:18px 0;padding:16px;border-radius:15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}.subscription-details p{margin:5px 0}.policy-note{margin:18px 0;padding:14px 16px;border-radius:14px;background:rgba(245,158,11,.1);border:1px solid rgba(251,191,36,.35);color:#fef3c7;font-size:.86rem;line-height:1.5}.action-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.plus-button{display:inline-block;padding:9px 18px;border-radius:999px;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff!important;text-decoration:none;font-weight:800}.cancel-note{margin-top:12px;color:#cbd5e1;font-size:.82rem;max-width:560px}@media(max-width:600px){.subscription-card{padding:22px}.subscription-header{align-items:flex-start}.action-row{align-items:stretch;flex-direction:column}.action-row a,.action-row button{width:100%;text-align:center}}
 </style>
-<main class="main">
-
-  <!-- Page Title -->
-  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
-    <div class="container position-relative">
-      <h1>Subscription Management</h1>
-      <p>Welcome, {{ user.first_name }}!</p>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="{% url 'home' %}">Home</a></li>
-          <li class="current">Subscription Management</li>
-        </ol>
-      </nav>
-    </div>
-  </div><!-- End Page Title -->
-
-  <!-- Subscription Management Section -->
-  <section id="subscription-management-section" class="subscription-management-section section">
-
-    <!-- Section Title -->
-    <div class="container section-title" data-aos="fade-up">
-      <h2>My Subscription</h2>
-      <!-- <p>Manage your subscription</p> -->
-    </div><!-- End Section Title -->
-
-    <div class="container" data-aos="fade-up">
-
-      <div class="subscription-card">
-        <div class="subscription-header">
-          <h3>Subscription</h3>
-
-          {% if has_subscription %}
-          <span class="status-badge active">Active</span>
-          {% else %}
-          <span class="status-badge inactive">Inactive</span>
-          {% endif %}
-        </div>
-
-        {% if has_subscription %}
-        <p>You currently have access to all PandaSpeak learning materials.</p>
-        <p class="small-text">Plan: {{ SubPlan|default:"Annual Learning Plan" }}</p>
-
-        <a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">
-          Start Learning
-        </a>
-        {% if is_cancelled %}
-        <p style="margin-top: 15px;">
-          <strong>Subscription Status:</strong> Canceled
-        </p>
-        {% if access_until %}
-        <p>
-          <strong>Access Until:</strong>
-          {{ access_until|date:"F j, Y" }}
-        </p>
-        {% endif %}
-        <p class="small-text">
-          Your automatic renewal has been canceled. You will not be charged again.
-        </p>
-        {% else %}
-        <form method="POST" action="{% url 'cancel_subscription' %}" style="margin-top: 15px;"
-          onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger rounded-pill">
-            Cancel Subscription
-          </button>
-        </form>
-        {% endif %}
-        {% else %}
-        <p>You do not have an active subscription yet.</p>
-        {% endif %}
-      </div>
-    </div>
-
-  </section><!-- /Subscription Management Section -->
-
-</main>
+<main class="main"><div class="page-title dark-background" style="background-image:url(assets/img/education/showcase-1.webp);"><div class="container position-relative"><h1>Subscription Management</h1><p>Welcome, {{ user.first_name }}!</p><nav class="breadcrumbs"><ol><li><a href="{% url 'home' %}">Home</a></li><li class="current">Subscription Management</li></ol></nav></div></div>
+<section id="subscription-management-section" class="subscription-management-section section"><div class="container section-title" data-aos="fade-up"><h2>My Subscription</h2></div><div class="container" data-aos="fade-up"><div class="subscription-card"><div class="subscription-header"><h3>PandaSpeak Subscription</h3>{% if has_subscription %}<span class="status-badge active">Active</span>{% else %}<span class="status-badge inactive">Inactive</span>{% endif %}</div>
+{% if has_subscription %}<span class="plan-badge {% if SubPlan|lower == 'plus' %}plus{% endif %}">🐼 PandaSpeak {{ SubPlan|default:"Standard" }}</span>
+{% if SubPlan|lower == 'plus' %}<p>You have PandaSpeak Plus access, including expanded AI conversation practice and Plus learning journeys.</p>{% else %}<p>You have PandaSpeak Standard access to PandaSpeak's core learning experience.</p>{% endif %}
+<div class="subscription-details"><p><strong>Plan:</strong> PandaSpeak {{ SubPlan|default:"Standard"|title }}</p>{% if SubPlan|lower == 'plus' %}<p><strong>Billing:</strong> $4.99/month</p>{% else %}<p><strong>Billing:</strong> $15/year</p>{% endif %}{% if access_until %}<p><strong>{% if is_cancelled %}Access until{% else %}Current period / access date{% endif %}:</strong> {{ access_until|date:"F j, Y" }}</p>{% endif %}</div>
+{% if SubPlan|lower != 'plus' %}<div class="policy-note"><strong>Annual subscription policy:</strong> The $15 PandaSpeak Standard annual subscription fee is nonrefundable, whether paid through Stripe or PayPal. Cancelling stops future renewal but does not refund or credit unused time in the current annual subscription period.</div>{% endif %}
+<div class="action-row"><a href="{% url 'access_learning_materials' %}" class="btn btn-success rounded-pill">Start Learning</a>{% if SubPlan|lower != 'plus' and not is_cancelled %}<a href="{% url 'student_plus' %}" class="plus-button">✨ Explore PandaSpeak Plus</a>{% endif %}</div>
+{% if is_cancelled %}<p style="margin-top:18px"><strong>Subscription Status:</strong> Canceled</p><p class="small-text">Your automatic renewal has been canceled. You will not be charged again. You can continue using your current access through the date shown above.</p>{% else %}<form method="POST" action="{% url 'cancel_subscription' %}" style="margin-top:18px" onsubmit="return confirm('Cancel automatic renewal? Your current payment is not refunded. You will keep access through the current paid period.');">{% csrf_token %}<button type="submit" class="btn btn-danger rounded-pill">Cancel Subscription</button></form><div class="cancel-note">Canceling turns off future renewal. It does not immediately remove access for the period you have already paid for.</div>{% endif %}
+{% else %}<p>You do not have an active subscription yet.</p><a href="{% url 'subscription_plans' %}" class="btn btn-success rounded-pill">View Subscription Plans</a>{% endif %}</div></div></section></main>
 {% endblock %}
-
-<a href="{% url 'account_management_student' %}" class="btn btn-primary">Update Subscription</a>
