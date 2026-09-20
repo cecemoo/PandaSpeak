@@ -1,94 +1,102 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-
 from .models import CulturalInsight, CulturalInsightUnlock
 
-
 CULTURE_PREVIEW_CARDS = [
-    {'slug': 'red-envelopes', 'level': 'level2', 'category': 'festival', 'chinese_title': '紅包文化', 'title': 'Red Envelopes', 'summary': 'Learn when red envelopes are given and what they represent.', 'art': '🧧', 'theme': 'red'},
-    {'slug': '', 'level': 'level2', 'category': 'food', 'chinese_title': '餐桌禮儀', 'title': 'Dining Etiquette', 'summary': 'Explore common table manners and dining customs.', 'art': '🥢', 'theme': 'food'},
-    {'slug': '', 'level': 'level2', 'category': 'daily', 'chinese_title': '茶文化', 'title': 'Tea Culture', 'summary': 'Discover the role of tea in hospitality and everyday life.', 'art': '🍵', 'theme': 'tea'},
-    {'slug': '', 'level': 'level2', 'category': 'daily', 'chinese_title': '送禮文化', 'title': 'Gift Giving', 'summary': 'Learn thoughtful gift-giving customs and cultural considerations.', 'art': '🎁', 'theme': 'gift'},
-    {'slug': '', 'level': 'level2', 'category': 'society', 'chinese_title': '吉利與不吉利的數字', 'title': 'Lucky and Unlucky Numbers', 'summary': 'See why certain numbers carry special cultural meanings.', 'art': '福', 'theme': 'lucky'},
-    {'slug': '', 'level': 'level2', 'category': 'society', 'chinese_title': '家庭稱謂與關係', 'title': 'Family and Forms of Address', 'summary': 'Understand family relationships and respectful ways to address people.', 'art': '👨‍👩‍👧‍👦', 'theme': 'family'},
-    {'slug': '', 'level': 'level3', 'category': 'history', 'chinese_title': '歷史的影響', 'title': 'Historical Influences', 'summary': 'Explore how history continues to shape language and culture.', 'art': '🏯', 'theme': 'history'},
-    {'slug': '', 'level': 'level3', 'category': 'regional', 'chinese_title': '兩岸三地文化差異', 'title': 'Taiwan, Mainland and Hong Kong', 'summary': 'Compare regional language, customs, and everyday cultural differences.', 'art': '🌏', 'theme': 'regional'},
-    {'slug': '', 'level': 'level3', 'category': 'festival', 'chinese_title': '傳統節日的現代意義', 'title': 'Traditional Festivals Today', 'summary': 'See how traditional celebrations continue in modern life.', 'art': '🏮', 'theme': 'festival'},
-    {'slug': '', 'level': 'level3', 'category': 'modern', 'chinese_title': '職場文化', 'title': 'Workplace Etiquette', 'summary': 'Learn cultural expectations for professional communication and relationships.', 'art': '🤝', 'theme': 'work'},
-    {'slug': '', 'level': 'level3', 'category': 'language', 'chinese_title': '含蓄的溝通方式', 'title': 'Indirect Communication', 'summary': 'Understand context, politeness, and meaning beyond literal words.', 'art': '💬', 'theme': 'language'},
-    {'slug': '', 'level': 'level3', 'category': 'modern', 'chinese_title': '當代華語社會', 'title': 'Modern Chinese Society', 'summary': 'Explore contemporary life, technology, media, and changing traditions.', 'art': '🌃', 'theme': 'modern'},
+ {'slug':'red-envelopes','level':'level2','category':'festival','chinese_title':'紅包文化','title':'Red Envelopes','summary':'Learn when red envelopes are given and what they represent.','art':'🧧','theme':'red'},
+ {'slug':'dining-etiquette','level':'level2','category':'food','chinese_title':'餐桌禮儀','title':'Dining Etiquette','summary':'Explore common table manners and dining customs.','art':'🥢','theme':'food'},
+ {'slug':'tea-culture','level':'level2','category':'daily','chinese_title':'茶文化','title':'Tea Culture','summary':'Discover the role of tea in hospitality and everyday life.','art':'🍵','theme':'tea'},
+ {'slug':'gift-giving','level':'level2','category':'daily','chinese_title':'送禮文化','title':'Gift Giving','summary':'Learn thoughtful gift-giving customs and cultural considerations.','art':'🎁','theme':'gift'},
+ {'slug':'lucky-numbers','level':'level2','category':'society','chinese_title':'吉利與不吉利的數字','title':'Lucky and Unlucky Numbers','summary':'See why certain numbers carry special cultural meanings.','art':'福','theme':'lucky'},
+ {'slug':'family-address','level':'level2','category':'society','chinese_title':'家庭稱謂與關係','title':'Family and Forms of Address','summary':'Understand family relationships and respectful ways to address people.','art':'👨‍👩‍👧‍👦','theme':'family'},
+ {'slug':'historical-influences','level':'level3','category':'history','chinese_title':'歷史的影響','title':'Historical Influences','summary':'Explore how history continues to shape language and culture.','art':'🏯','theme':'history'},
+ {'slug':'regional-differences','level':'level3','category':'regional','chinese_title':'兩岸三地文化差異','title':'Taiwan, Mainland and Hong Kong','summary':'Compare regional language, customs, and everyday cultural differences.','art':'🌏','theme':'regional'},
+ {'slug':'festivals-today','level':'level3','category':'festival','chinese_title':'傳統節日的現代意義','title':'Traditional Festivals Today','summary':'See how traditional celebrations continue in modern life.','art':'🏮','theme':'festival'},
+ {'slug':'workplace-etiquette','level':'level3','category':'modern','chinese_title':'職場文化','title':'Workplace Etiquette','summary':'Learn cultural expectations for professional communication and relationships.','art':'🤝','theme':'work'},
+ {'slug':'indirect-communication','level':'level3','category':'language','chinese_title':'含蓄的溝通方式','title':'Indirect Communication','summary':'Understand context, politeness, and meaning beyond literal words.','art':'💬','theme':'language'},
+ {'slug':'modern-society','level':'level3','category':'modern','chinese_title':'當代華語社會','title':'Modern Chinese Society','summary':'Explore contemporary life, technology, media, and changing traditions.','art':'🌃','theme':'modern'},
 ]
 
+def L(level,category,art,cn,title,intro,sections,vocab,example,fact,question,choices,answer):
+ return {'level':level,'category':category,'art':art,'chinese_title':cn,'title':title,'intro':intro,'sections':sections,'vocabulary':vocab,'example':example,'did_you_know':fact,'quiz':{'question':question,'choices':choices,'answer':answer}}
+def S(icon,title,text): return {'icon':icon,'title':title,'text':text}
+def V(word,pinyin,meaning): return {'word':word,'pinyin':pinyin,'meaning':meaning}
+def E(chinese,pinyin,english): return {'chinese':chinese,'pinyin':pinyin,'english':english}
+
 CULTURE_LESSONS = {
-    'red-envelopes': {
-        'level': 'level2', 'category': 'Festivals & Traditions', 'art': '🧧',
-        'chinese_title': '紅包文化', 'title': 'Red Envelope Culture',
-        'intro': 'A red envelope is more than a gift of money. It is a way to share good wishes, luck, and blessings with someone you care about.',
-        'sections': [
-            {'icon': '🧧', 'title': 'What is a red envelope?', 'text': '紅包 (hóngbāo) is a red envelope containing money. Red represents good fortune and celebration in Chinese culture. The meaning is not simply the amount of money inside—the red envelope itself carries wishes for happiness, health, and prosperity.'},
-            {'icon': '🗓️', 'title': 'When are red envelopes given?', 'text': 'They are especially common during Lunar New Year, when older family members give them to children or younger relatives. Red envelopes may also be given at weddings, birthdays, the birth of a baby, and other important celebrations. Customs can differ among Chinese-speaking communities and families.'},
-            {'icon': '🤲', 'title': 'Giving and receiving politely', 'text': 'In more formal situations, giving or receiving a red envelope with both hands is a respectful gesture. A recipient normally thanks the giver. In many families, especially during Lunar New Year, children may offer an auspicious greeting before receiving their red envelope.'},
-            {'icon': '🔢', 'title': 'The amount can carry meaning', 'text': 'People may choose amounts associated with good fortune. The number eight (八, bā) is often considered auspicious because its sound is associated with prosperity in some Chinese varieties. The number four (四, sì) is sometimes avoided because it sounds similar to the word for death (死, sǐ) in Mandarin and several other varieties.'},
-        ],
-        'vocabulary': [
-            {'word': '紅包', 'pinyin': 'hóngbāo', 'meaning': 'red envelope'},
-            {'word': '恭喜發財', 'pinyin': 'gōngxǐ fācái', 'meaning': 'Wishing you prosperity'},
-            {'word': '新年快樂', 'pinyin': 'xīnnián kuàilè', 'meaning': 'Happy New Year'},
-            {'word': '吉利', 'pinyin': 'jílì', 'meaning': 'auspicious; lucky'},
-            {'word': '祝福', 'pinyin': 'zhùfú', 'meaning': 'blessing; good wishes'},
-        ],
-        'example': {'chinese': '祝你新年快樂，恭喜發財！', 'pinyin': 'Zhù nǐ xīnnián kuàilè, gōngxǐ fācái!', 'english': 'Wishing you a Happy New Year and prosperity!'},
-        'did_you_know': 'Digital red envelopes are now common too. Messaging and payment apps have made it possible to send a virtual 紅包, combining a traditional custom with modern technology.',
-        'quiz': {'question': 'What is the most important cultural idea behind giving a 紅包?', 'choices': [('a', 'Showing how wealthy the giver is'), ('b', 'Sharing good wishes, luck, and blessings'), ('c', 'Paying someone back'), ('d', 'Buying a holiday gift')], 'answer': 'b'},
-    }
+'red-envelopes':L('level2','Festivals & Traditions','🧧','紅包文化','Red Envelope Culture','A red envelope is more than a gift of money. It shares good wishes, luck, and blessings.',[
+ S('🧧','What is a red envelope?','紅包 (hóngbāo) is a red envelope containing money. Red is strongly associated with celebration and good fortune; the envelope carries wishes for happiness and prosperity.'),S('🗓️','When are they given?','They are common during Lunar New Year and may also appear at weddings, birthdays, births, and other celebrations. Practices vary among families and Chinese-speaking communities.'),S('🤲','Giving and receiving politely','In more formal situations, using both hands is a respectful gesture. Recipients normally thank the giver, and children may offer an auspicious greeting at New Year.'),S('🔢','The amount can carry meaning','Eight is often considered auspicious because of sound associations with prosperity in some Chinese varieties. Four is sometimes avoided because 四 sounds similar to 死 in Mandarin and several other varieties.')],
+ [V('紅包','hóngbāo','red envelope'),V('恭喜發財','gōngxǐ fācái','Wishing you prosperity'),V('新年快樂','xīnnián kuàilè','Happy New Year'),V('吉利','jílì','auspicious; lucky'),V('祝福','zhùfú','blessing')],E('祝你新年快樂，恭喜發財！','Zhù nǐ xīnnián kuàilè, gōngxǐ fācái!','Wishing you a Happy New Year and prosperity!'),'Digital red envelopes are now common on messaging and payment apps.','What is the key idea behind giving a 紅包?',[('a','Showing wealth'),('b','Sharing good wishes and blessings'),('c','Paying a debt'),('d','Buying a gift')],'b'),
+'dining-etiquette':L('level2','Food & Dining','🥢','餐桌禮儀','Dining Etiquette','Meals are an important setting for hospitality, relationships, and shared enjoyment.',[
+ S('🍽️','Sharing the meal','Many Chinese meals are served family-style, with several dishes placed in the center for everyone to share.'),S('🥢','Using chopsticks','Place chopsticks neatly when pausing. Avoid sticking them upright in a bowl of rice, a gesture that can resemble incense used in ritual settings.'),S('👵','Showing consideration','At more traditional meals, elders or honored guests may be invited to begin first. Customs vary by family and setting.'),S('🥂','Hospitality at the table','Hosts may encourage guests to eat more as a sign of warmth. A polite guest can accept some food or gently say that they are full.')],
+ [V('筷子','kuàizi','chopsticks'),V('請慢用','qǐng mànyòng','please enjoy your meal'),V('好吃','hǎochī','delicious'),V('吃飽了','chī bǎo le','to be full'),V('乾杯','gānbēi','cheers')],E('很好吃，謝謝！','Hěn hǎochī, xièxie!','It is delicious, thank you!'),'A round table is popular for group meals because it makes sharing dishes and conversation easier.','Which chopstick habit is best avoided at the table?',[('a','Holding them in one hand'),('b','Sticking them upright in rice'),('c','Eating vegetables'),('d','Resting them neatly')],'b'),
+'tea-culture':L('level2','Daily Life & Etiquette','🍵','茶文化','Tea Culture','Tea can be an everyday drink, a welcome for guests, and part of more formal traditions.',[
+ S('🍵','Tea in everyday life','Tea is enjoyed in many forms across Chinese-speaking communities, and preferences differ by region and household.'),S('🏠','Welcoming guests','Offering tea can express hospitality. Refilling a guest’s cup is a simple way to show care and attention.'),S('🫖','Many tea traditions','Green, oolong, black, white, and pu-er tea all have distinct traditions. There is no single tea custom shared identically everywhere.'),S('🤲','Receiving tea','A simple 謝謝 is always appropriate. In some communities, people also use small finger-tapping gestures to acknowledge tea being poured.')],
+ [V('茶','chá','tea'),V('泡茶','pào chá','make tea'),V('喝茶','hē chá','drink tea'),V('茶壺','cháhú','teapot'),V('請喝茶','qǐng hē chá','please have some tea')],E('請喝茶。','Qǐng hē chá.','Please have some tea.'),'Tea customs are highly regional; what feels ordinary in one family may be unfamiliar in another.','What can offering tea to a guest communicate?',[('a','Hospitality'),('b','Impatience'),('c','A business contract'),('d','A farewell only')],'a'),
+'gift-giving':L('level2','Daily Life & Etiquette','🎁','送禮文化','Gift Giving','A thoughtful gift can express gratitude, celebration, respect, or care.',[
+ S('🎁','The meaning matters','The relationship and occasion often matter more than price. Food, fruit, tea, or a small local specialty can be appropriate in many situations.'),S('🤲','Giving respectfully','Using both hands in a formal exchange can signal respect. A recipient may initially respond modestly before accepting.'),S('🔔','Symbolic associations','Some gifts can carry unwanted word associations. A clock, for example, may be avoided in some contexts because 送鐘 sounds like 送終.'),S('🌏','Context is important','Gift customs vary greatly by generation, region, family, and situation. When uncertain, a simple and practical gift is often safest.')],
+ [V('禮物','lǐwù','gift'),V('送禮','sòng lǐ','give a gift'),V('心意','xīnyì','thought; kind intention'),V('不用客氣','bú yòng kèqi','you’re welcome / no need to be polite'),V('謝謝','xièxie','thank you')],E('這是一點小心意。','Zhè shì yìdiǎn xiǎo xīnyì.','This is a small token of my appreciation.'),'Symbolism in gifts often comes from language, especially words that sound alike.','What is most important when choosing a culturally appropriate gift?',[('a','It must be expensive'),('b','The relationship and occasion'),('c','It must be red'),('d','It must be large')],'b'),
+'lucky-numbers':L('level2','Society & Relationships','福','吉利與不吉利的數字','Lucky and Unlucky Numbers','Numbers can acquire cultural meaning through sound, tradition, and popular belief.',[
+ S('8️⃣','Why eight is popular','八 (bā) is widely viewed as auspicious, especially because of sound associations with 發, meaning to prosper, in Cantonese and related popular culture.'),S('4️⃣','Why four may be avoided','四 (sì) sounds similar to 死 (sǐ), “death,” in Mandarin and several other Chinese varieties, so some people avoid four in important numbers.'),S('6️⃣','Other positive numbers','Six can suggest that things will go smoothly, while pairs are often favored because of the idea that good things come in twos.'),S('🧠','Belief varies','Not everyone follows number symbolism. Its importance depends on the person, region, generation, and context.')],
+ [V('數字','shùzì','number'),V('吉利','jílì','auspicious'),V('不吉利','bù jílì','inauspicious'),V('八','bā','eight'),V('四','sì','four')],E('八是一個很吉利的數字。','Bā shì yí ge hěn jílì de shùzì.','Eight is a very auspicious number.'),'Number symbolism can influence phone numbers, license plates, addresses, and dates for major events.','Why is the number four sometimes avoided?',[('a','It is difficult to write'),('b','It sounds similar to the word for death'),('c','It is too small'),('d','It is a foreign number')],'b'),
+'family-address':L('level2','Society & Relationships','👨‍👩‍👧‍👦','家庭稱謂與關係','Family and Forms of Address','Chinese family vocabulary can describe relationships more precisely than English terms such as aunt, uncle, or cousin.',[
+ S('👪','Detailed family terms','Terms can distinguish maternal and paternal relatives, older and younger siblings, and other family relationships.'),S('👵','Respect and age','Family terms reflect relationships and relative generations. Older relatives are commonly addressed by their relationship title rather than by first name.'),S('🤝','Beyond the family','Kinship-style terms such as 阿姨 or 叔叔 may sometimes be used respectfully for familiar adults who are not relatives, depending on context.'),S('🌏','Regional variation','Forms of address vary by region, language variety, family tradition, and generation, so learners will encounter multiple systems.')],
+ [V('家人','jiārén','family members'),V('爸爸','bàba','father'),V('媽媽','māma','mother'),V('哥哥','gēge','older brother'),V('姐姐','jiějie','older sister')],E('這是我姐姐。','Zhè shì wǒ jiějie.','This is my older sister.'),'The distinction between older and younger siblings is built directly into common Chinese kinship words.','What does 哥哥 specifically mean?',[('a','Any brother'),('b','Older brother'),('c','Younger brother'),('d','Male cousin')],'b'),
+'historical-influences':L('level3','History & Heritage','🏯','歷史的影響','Historical Influences','History remains visible in modern vocabulary, values, stories, architecture, and everyday expressions.',[
+ S('📚','Stories inside language','Many idioms and set phrases refer to historical events, classical texts, or legendary figures. Knowing the story can reveal meaning beyond the literal words.'),S('🏛️','Continuity and change','Institutions and social values have changed repeatedly across centuries, yet older ideas continue to be reinterpreted in modern life.'),S('✍️','The written tradition','Classical Chinese influenced literature and formal writing across East Asia. Modern written Chinese is different, but historical texts remain culturally important.'),S('🔎','Avoid one simple story','Chinese-speaking societies have diverse histories. Understanding culture means noticing both shared influences and different regional experiences.')],
+ [V('歷史','lìshǐ','history'),V('傳統','chuántǒng','tradition'),V('文化','wénhuà','culture'),V('成語','chéngyǔ','idiom'),V('古代','gǔdài','ancient times')],E('這個成語有一個歷史故事。','Zhège chéngyǔ yǒu yí ge lìshǐ gùshì.','This idiom has a historical story behind it.'),'Many commonly used 成語 are only four characters long but can refer to an entire story.','Why can history help a learner understand Chinese expressions?',[('a','All expressions are ancient'),('b','Some expressions refer to historical stories and texts'),('c','Modern Chinese has no new words'),('d','History replaces grammar')],'b'),
+'regional-differences':L('level3','Regional Culture','🌏','兩岸三地文化差異','Taiwan, Mainland and Hong Kong','Chinese-speaking communities share many cultural connections while also having distinct languages, histories, institutions, and everyday practices.',[
+ S('🗣️','Language varies','Mandarin vocabulary and pronunciation can differ between Taiwan and Mainland China, while Cantonese is highly prominent in Hong Kong. Many other Chinese varieties are also spoken.'),S('✍️','Writing systems','Traditional Chinese characters are standard in Taiwan and Hong Kong, while Simplified Chinese characters are standard in Mainland China.'),S('🍜','Everyday culture','Food, media, holidays, etiquette, and popular expressions have local characteristics. Regional identity matters alongside broader cultural connections.'),S('🤝','Learn without stereotyping','Individuals do not represent an entire region. Cultural comparison is most useful when it highlights variation rather than treating everyone the same.')],
+ [V('台灣','Táiwān','Taiwan'),V('中國大陸','Zhōngguó Dàlù','Mainland China'),V('香港','Xiānggǎng','Hong Kong'),V('繁體字','fántǐzì','Traditional characters'),V('簡體字','jiǎntǐzì','Simplified characters')],E('這個詞在不同地方有不同的說法。','Zhège cí zài bùtóng dìfang yǒu bùtóng de shuōfǎ.','This word is said differently in different places.'),'A familiar example is “taxi”: 計程車 is common in Taiwan, 出租車 in Mainland China, and 的士 in Hong Kong Cantonese usage.','Which statement best describes Chinese-speaking regions?',[('a','They are culturally identical'),('b','They share connections but also have important regional differences'),('c','They all use only Simplified Chinese'),('d','They all primarily speak Cantonese')],'b'),
+'festivals-today':L('level3','Festivals & Traditions','🏮','傳統節日的現代意義','Traditional Festivals Today','Traditional festivals continue to evolve as families balance inherited customs with contemporary life.',[
+ S('🧨','Lunar New Year','Family gatherings, special foods, greetings, and red envelopes remain important, while travel and digital greetings shape modern celebrations.'),S('🐉','Dragon Boat Festival','The festival is associated with dragon boat racing and foods such as 粽子, though local practices and stories vary.'),S('🌕','Mid-Autumn Festival','Moon viewing, family gatherings, and mooncakes are familiar traditions. Modern celebrations may also include regional customs such as outdoor barbecues in Taiwan.'),S('📱','Tradition keeps changing','Social media, travel, work schedules, and commercial culture can change how people participate without necessarily erasing the meaning of a festival.')],
+ [V('春節','Chūnjié','Lunar New Year'),V('端午節','Duānwǔjié','Dragon Boat Festival'),V('中秋節','Zhōngqiūjié','Mid-Autumn Festival'),V('團圓','tuányuán','reunion'),V('傳統','chuántǒng','tradition')],E('中秋節是家人團圓的節日。','Zhōngqiūjié shì jiārén tuányuán de jiérì.','Mid-Autumn Festival is a holiday for family reunion.'),'Festival customs can be strongly regional; there is no single way every Chinese-speaking family celebrates.','Which idea best describes traditional festivals today?',[('a','They never change'),('b','They combine continuity with changing modern practices'),('c','They are only for tourists'),('d','They have the same customs everywhere')],'b'),
+'workplace-etiquette':L('level3','Modern Culture','🤝','職場文化','Workplace Etiquette','Professional communication can reflect hierarchy, relationships, industry norms, and local workplace culture.',[
+ S('👔','Titles and roles','In more formal settings, job titles or surnames plus titles may be used to show professional respect, although many workplaces are increasingly informal.'),S('💬','Communication style','Some speakers may soften disagreement or criticism to preserve working relationships. Directness varies greatly by company, region, and individual.'),S('🤝','Relationships matter','Building trust and maintaining good professional relationships can be important, but learners should avoid assuming every workplace operates the same way.'),S('🌐','Modern workplaces','International teams, remote work, younger generations, and technology continue to reshape workplace expectations across Chinese-speaking societies.')],
+ [V('公司','gōngsī','company'),V('同事','tóngshì','colleague'),V('主管','zhǔguǎn','supervisor'),V('開會','kāihuì','have a meeting'),V('合作','hézuò','cooperate')],E('很高興跟你合作。','Hěn gāoxìng gēn nǐ hézuò.','I’m glad to work with you.'),'The safest approach in a new workplace is to observe how colleagues address one another and match the local level of formality.','What is a good approach when entering a new Chinese-speaking workplace?',[('a','Assume all workplaces are formal'),('b','Observe local norms and how colleagues communicate'),('c','Never disagree'),('d','Use first names for everyone immediately')],'b'),
+'indirect-communication':L('level3','Language & Communication','💬','含蓄的溝通方式','Indirect Communication','Meaning is not always carried by literal words alone; context, tone, relationship, and what is left unsaid can matter.',[
+ S('🌿','Softening a message','A speaker may use phrases such as 可能, 我覺得, or 再看看 to make a suggestion or disagreement sound less forceful.'),S('👂','Listen to context','A response that sounds noncommittal may sometimes signal hesitation rather than agreement. Context and tone help determine the meaning.'),S('🤝','Protecting relationships','Indirect wording can help preserve harmony or avoid embarrassing another person, especially in sensitive or formal situations.'),S('⚖️','Do not overgeneralize','Chinese speakers can also be very direct. Communication style depends on personality, region, age, relationship, and situation.')],
+ [V('可能','kěnéng','perhaps; possibly'),V('我覺得','wǒ juéde','I think / I feel'),V('再看看','zài kànkan','let’s see later'),V('不太方便','bú tài fāngbiàn','not very convenient'),V('沒關係','méi guānxi','it’s okay')],E('這個時間可能不太方便。','Zhège shíjiān kěnéng bú tài fāngbiàn.','This time may not be very convenient.'),'Words such as “maybe” can perform different social functions depending on context; they are not automatic codes with one fixed meaning.','Why might someone soften a disagreement?',[('a','To make grammar harder'),('b','To preserve the relationship and reduce confrontation'),('c','Because direct speech is forbidden'),('d','Because they do not know the answer')],'b'),
+'modern-society':L('level3','Modern Culture','🌃','當代華語社會','Modern Chinese Society','Chinese-speaking societies are dynamic: technology, media, migration, education, and global exchange continually shape everyday life.',[
+ S('📱','Digital everyday life','Messaging, mobile payments, online shopping, short video, and delivery services have changed daily routines, though platforms differ by region.'),S('🗯️','Language changes quickly','Internet culture creates slang, abbreviations, memes, and new meanings. Some expressions become popular quickly and disappear just as fast.'),S('🌆','Many ways of living','Large cities, smaller communities, different generations, and different regions can have very different lifestyles and priorities.'),S('🌏','Global and local','Contemporary culture mixes local traditions with international influences in music, food, fashion, work, and entertainment.')],
+ [V('現代','xiàndài','modern'),V('網路','wǎnglù','internet'),V('社群媒體','shèqún méitǐ','social media'),V('生活方式','shēnghuó fāngshì','lifestyle'),V('流行','liúxíng','popular; fashionable')],E('現在很多人的生活離不開網路。','Xiànzài hěn duō rén de shēnghuó líbukāi wǎnglù.','Today, many people’s lives are closely connected to the internet.'),'Modern slang is useful cultural knowledge, but learners should check where, when, and with whom an expression is appropriate.','What is the best way to understand contemporary Chinese-speaking societies?',[('a','Assume one lifestyle represents everyone'),('b','Notice regional, generational, and individual differences'),('c','Study only ancient traditions'),('d','Ignore technology')],'b'),
 }
 
-
 def _allowed_levels(user):
-    level = getattr(user, 'learning_level', 'level1') or 'level1'
-    return ['level2'] if level == 'level2' else (['level2', 'level3'] if level == 'level3' else [])
-
+ level=getattr(user,'learning_level','level1') or 'level1'
+ return ['level2'] if level=='level2' else (['level2','level3'] if level=='level3' else [])
 
 @login_required
 def cultural_insights(request):
-    level = getattr(request.user, 'learning_level', 'level1') or 'level1'
-    if level == 'level1':
-        return render(request, 'student/cultural_insights.html', {'level_locked': True, 'insights': [], 'preview_cards': []})
-    allowed_levels = _allowed_levels(request.user)
-    insights = CulturalInsight.objects.filter(is_published=True, level__in=allowed_levels).order_by('level', 'order', 'title')
-    unlocked_ids = set(CulturalInsightUnlock.objects.filter(student=request.user).values_list('insight_id', flat=True))
-    cards = [{'insight': insight, 'unlocked': insight.id in unlocked_ids} for insight in insights]
-    preview_cards = [card for card in CULTURE_PREVIEW_CARDS if card['level'] in allowed_levels]
-    return render(request, 'student/cultural_insights.html', {'level_locked': False, 'insights': cards, 'preview_cards': preview_cards, 'student_level': level})
-
+ level=getattr(request.user,'learning_level','level1') or 'level1'
+ if level=='level1': return render(request,'student/cultural_insights.html',{'level_locked':True,'insights':[],'preview_cards':[]})
+ allowed=_allowed_levels(request.user)
+ insights=CulturalInsight.objects.filter(is_published=True,level__in=allowed).order_by('level','order','title')
+ unlocked=set(CulturalInsightUnlock.objects.filter(student=request.user).values_list('insight_id',flat=True))
+ cards=[{'insight':i,'unlocked':i.id in unlocked} for i in insights]
+ previews=[c for c in CULTURE_PREVIEW_CARDS if c['level'] in allowed]
+ return render(request,'student/cultural_insights.html',{'level_locked':False,'insights':cards,'preview_cards':previews,'student_level':level})
 
 @login_required
-def cultural_preview_detail(request, slug):
-    lesson = CULTURE_LESSONS.get(slug)
-    if not lesson or lesson['level'] not in _allowed_levels(request.user):
-        return redirect('cultural_insights')
-    quiz_result = None
-    selected_answer = None
-    if request.method == 'POST':
-        selected_answer = request.POST.get('answer')
-        if selected_answer:
-            quiz_result = selected_answer == lesson['quiz']['answer']
-    return render(request, 'student/cultural_preview_detail.html', {'lesson': lesson, 'slug': slug, 'quiz_result': quiz_result, 'selected_answer': selected_answer})
-
+def cultural_preview_detail(request,slug):
+ lesson=CULTURE_LESSONS.get(slug)
+ if not lesson or lesson['level'] not in _allowed_levels(request.user): return redirect('cultural_insights')
+ result=None; selected=None
+ if request.method=='POST':
+  selected=request.POST.get('answer')
+  if selected: result=selected==lesson['quiz']['answer']
+ return render(request,'student/cultural_preview_detail.html',{'lesson':lesson,'slug':slug,'quiz_result':result,'selected_answer':selected})
 
 @login_required
-def cultural_insight_detail(request, pk):
-    allowed_levels = _allowed_levels(request.user)
-    insight = get_object_or_404(CulturalInsight, pk=pk, is_published=True, level__in=allowed_levels)
-    unlocked = CulturalInsightUnlock.objects.filter(student=request.user, insight=insight).exists()
-    return render(request, 'student/cultural_insight_detail.html', {'insight': insight, 'unlocked': unlocked})
-
+def cultural_insight_detail(request,pk):
+ insight=get_object_or_404(CulturalInsight,pk=pk,is_published=True,level__in=_allowed_levels(request.user))
+ unlocked=CulturalInsightUnlock.objects.filter(student=request.user,insight=insight).exists()
+ return render(request,'student/cultural_insight_detail.html',{'insight':insight,'unlocked':unlocked})
 
 @login_required
 @require_POST
-def unlock_cultural_insight(request, pk):
-    allowed_levels = _allowed_levels(request.user)
-    insight = get_object_or_404(CulturalInsight, pk=pk, is_published=True, level__in=allowed_levels)
-    CulturalInsightUnlock.objects.get_or_create(student=request.user, insight=insight)
-    return redirect('cultural_insight_detail', pk=insight.pk)
+def unlock_cultural_insight(request,pk):
+ insight=get_object_or_404(CulturalInsight,pk=pk,is_published=True,level__in=_allowed_levels(request.user))
+ CulturalInsightUnlock.objects.get_or_create(student=request.user,insight=insight)
+ return redirect('cultural_insight_detail',pk=insight.pk)
