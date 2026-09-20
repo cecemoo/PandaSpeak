@@ -1,5 +1,6 @@
 from django import template
 
+from student.culture_views import CULTURE_PREVIEW_CARDS
 from student.models import (
     AIConversationUsage,
     CulturalInsightCompletion,
@@ -10,23 +11,10 @@ from student.models import (
 
 register = template.Library()
 
-LEVEL2_LESSONS = {
-    'red-envelopes',
-    'dining-etiquette',
-    'tea-culture',
-    'gift-giving',
-    'lucky-numbers',
-    'family-address',
-}
-
-LEVEL3_LESSONS = {
-    'historical-influences',
-    'regional-differences',
-    'festivals-today',
-    'workplace-etiquette',
-    'indirect-communication',
-    'modern-society',
-}
+# Derive cultural lesson sets from the shared catalog so adding a new card
+# automatically updates achievement goals and progress counts.
+LEVEL2_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level2'}
+LEVEL3_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level3'}
 
 
 @register.inclusion_tag('student/_my_achievements.html', takes_context=True)
@@ -44,6 +32,8 @@ def my_achievements(context):
     )
     level2_count = len(completed & LEVEL2_LESSONS)
     level3_count = len(completed & LEVEL3_LESSONS)
+    level2_total = len(LEVEL2_LESSONS)
+    level3_total = len(LEVEL3_LESSONS)
 
     learned_count = LearnedItem.objects.filter(student=user).count()
     flashcard_count = PersonalFlashcard.objects.filter(student=user).count()
@@ -64,18 +54,18 @@ def my_achievements(context):
         {
             'icon': '🐼🏮',
             'name': 'Level II Culture Enthusiast',
-            'description': 'Complete all 6 Level II Cultural Insights.',
-            'earned': level2_count == len(LEVEL2_LESSONS),
+            'description': f'Complete all {level2_total} Level II Cultural Insights.',
+            'earned': bool(level2_total) and level2_count == level2_total,
             'progress': level2_count,
-            'goal': len(LEVEL2_LESSONS),
+            'goal': level2_total,
         },
         {
             'icon': '🐼🌏',
             'name': 'Level III Culture Enthusiast',
-            'description': 'Complete all 6 Level III Cultural Insights.',
-            'earned': level3_count == len(LEVEL3_LESSONS),
+            'description': f'Complete all {level3_total} Level III Cultural Insights.',
+            'earned': bool(level3_total) and level3_count == level3_total,
             'progress': level3_count,
-            'goal': len(LEVEL3_LESSONS),
+            'goal': level3_total,
         },
         {
             'icon': '📚',
