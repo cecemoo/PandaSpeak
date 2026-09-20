@@ -5,6 +5,49 @@ from django.conf import settings
 from teacher.models import Vocabulary, Sentence, Idiom
 
 
+class CulturalInsight(models.Model):
+    LEVEL_CHOICES = [('level2', 'Level II'), ('level3', 'Level III')]
+    CATEGORY_CHOICES = [
+        ('daily', 'Daily Life & Etiquette'), ('festival', 'Festivals & Traditions'),
+        ('food', 'Food & Dining'), ('language', 'Language & Communication'),
+        ('society', 'Society & Relationships'), ('history', 'History & Heritage'),
+        ('regional', 'Regional Culture'), ('modern', 'Modern Culture'),
+    ]
+    title = models.CharField(max_length=200)
+    chinese_title = models.CharField(max_length=200, blank=True)
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='daily')
+    summary = models.CharField(max_length=350)
+    content = models.TextField()
+    useful_chinese = models.TextField(blank=True, help_text='Optional useful Traditional Chinese words or expressions.')
+    did_you_know = models.TextField(blank=True)
+    image = models.ImageField(upload_to='cultural_insights/', blank=True, null=True)
+    audio = models.FileField(upload_to='cultural_insights/audio/', blank=True, null=True)
+    is_published = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['level', 'order', 'title']
+
+    def __str__(self):
+        return f'{self.get_level_display()} - {self.title}'
+
+
+class CulturalInsightUnlock(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cultural_insight_unlocks')
+    insight = models.ForeignKey(CulturalInsight, on_delete=models.CASCADE, related_name='student_unlocks')
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'insight'], name='unique_student_cultural_insight')]
+        ordering = ['-unlocked_at']
+
+    def __str__(self):
+        return f'{self.student} - {self.insight}'
+
+
 class AIConversationUsage(models.Model):
     KIND_CHOICES = [('reply', 'AI Reply'), ('speech', 'AI Speech')]
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_conversation_usage')
