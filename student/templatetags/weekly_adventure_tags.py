@@ -3,13 +3,15 @@ from datetime import timedelta
 from django import template
 from django.utils import timezone
 
+from student.culture_views import CULTURE_PREVIEW_CARDS
 from student.models import AIConversationUsage, CulturalInsightCompletion, LearnedItem, PersonalFlashcard, StudentTestSubmission
 from teacher.bingo_models import BingoCard
 
 register = template.Library()
 
-LEVEL2_CULTURE = {'red-envelopes', 'dining-etiquette', 'tea-culture', 'gift-giving', 'lucky-numbers', 'family-address'}
-LEVEL3_CULTURE = {'historical-influences', 'regional-differences', 'festivals-today', 'workplace-etiquette', 'indirect-communication', 'modern-society'}
+# Keep chest progress synchronized with the Cultural Insights catalog.
+LEVEL2_CULTURE = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level2'}
+LEVEL3_CULTURE = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level3'}
 
 
 @register.inclusion_tag('student/_weekly_adventure.html', takes_context=True)
@@ -34,6 +36,8 @@ def weekly_adventure(context):
     all_culture = set(CulturalInsightCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
     level2_count = len(all_culture & LEVEL2_CULTURE)
     level3_count = len(all_culture & LEVEL3_CULTURE)
+    level2_total = len(LEVEL2_CULTURE)
+    level3_total = len(LEVEL3_CULTURE)
 
     missions = [
         {'icon': '📚', 'label': 'Learn 10 new items', 'done': learned_count >= 10, 'detail': f'{min(learned_count, 10)} / 10'},
@@ -51,7 +55,6 @@ def weekly_adventure(context):
     mission_total = len(missions)
     progress = round((completed / mission_total) * 100) if mission_total else 0
 
-    # Weekly chest tier still reflects this week's missions.
     if completed >= mission_total and mission_total:
         chest = {'name': 'Legendary Panda Chest', 'icon': '👑🎁', 'class': 'legendary', 'message': 'Amazing! You completed every mission this week.'}
     elif completed >= 3:
@@ -61,13 +64,13 @@ def weekly_adventure(context):
     else:
         chest = {'name': 'Panda Chest', 'icon': '🔒🎁', 'class': 'locked', 'message': 'Complete a mission to unlock your first chest.'}
 
-    # Permanent cultural decorations build on top of the weekly chest.
-    if level3_count == len(LEVEL3_CULTURE):
+    # Permanent cultural decorations use dynamic catalog totals.
+    if level3_total and level3_count == level3_total:
         culture_chest = {'stage': 3, 'class': 'culture-level3', 'icon': '🐼🌏🏮', 'title': 'Level III Culture Chest', 'message': 'Ultimate cultural chest — panda, globe, lanterns & blossoms!', 'next': 'You completed every Level III Cultural Insight!'}
-    elif level2_count == len(LEVEL2_CULTURE):
-        culture_chest = {'stage': 2, 'class': 'culture-level2', 'icon': '🐼🌸🏮', 'title': 'Level II Culture Chest', 'message': 'Your Panda Chest is decorated with lanterns and blossoms!', 'next': f'{level3_count} / {len(LEVEL3_CULTURE)} Level III insights completed'}
+    elif level2_total and level2_count == level2_total:
+        culture_chest = {'stage': 2, 'class': 'culture-level2', 'icon': '🐼🌸🏮', 'title': 'Level II Culture Chest', 'message': 'Your Panda Chest is decorated with lanterns and blossoms!', 'next': f'{level3_count} / {level3_total} Level III insights completed'}
     elif all_culture:
-        culture_chest = {'stage': 1, 'class': 'culture-explorer', 'icon': '🐼🏮', 'title': 'Culture Explorer Chest', 'message': 'Your Panda Chest earned its first lantern!', 'next': f'{level2_count} / {len(LEVEL2_CULTURE)} Level II insights completed'}
+        culture_chest = {'stage': 1, 'class': 'culture-explorer', 'icon': '🐼🏮', 'title': 'Culture Explorer Chest', 'message': 'Your Panda Chest earned its first lantern!', 'next': f'{level2_count} / {level2_total} Level II insights completed'}
     else:
         culture_chest = {'stage': 0, 'class': 'culture-base', 'icon': '🐼🎁', 'title': 'Panda Culture Chest', 'message': 'Complete a Cultural Insight to decorate your chest.', 'next': 'Your first cultural reward is a lantern.'}
 
