@@ -1,0 +1,27 @@
+{% if achievements %}
+<section class="achievement-section" aria-labelledby="achievement-heading">
+  <div class="achievement-heading-row">
+    <div>
+      <h3 id="achievement-heading">🏆 My Achievements</h3>
+      <p>Celebrate milestones as you explore Chinese language and culture.</p>
+    </div>
+    <div class="achievement-total">{{ earned_count }} / {{ total_count }} earned</div>
+  </div>
+  <div class="achievement-grid">
+    {% for achievement in achievements %}
+      <div class="achievement-card{% if achievement.earned %} earned{% else %} locked{% endif %}">
+        <div class="achievement-icon">{{ achievement.icon }}</div>
+        <div class="achievement-copy">
+          <div class="achievement-name">{{ achievement.name }}</div>
+          <div class="achievement-description">{{ achievement.description }}</div>
+          {% if achievement.earned %}
+            <span class="achievement-badge">✓ Earned</span>
+          {% else %}
+            <span class="achievement-progress">{{ achievement.progress }} / {{ achievement.goal }} completed</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
