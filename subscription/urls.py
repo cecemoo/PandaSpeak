@@ -17,5 +17,6 @@ urlpatterns = [
     path('paypal/webhook/', paypal_subscription_views.paypal_subscription_webhook, name='paypal_subscription_webhook'),
     path('checkout/<int:payment_id>/', views.create_tutoring_checkout_session, name='create_tutoring_checkout_session'),
     path('success/', paypal_subscription_views.paypal_subscription_success, name='subscription_success'),
+    path('cancel-plus/', cancel_views.cancel_plus, name='cancel_plus'),
     path('cancel/', cancel_views.cancel_subscription, name='cancel_subscription'),
 ]
