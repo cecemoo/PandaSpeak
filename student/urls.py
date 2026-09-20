@@ -6,6 +6,7 @@ from . import subscription_guard_views
 from . import tone_views
 from . import challenge_views
 from . import ai_conversation_views
+from . import culture_views
 from subscription.decorators import subscription_required
 
 
@@ -25,6 +26,10 @@ urlpatterns = [
     path('idioms/category/<int:category_id>/', subscription_required(views.idiom_category_page), name='idiom_category_page'),
     path('pronunciations/', subscription_required(views.pronunciation_page), name='pronunciation_page'),
     path('pronunciations/next-tone-base/', subscription_required(tone_views.next_tone_base), name='next_tone_base'),
+
+    path('cultural-insights/', subscription_required(culture_views.cultural_insights), name='cultural_insights'),
+    path('cultural-insights/<int:pk>/', subscription_required(culture_views.cultural_insight_detail), name='cultural_insight_detail'),
+    path('cultural-insights/<int:pk>/unlock/', subscription_required(culture_views.unlock_cultural_insight), name='unlock_cultural_insight'),
 
     path('flashcards/', subscription_required(flashcard_views.flashcards), name='student_flashcards'),
     path('flashcards/my-cards/', subscription_required(flashcard_views.manage_personal_flashcards), name='student_personal_flashcards'),
