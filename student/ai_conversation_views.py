@@ -1,11 +1,14 @@
 import hashlib
 import json
 import os
+import uuid
 from decimal import Decimal
 
 import requests
 from opencc import OpenCC
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Sum, Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -38,13 +41,21 @@ def _student_level(user):
     return "1"
 
 
-def _monthly_used(user):
+def _month_start():
     now=timezone.localtime()
-    return AIConversationUsage.objects.filter(student=user,kind='reply',created_at__year=now.year,created_at__month=now.month).count()
+    return now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
 
 
-def _remaining(user):
-    return max(0,ai_conversation_limit(user)-_monthly_used(user))
+def _monthly_used(user):
+    return AIConversationUsage.objects.filter(student=user,kind='session',created_at__gte=_month_start()).count()
+
+
+def _remaining(user):return max(0,ai_conversation_limit(user)-_monthly_used(user))
+
+
+def _session_marker(raw):
+    try:return 'session:'+str(uuid.UUID(str(raw)))
+    except (ValueError,TypeError,AttributeError):return None
 
 
 def _system_prompt(level,scenario):
@@ -77,8 +88,7 @@ def _reply_cost(input_tokens,output_tokens):
     return (Decimal(input_tokens)*in_rate+Decimal(output_tokens)*out_rate)/Decimal(1000000)
 
 
-def _speech_cost(text):
-    return Decimal(len(text))*Decimal(os.getenv("AI_TTS_ESTIMATED_USD_PER_1K_CHARS","0.015"))/Decimal(1000)
+def _speech_cost(text):return Decimal(len(text))*Decimal(os.getenv("AI_TTS_ESTIMATED_USD_PER_1K_CHARS","0.015"))/Decimal(1000)
 
 
 def _call_openai(messages,level,scenario):
@@ -99,8 +109,8 @@ def _call_openai(messages,level,scenario):
 @login_required
 @subscription_required
 def ai_conversation(request):
-    limit=ai_conversation_limit(request.user)
-    return render(request,"student/ai_conversation.html",{"scenarios":SCENARIOS,"student_level":_student_level(request.user),"conversation_limit":limit,"remaining":_remaining(request.user),"is_plus":is_plus(request.user)})
+    limit=ai_conversation_limit(request.user);used=_monthly_used(request.user)
+    return render(request,"student/ai_conversation.html",{"scenarios":SCENARIOS,"student_level":_student_level(request.user),"conversation_limit":limit,"sessions_used":used,"remaining":max(0,limit-used),"is_plus":is_plus(request.user)})
 
 
 @login_required
@@ -117,10 +127,14 @@ def ai_conversation_traditionalize(request):
 @subscription_required
 @require_POST
 def ai_conversation_reply(request):
-    if _remaining(request.user)<=0:
-        return JsonResponse({"error":"You have reached your monthly AI conversation practice limit.","remaining":0,"upgrade_available":not is_plus(request.user)},status=429)
     try:body=json.loads(request.body.decode("utf-8"))
     except (json.JSONDecodeError,UnicodeDecodeError):return JsonResponse({"error":"Invalid request."},status=400)
+    marker=_session_marker(body.get('session_id'))
+    if not marker:return JsonResponse({"error":"Please start a new conversation session."},status=400)
+    existing=AIConversationUsage.objects.filter(student=request.user,kind='session',model_name=marker).exists()
+    limit=ai_conversation_limit(request.user)
+    if not existing and _remaining(request.user)<=0:
+        return JsonResponse({"error":f"You have used all {limit} AI conversation sessions included this month.","remaining":0,"conversation_limit":limit,"upgrade_available":not is_plus(request.user)},status=429)
     message=_traditional(str(body.get("message","")).strip());scenario=str(body.get("scenario","free"));history=body.get("history",[])
     if not message or scenario not in SCENARIOS:return JsonResponse({"error":"Please enter a message and choose a valid scenario."},status=400)
     safe=[]
@@ -134,7 +148,9 @@ def ai_conversation_reply(request):
     except requests.RequestException:return JsonResponse({"error":"AI conversation is temporarily unavailable. Please try again shortly."},status=503)
     except RuntimeError as exc:return JsonResponse({"error":str(exc)},status=503)
     AIConversationUsage.objects.create(student=request.user,kind='reply',model_name=model,input_units=input_tokens,output_units=output_tokens,estimated_cost_usd=_reply_cost(input_tokens,output_tokens))
-    return JsonResponse({"reply":reply,"remaining":_remaining(request.user),"upgrade_available":not is_plus(request.user)})
+    if not existing:
+        AIConversationUsage.objects.create(student=request.user,kind='session',model_name=marker,estimated_cost_usd=0)
+    return JsonResponse({"reply":reply,"remaining":_remaining(request.user),"conversation_limit":limit,"sessions_used":_monthly_used(request.user),"upgrade_available":not is_plus(request.user)})
 
 
 @login_required
@@ -157,3 +173,11 @@ def ai_conversation_speech(request):
     AICachedSpeech.objects.update_or_create(cache_key=key,defaults={"voice":voice,"text":text,"audio":r.content})
     AIConversationUsage.objects.create(student=request.user,kind='speech',model_name=model,input_units=len(text),estimated_cost_usd=_speech_cost(text),cached=False)
     return HttpResponse(r.content,content_type="audio/mpeg",headers={"X-PandaSpeak-AI-Cache":"MISS"})
+
+
+@staff_member_required
+def ai_usage_manager(request):
+    start=_month_start();usage=AIConversationUsage.objects.filter(created_at__gte=start)
+    totals=usage.aggregate(cost=Sum('estimated_cost_usd'),events=Count('id'))
+    students=usage.values('student__email','student__first_name','student__last_name').annotate(cost=Sum('estimated_cost_usd'),events=Count('id')).order_by('-cost')[:100]
+    return render(request,'student/ai_usage_manager.html',{'month':start.strftime('%B %Y'),'estimated_cost':totals['cost'] or Decimal('0'),'events':totals['events'] or 0,'sessions':usage.filter(kind='session').count(),'replies':usage.filter(kind='reply').count(),'speech':usage.filter(kind='speech').count(),'students':students})
