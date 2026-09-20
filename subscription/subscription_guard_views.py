@@ -6,6 +6,7 @@ from django.utils import timezone
 from .models import Subscription
 from . import views
 from . import stripe_subscription_views
+from . import paypal_subscription_views
 
 
 def _has_current_subscription(user):
@@ -18,8 +19,6 @@ def _has_current_subscription(user):
     if not subscription.is_active:
         return False
 
-    # If a cancelled subscription has reached the end of its paid period,
-    # allow the student to subscribe again.
     if subscription.is_cancelled and subscription.access_until:
         return subscription.access_until > timezone.now()
 
@@ -37,9 +36,11 @@ def _already_subscribed_response(request):
 
 @login_required
 def guarded_subscribe(request):
-    """Protect both PayPal and Stripe subscription entry points from duplicates."""
+    """Protect PayPal and Stripe subscription entry points from duplicates."""
     if _has_current_subscription(request.user):
         return _already_subscribed_response(request)
+    if request.method == "POST" and request.POST.get("payment_method", "paypal") == "paypal":
+        return paypal_subscription_views.paypal_subscription_checkout(request)
     return views.subscribe(request)
 
 
