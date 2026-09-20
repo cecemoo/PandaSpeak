@@ -2,7 +2,7 @@
 <div class="weekly-adventure">
   <div class="adventure-head">
     <div><h4>🐼 My Weekly Adventure</h4><div class="adventure-week">Complete learning missions and upgrade your Panda Chest!</div></div>
-    <div class="adventure-status"><strong>{{ completed }} / 5</strong><span>missions</span><small>📅 {{ days_left }} day{{ days_left|pluralize }} left</small></div>
+    <div class="adventure-status"><strong>{{ completed }} / {{ mission_total }}</strong><span>missions</span><small>📅 {{ days_left }} day{{ days_left|pluralize }} left</small></div>
   </div>
   <div class="adventure-progress" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"><div class="adventure-progress-bar" style="width:{{ progress }}%"></div></div>
   <div class="mission-list">
