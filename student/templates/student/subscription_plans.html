@@ -106,19 +106,18 @@
   <section id="register-section" class="register-section section">
     <div class="container section-title" data-aos="fade-up">
       <h2>Subscription Plans - Standard Access</h2>
-      <p>$15 per year. Choose the payment method that works best for you.</p>
     </div>
 
     <div class="container" data-aos="fade-up">
       <div class="subscription-payment-grid">
         <div class="subscription-payment-card">
-          <h3>Credit or Debit Card</h3>
-          <p>Pay securely with Stripe. No PayPal account required.</p>
+          <h3>Credit/Debit Card or Bank Account</h3>
+          <p>Pay securely with Stripe using a credit/debit card or U.S. bank account.</p>
           <form method="post" action="{% url 'subscribe' %}">
             {% csrf_token %}
             <input type="hidden" name="subscription_type" value="yearly">
             <input type="hidden" name="payment_method" value="stripe">
-            <button type="submit" class="stripe-subscribe-button">Pay with Card - $15/year</button>
+            <button type="submit" class="stripe-subscribe-button">Continue with Stripe - $15/year</button>
           </form>
           <div class="payment-note">Secure checkout powered by Stripe.</div>
         </div>
