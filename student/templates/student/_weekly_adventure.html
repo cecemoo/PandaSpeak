@@ -1,0 +1,22 @@
+{% if missions %}
+<style>
+.weekly-adventure{max-width:850px;margin:0 auto 30px;background:linear-gradient(135deg,rgba(25,135,84,.24),rgba(13,110,253,.18));border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:24px;color:#fff}.adventure-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.adventure-head h4{margin:0 0 5px}.adventure-week{color:#d9e8ff;font-size:.92rem}.adventure-progress{height:18px;background:rgba(255,255,255,.14);border-radius:999px;overflow:hidden;margin:18px 0 20px}.adventure-progress-bar{height:100%;background:#20c997;border-radius:999px;transition:width .35s ease}.mission-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mission{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.16);border-radius:12px;padding:11px 13px}.mission.done{background:rgba(25,135,84,.28)}.mission-icon{font-size:1.35rem}.mission-copy{flex:1}.mission-label{font-weight:600}.mission-detail{font-size:.82rem;color:#d8d8d8}.mission-check{font-size:1.15rem}.chest-box{margin-top:18px;padding:15px;border-radius:14px;text-align:center;background:rgba(0,0,0,.2)}.chest-icon{font-size:2.3rem;display:block;margin-bottom:4px}.chest-name{font-weight:800}.chest-box.rare{box-shadow:inset 0 0 0 1px rgba(96,165,250,.55)}.chest-box.legendary{box-shadow:inset 0 0 0 1px rgba(255,193,7,.75)}.chest-message{font-size:.9rem;color:#e6e6e6;margin-top:3px}@media(max-width:768px){.mission-list{grid-template-columns:1fr}.weekly-adventure{padding:19px}}
+</style>
+<div class="weekly-adventure">
+  <div class="adventure-head">
+    <div><h4>🐼 My Weekly Adventure</h4><div class="adventure-week">Complete learning missions and upgrade your Panda Chest.</div></div>
+    <div><strong>{{ completed }} / 5 missions</strong><div class="adventure-week">{{ days_left }} day{{ days_left|pluralize }} left this week</div></div>
+  </div>
+  <div class="adventure-progress" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"><div class="adventure-progress-bar" style="width:{{ progress }}%"></div></div>
+  <div class="mission-list">
+    {% for mission in missions %}
+      <div class="mission{% if mission.done %} done{% endif %}">
+        <span class="mission-icon">{{ mission.icon }}</span>
+        <div class="mission-copy"><div class="mission-label">{{ mission.label }}</div><div class="mission-detail">{{ mission.detail }}</div></div>
+        <span class="mission-check">{% if mission.done %}✅{% else %}○{% endif %}</span>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="chest-box {{ chest.class }}"><span class="chest-icon">{{ chest.icon }}</span><div class="chest-name">{{ chest.name }}</div><div class="chest-message">{{ chest.message }}</div></div>
+</div>
+{% endif %}
