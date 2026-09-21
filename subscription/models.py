@@ -1,6 +1,4 @@
-from time import timezone
 from django.db import models
-from django.conf import settings
 from account.models import CustomUser
 
 
@@ -16,12 +14,13 @@ class Subscription(models.Model):
     is_cancelled = models.BooleanField(default=False)
     access_until = models.DateTimeField(blank=True, null=True)
 
-    # PandaSpeak Plus is a separate monthly Stripe add-on. Cancelling it must
-    # never cancel or deactivate the annual base membership above.
+    # Paid Plus and promotional Plus are deliberately separate. A referral
+    # reward must never make Django say "free" while Stripe is still billing.
     plus_stripe_subscription_id = models.CharField(max_length=300, blank=True, null=True)
     plus_is_active = models.BooleanField(default=False)
     plus_is_cancelled = models.BooleanField(default=False)
     plus_access_until = models.DateTimeField(blank=True, null=True)
+    plus_promo_access_until = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.subscription_plan} subscription"
@@ -41,5 +40,4 @@ class TutoringPayment(models.Model):
         return f"{self.student_name} - {self.class_name} payment"
 
 
-# Kept in a small module so referral concerns do not clutter payment models.
 from .referral_models import PlusReward, Referral  # noqa: E402,F401
