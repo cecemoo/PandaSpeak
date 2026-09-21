@@ -13,6 +13,7 @@ TRADITIONAL_CHINESE_EXCEPTIONS = {
     "草台班子",
     "倒霉",
     "台",
+    "無厘頭",
 }
 
 def validate_traditional_chinese(value):
