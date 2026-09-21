@@ -39,3 +39,7 @@ class TutoringPayment(models.Model):
 
     def __str__(self):
         return f"{self.student_name} - {self.class_name} payment"
+
+
+# Kept in a small module so referral concerns do not clutter payment models.
+from .referral_models import PlusReward, Referral  # noqa: E402,F401
