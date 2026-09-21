@@ -53,27 +53,50 @@ def grant_referral_rewards(referred_user):
 
 
 @transaction.atomic
-def activate_next_free_month(user):
-    """Activate one earned month for a Standard student.
+def activate_available_free_months(user):
+    """Immediately stack all earned months for a student without paid Plus.
 
-    Paid Plus subscribers keep rewards queued; their reward must be consumed by
-    Stripe billing rather than extending a local date while Stripe still bills.
+    Paid Plus subscribers keep rewards available for Stripe to consume at a
+    future monthly renewal instead of changing local access while Stripe bills.
     """
     sub = Subscription.objects.select_for_update().filter(user=user, is_active=True).first()
     if not sub or sub.plus_is_active:
-        return False
+        return 0
+    rewards = list(
+        PlusReward.objects.select_for_update().filter(
+            user=user,
+            status=PlusReward.STATUS_AVAILABLE,
+        ).order_by("created_at")
+    )
+    if not rewards:
+        return 0
+    now = timezone.now()
+    start = max(now, sub.plus_promo_access_until or now)
+    sub.plus_promo_access_until = start + timedelta(days=FREE_PLUS_DAYS * len(rewards))
+    sub.save(update_fields=["plus_promo_access_until"])
+    for reward in rewards:
+        reward.status = PlusReward.STATUS_APPLIED
+        reward.applied_at = now
+    PlusReward.objects.bulk_update(rewards, ["status", "applied_at"])
+    return len(rewards)
+
+
+def activate_next_free_month(user):
+    # Backward-compatible helper for existing callers.
+    return bool(activate_available_free_months(user))
+
+
+@transaction.atomic
+def consume_paid_plus_reward(user):
+    """Mark one queued paid-Plus reward used after Stripe confirms a free invoice."""
     reward = PlusReward.objects.select_for_update().filter(
         user=user,
         status=PlusReward.STATUS_AVAILABLE,
     ).order_by("created_at").first()
     if not reward:
         return False
-    now = timezone.now()
-    start = max(now, sub.plus_promo_access_until or now)
-    sub.plus_promo_access_until = start + timedelta(days=FREE_PLUS_DAYS)
-    sub.save(update_fields=["plus_promo_access_until"])
     reward.status = PlusReward.STATUS_APPLIED
-    reward.applied_at = now
+    reward.applied_at = timezone.now()
     reward.save(update_fields=["status", "applied_at"])
     return True
 
