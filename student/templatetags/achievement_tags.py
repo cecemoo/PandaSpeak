@@ -76,6 +76,7 @@ def my_achievements(context):
         'earned_count': sum(1 for item in achievements if item['earned']),
         'total_count': len(achievements),
         'next_goal': next_goal,
+        'show_referral_promotion': not getattr(user, 'is_teacher', False) and not user.is_staff,
         'referral_url': referral_url,
         'successful_referrals': successful_referrals,
         'referral_rewards_earned': earned_rewards,
