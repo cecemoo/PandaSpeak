@@ -9,6 +9,8 @@ from student.models import (
     PersonalFlashcard,
     StudentTestSubmission,
 )
+from subscription.models import PlusReward, Referral
+from subscription.referrals import available_reward_count, referral_code_for
 
 register = template.Library()
 
@@ -16,9 +18,9 @@ LEVEL2_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('le
 LEVEL3_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level3'}
 
 
-@register.inclusion_tag('student/_my_achievements.html', takes_context=True)
+@register.inclusion_tag('student/_dashboard_achievements_and_referral.html', takes_context=True)
 def my_achievements(context):
-    """Build student achievements and a personalized next goal."""
+    """Build student achievements, next goal, and referral promotion data."""
     request = context.get('request')
     user = getattr(request, 'user', None)
     if not user or not user.is_authenticated:
@@ -51,8 +53,6 @@ def my_achievements(context):
     unfinished = [a for a in achievements if not a['earned'] and a['goal']]
     next_goal = None
     if unfinished:
-        # Prefer the achievement closest to completion; for untouched goals,
-        # smaller milestones naturally win the tie.
         next_goal = max(unfinished, key=lambda a: (a['progress'] / a['goal'], -a['goal']))
         remaining = max(next_goal['goal'] - next_goal['progress'], 0)
         next_goal = dict(next_goal)
@@ -64,9 +64,20 @@ def my_achievements(context):
             f"{remaining} more to unlock {next_goal['name']}."
         )
 
+    referral_code = referral_code_for(user)
+    referral_path = reverse('register') + f'?ref={referral_code}'
+    referral_url = request.build_absolute_uri(referral_path)
+    successful_referrals = Referral.objects.filter(referrer=user, rewarded_at__isnull=False).count()
+    earned_rewards = PlusReward.objects.filter(user=user).count()
+    queued_rewards = available_reward_count(user)
+
     return {
         'achievements': achievements,
         'earned_count': sum(1 for item in achievements if item['earned']),
         'total_count': len(achievements),
         'next_goal': next_goal,
+        'referral_url': referral_url,
+        'successful_referrals': successful_referrals,
+        'referral_rewards_earned': earned_rewards,
+        'referral_rewards_queued': queued_rewards,
     }
