@@ -1,2 +1,2 @@
 {% include "student/_my_achievements.html" %}
-{% include "student/_referral_promotion.html" %}
+{% if show_referral_promotion %}{% include "student/_referral_promotion.html" %}{% endif %}
