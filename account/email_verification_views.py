@@ -10,6 +10,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from .forms import CreateUserForm
 from .models import CustomUser, Notification
 from .push import send_push_to_user
+from subscription.referrals import REFERRAL_SESSION_KEY, attach_referral_from_code, remember_referral
 
 
 def _send_verification_email(request, user):
@@ -86,6 +87,8 @@ def register(request):
             return redirect('teacher_dashboard')
         return redirect('student_dashboard')
 
+    # Keep a valid referral code while the student completes registration.
+    remember_referral(request, request.GET.get('ref', ''))
     form = CreateUserForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         new_user = form.save(commit=False)
@@ -93,6 +96,14 @@ def register(request):
         # Existing users in the database are never modified.
         new_user.is_active = False
         new_user.save()
+
+        # Teachers do not participate in the student referral promotion.
+        if not new_user.is_teacher:
+            attach_referral_from_code(
+                new_user,
+                request.session.pop(REFERRAL_SESSION_KEY, ''),
+            )
+
         _send_verification_email(request, new_user)
 
         if new_user.is_teacher:

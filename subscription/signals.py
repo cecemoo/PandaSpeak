@@ -56,6 +56,16 @@ def notify_managers_on_subscription(sender, instance, created, **kwargs):
     managers = _manager_queryset()
 
     if became_active:
+        # Annual activation happens only after verified payment. Award referral
+        # rewards here so Stripe, delayed ACH, and PayPal share one safe path.
+        from .referrals import activate_available_free_months, grant_referral_rewards
+
+        if grant_referral_rewards(student):
+            activate_available_free_months(student)
+            referral = getattr(student, "referral_received", None)
+            if referral:
+                activate_available_free_months(referral.referrer)
+
         # The activation transition occurs only after the payment flow has
         # confirmed payment, so this also covers delayed ACH confirmation.
         if student.email:

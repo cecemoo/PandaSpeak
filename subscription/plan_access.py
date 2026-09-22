@@ -23,11 +23,14 @@ def has_base_access(user):
 
 
 def is_plus(user):
-    """Plus remains available through its paid-through date after cancellation."""
+    """Plus can come from paid access or an earned promotional month."""
     sub = _subscription(user)
-    if not sub or not has_base_access(user) or not sub.plus_is_active:
+    if not sub or not has_base_access(user):
         return False
-    return not sub.plus_access_until or sub.plus_access_until > timezone.now()
+    now = timezone.now()
+    paid = sub.plus_is_active and (not sub.plus_access_until or sub.plus_access_until > now)
+    promo = bool(sub.plus_promo_access_until and sub.plus_promo_access_until > now)
+    return paid or promo
 
 
 def subscription_tier(user):

@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Subscription
+from .referrals import available_reward_count, consume_paid_plus_reward
 
 User = get_user_model()
 
@@ -105,6 +106,56 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
     local.plus_is_cancelled = cancel_end or terminal
     local.plus_access_until = _period_end_datetime(remote)
     local.save(update_fields=["plus_stripe_subscription_id", "plus_is_active", "plus_is_cancelled", "plus_access_until"])
+
+
+def _apply_reward_to_upcoming_plus_invoice(invoice):
+    """Apply one queued referral reward to a paid Plus renewal."""
+    sid = _stripe_value(invoice, "subscription")
+    if not sid or _stripe_value(invoice, "billing_reason") != "subscription_cycle":
+        return
+    remote = stripe.Subscription.retrieve(sid, api_key=_subscription_api_key())
+    metadata = _stripe_value(remote, "metadata", {}) or {}
+    if _stripe_value(metadata, "purpose") != "pandaspeak_plus_addon":
+        return
+    try:
+        user = User.objects.get(pk=_stripe_value(metadata, "user_id"))
+    except (User.DoesNotExist, ValueError, TypeError):
+        return
+    if not available_reward_count(user):
+        return
+    invoice_metadata = _stripe_value(invoice, "metadata", {}) or {}
+    if _stripe_value(invoice_metadata, "pandaspeak_referral_reward") == "1":
+        return
+    coupon = stripe.Coupon.create(
+        api_key=_subscription_api_key(),
+        percent_off=100,
+        duration="once",
+        name="PandaSpeak Referral - Free Plus Month",
+    )
+    stripe.Invoice.modify(
+        _stripe_value(invoice, "id"),
+        api_key=_subscription_api_key(),
+        discounts=[{"coupon": coupon.id}],
+        metadata={
+            **dict(invoice_metadata),
+            "pandaspeak_referral_reward": "1",
+            "pandaspeak_reward_user_id": str(user.pk),
+        },
+    )
+
+
+def _consume_reward_from_paid_invoice(invoice):
+    """Consume the reward only after Stripe confirms the free invoice paid."""
+    metadata = _stripe_value(invoice, "metadata", {}) or {}
+    if _stripe_value(metadata, "pandaspeak_referral_reward") != "1":
+        return
+    if (_stripe_value(invoice, "amount_due", 0) or 0) != 0:
+        return
+    try:
+        user = User.objects.get(pk=_stripe_value(metadata, "pandaspeak_reward_user_id"))
+    except (User.DoesNotExist, ValueError, TypeError):
+        return
+    consume_paid_plus_reward(user)
 
 
 @login_required
@@ -236,7 +287,9 @@ def stripe_subscription_webhook(request):
     event_type = _stripe_value(event, "type")
     obj = _stripe_value(_stripe_value(event, "data", {}) or {}, "object", {}) or {}
     try:
-        if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+        if event_type == "invoice.created":
+            _apply_reward_to_upcoming_plus_invoice(obj)
+        elif event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
             metadata = _stripe_value(obj, "metadata", {}) or {}
             sid = _stripe_value(obj, "subscription")
             if sid:
@@ -264,6 +317,8 @@ def stripe_subscription_webhook(request):
                 confirmed = event_type == "invoice.paid"
                 if purpose == "pandaspeak_plus_addon":
                     _sync_plus_from_stripe(remote, payment_confirmed=confirmed)
+                    if confirmed:
+                        _consume_reward_from_paid_invoice(obj)
                 elif purpose == "pandaspeak_annual_subscription":
                     _sync_base_from_stripe(remote, payment_confirmed=confirmed)
     except stripe.error.StripeError:
