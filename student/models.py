@@ -62,6 +62,20 @@ class CulturalInsightCompletion(models.Model):
         return f'{self.student} - {self.lesson_slug}'
 
 
+class HistoryLessonCompletion(models.Model):
+    """Tracks completion of built-in Chinese History lessons independently from culture lessons."""
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='history_lesson_completions')
+    lesson_slug = models.SlugField(max_length=100)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'lesson_slug'], name='unique_student_history_lesson_completion')]
+        ordering = ['-completed_at']
+
+    def __str__(self):
+        return f'{self.student} - {self.lesson_slug}'
+
+
 class AIConversationUsage(models.Model):
     KIND_CHOICES = [('reply', 'AI Reply'), ('speech', 'AI Speech')]
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_conversation_usage')
