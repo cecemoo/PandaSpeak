@@ -8,6 +8,7 @@ from . import challenge_views
 from . import ai_conversation_views
 from . import culture_views
 from . import culture_completion_views
+from . import history_views
 from . import plus_views
 from subscription.decorators import subscription_required
 
@@ -28,6 +29,8 @@ urlpatterns = [
     path('cultural-insights/lesson/<slug:slug>/', subscription_required(culture_completion_views.cultural_preview_detail), name='cultural_preview_detail'),
     path('cultural-insights/<int:pk>/', subscription_required(culture_views.cultural_insight_detail), name='cultural_insight_detail'),
     path('cultural-insights/<int:pk>/unlock/', subscription_required(culture_views.unlock_cultural_insight), name='unlock_cultural_insight'),
+    path('chinese-history/', subscription_required(history_views.chinese_history), name='chinese_history'),
+    path('chinese-history/lesson/<slug:slug>/', subscription_required(history_views.history_lesson_detail), name='history_lesson_detail'),
     path('flashcards/', subscription_required(flashcard_views.flashcards), name='student_flashcards'),
     path('flashcards/my-cards/', subscription_required(flashcard_views.manage_personal_flashcards), name='student_personal_flashcards'),
     path('flashcards/my-cards/<int:pk>/delete/', subscription_required(flashcard_views.delete_personal_flashcard), name='delete_personal_flashcard'),
