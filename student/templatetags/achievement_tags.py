@@ -28,7 +28,13 @@ def my_achievements(context):
     request = context.get('request')
     user = getattr(request, 'user', None)
     if not user or not user.is_authenticated:
-        return {'achievements': [], 'earned_count': 0, 'total_count': 0, 'next_goal': None}
+        return {
+            'request': request,
+            'achievements': [],
+            'earned_count': 0,
+            'total_count': 0,
+            'next_goal': None,
+        }
 
     completed = set(CulturalInsightCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
     level2_count = len(completed & LEVEL2_LESSONS)
@@ -86,6 +92,7 @@ def my_achievements(context):
     queued_rewards = available_reward_count(user)
 
     return {
+        'request': request,
         'achievements': achievements,
         'earned_count': sum(1 for item in achievements if item['earned']),
         'total_count': len(achievements),
