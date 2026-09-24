@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import uuid
+from datetime import datetime, timezone as dt_timezone
 from decimal import Decimal
 
 import requests
@@ -23,6 +24,10 @@ LEVEL_GUIDANCE={"1":"Use short beginner-friendly sentences, common vocabulary, a
 TRADITIONAL_CONVERTER=OpenCC('s2twp')
 MANDARIN_SPEECH_CONVERTER=OpenCC('t2s')
 STANDARD_MANDARIN_REPLACEMENTS={'喫':'吃','哪兒':'哪裡','這兒':'這裡','那兒':'那裡'}
+# Session-level tracking replaced reply-level counting in the 2026-09-20 deployment.
+# Replies recorded before this cutoff are preserved as legacy monthly usage so students
+# do not appear to regain conversations when the counting method changes mid-month.
+AI_SESSION_TRACKING_CUTOFF=datetime(2026,9,20,23,58,18,tzinfo=dt_timezone.utc)
 
 
 def _traditional(text):
@@ -47,7 +52,11 @@ def _month_start():
 
 
 def _monthly_used(user):
-    return AIConversationUsage.objects.filter(student=user,kind='session',created_at__gte=_month_start()).count()
+    start=_month_start()
+    usage=AIConversationUsage.objects.filter(student=user,created_at__gte=start)
+    legacy_replies=usage.filter(kind='reply',created_at__lt=AI_SESSION_TRACKING_CUTOFF).count()
+    tracked_sessions=usage.filter(kind='session',created_at__gte=AI_SESSION_TRACKING_CUTOFF).count()
+    return legacy_replies+tracked_sessions
 
 
 def _remaining(user):return max(0,ai_conversation_limit(user)-_monthly_used(user))
