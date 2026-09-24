@@ -4,13 +4,16 @@ from django import template
 from django.utils import timezone
 
 from student.culture_views import CULTURE_PREVIEW_CARDS
-from student.models import AIConversationUsage, CulturalInsightCompletion, LearnedItem, PersonalFlashcard, StudentTestSubmission
+from student.history_lessons import HISTORY_CARDS
+from student.models import AIConversationUsage, CulturalInsightCompletion, HistoryLessonCompletion, LearnedItem, PersonalFlashcard, StudentTestSubmission
 from teacher.bingo_models import BingoCard
 
 register = template.Library()
 
 LEVEL2_CULTURE = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level2'}
 LEVEL3_CULTURE = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level3'}
+LEVEL2_HISTORY = {card['slug'] for card in HISTORY_CARDS if card.get('level') == 'level2'}
+LEVEL3_HISTORY = {card['slug'] for card in HISTORY_CARDS if card.get('level') == 'level3'}
 
 
 @register.inclusion_tag('student/_weekly_adventure.html', takes_context=True)
@@ -31,12 +34,19 @@ def weekly_adventure(context):
     bingo_done = BingoCard.objects.filter(student=user, has_bingo=True, completed_at__gte=week_start, completed_at__lt=week_end).exists()
     test_week = StudentTestSubmission.objects.filter(student=user, submitted_at__gte=week_start, submitted_at__lt=week_end).exists()
     culture_week = CulturalInsightCompletion.objects.filter(student=user, completed_at__gte=week_start, completed_at__lt=week_end).exists()
+    history_week = HistoryLessonCompletion.objects.filter(student=user, completed_at__gte=week_start, completed_at__lt=week_end).exists()
 
     all_culture = set(CulturalInsightCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
     level2_count = len(all_culture & LEVEL2_CULTURE)
     level3_count = len(all_culture & LEVEL3_CULTURE)
     level2_total = len(LEVEL2_CULTURE)
     level3_total = len(LEVEL3_CULTURE)
+
+    all_history = set(HistoryLessonCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
+    history_level2_count = len(all_history & LEVEL2_HISTORY)
+    history_level3_count = len(all_history & LEVEL3_HISTORY)
+    history_level2_total = len(LEVEL2_HISTORY)
+    history_level3_total = len(LEVEL3_HISTORY)
 
     learned_total = LearnedItem.objects.filter(student=user).count()
     flashcard_total = PersonalFlashcard.objects.filter(student=user).count()
@@ -53,6 +63,7 @@ def weekly_adventure(context):
     learning_level = getattr(user, 'learning_level', 'level1') or 'level1'
     if learning_level in ('level2','level3'):
         missions.append({'icon':'🏮','label':'Explore Chinese culture','done':culture_week,'detail':'Done' if culture_week else 'Complete 1 Cultural Insight'})
+        missions.append({'icon':'🏯','label':'Explore Chinese history','done':history_week,'detail':'Done' if history_week else 'Complete 1 History lesson'})
 
     completed = sum(1 for mission in missions if mission['done'])
     mission_total = len(missions)
@@ -69,6 +80,7 @@ def weekly_adventure(context):
     # Permanent collection decorations. Each category has a starter and mastery reward.
     rewards = [
         {'key':'culture','icon':'🏮','master_icon':'🌸','name':'Culture','earned':bool(all_culture),'mastered':bool(level2_total and level3_total and level2_count == level2_total and level3_count == level3_total),'detail':f'{level2_count + level3_count} insights explored'},
+        {'key':'history','icon':'🏯','master_icon':'📜','name':'History','earned':bool(all_history),'mastered':bool(history_level2_total and history_level3_total and history_level2_count == history_level2_total and history_level3_count == history_level3_total),'detail':f'{history_level2_count + history_level3_count} lessons explored'},
         {'key':'learning','icon':'📚','master_icon':'⭐','name':'Learning','earned':learned_total >= 1,'mastered':learned_total >= 100,'detail':f'{learned_total} items learned'},
         {'key':'conversation','icon':'💬','master_icon':'🤖','name':'Conversation','earned':ai_total >= 1,'mastered':ai_total >= 25,'detail':f'{ai_total} AI replies'},
         {'key':'tests','icon':'📋','master_icon':'🏅','name':'Tests','earned':test_total >= 1,'mastered':test_total >= 5,'detail':f'{test_total} tests completed'},
