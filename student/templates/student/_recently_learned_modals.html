@@ -1,0 +1,59 @@
+{% if recently_learned %}
+<style>
+.recent-card .recent-item[data-recent-target]{cursor:pointer;border-radius:8px;transition:background .15s ease,padding .15s ease}.recent-card .recent-item[data-recent-target]:hover,.recent-card .recent-item[data-recent-target]:focus{background:rgba(255,255,255,.09);padding-left:8px!important;padding-right:8px!important;outline:none}.recent-detail-modal .modal-content,.recent-detail-modal .modal-title,.recent-detail-modal .modal-body,.recent-detail-modal .modal-body p,.recent-detail-modal .modal-body strong{color:#212529!important}
+</style>
+{% for item in recently_learned %}
+  {% if item.vocabulary %}
+    <div class="modal fade recent-detail-modal" id="recentVocabModal{{ item.vocabulary.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog"><div class="modal-content text-dark">
+        <div class="modal-header"><h5 class="modal-title">{{ item.vocabulary.word }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <p><strong>Pinyin:</strong> {{ item.vocabulary.pinyin }}</p>
+          <p><strong>Level:</strong> {{ item.vocabulary.get_level_display }}</p>
+          <p><strong>Meaning:</strong> {{ item.vocabulary.meaning }}</p>
+          {% if item.vocabulary.example_sentence %}<p><strong>Example Sentence:</strong><br>{{ item.vocabulary.example_sentence }}{% if item.vocabulary.example_pinyin %}<br>{{ item.vocabulary.example_pinyin }}{% endif %}{% if item.vocabulary.example_translation %}<br>{{ item.vocabulary.example_translation }}{% endif %}</p>{% endif %}
+          {% if item.vocabulary.audio_file %}<audio id="recentVocabAudio{{ item.vocabulary.id }}"><source src="{{ item.vocabulary.audio_file.url }}"></audio><button type="button" class="btn btn-secondary" onclick="document.getElementById('recentVocabAudio{{ item.vocabulary.id }}').play();">▶ Play Audio</button>{% endif %}
+        </div>
+      </div></div>
+    </div>
+  {% elif item.sentence %}
+    <div class="modal fade recent-detail-modal" id="recentSentenceModal{{ item.sentence.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog"><div class="modal-content text-dark">
+        <div class="modal-header"><h5 class="modal-title">{{ item.sentence.text }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <p><strong>Pinyin:</strong> {{ item.sentence.pinyin }}</p>
+          <p><strong>Level:</strong> {{ item.sentence.get_level_display }}</p>
+          <p><strong>Translation:</strong> {{ item.sentence.translation }}</p>
+          {% if item.sentence.audio_file %}<audio id="recentSentenceAudio{{ item.sentence.id }}"><source src="{{ item.sentence.audio_file.url }}"></audio><button type="button" class="btn btn-secondary" onclick="document.getElementById('recentSentenceAudio{{ item.sentence.id }}').play();">▶ Play Audio</button>{% endif %}
+        </div>
+      </div></div>
+    </div>
+  {% elif item.idiom %}
+    <div class="modal fade recent-detail-modal" id="recentIdiomModal{{ item.idiom.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog"><div class="modal-content text-dark">
+        <div class="modal-header"><h5 class="modal-title">{{ item.idiom.idiom }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <p><strong>Pinyin:</strong> {{ item.idiom.pinyin }}</p>
+          <p><strong>Level:</strong> {{ item.idiom.get_level_display }}</p>
+          <p><strong>Meaning:</strong> {{ item.idiom.meaning }}</p>
+          {% if item.idiom.english_translation %}<p><strong>English:</strong> {{ item.idiom.english_translation }}</p>{% endif %}
+          {% if item.idiom.example_sentence %}<p><strong>Example Sentence:</strong><br>{{ item.idiom.example_sentence }}{% if item.idiom.example_pinyin %}<br>{{ item.idiom.example_pinyin }}{% endif %}{% if item.idiom.example_translation %}<br>{{ item.idiom.example_translation }}{% endif %}</p>{% endif %}
+          {% if item.idiom.audio_scenario_file %}<audio id="recentIdiomAudio{{ item.idiom.id }}"><source src="{{ item.idiom.audio_scenario_file.url }}"></audio><button type="button" class="btn btn-secondary" onclick="document.getElementById('recentIdiomAudio{{ item.idiom.id }}').play();">▶ Play Audio</button>{% endif %}
+        </div>
+      </div></div>
+    </div>
+  {% endif %}
+{% endfor %}
+<script>
+(function(){
+  const rows=[...document.querySelectorAll('.recent-card .recent-item')];
+  const modals=[{% for item in recently_learned %}{% if item.vocabulary %}'#recentVocabModal{{ item.vocabulary.id }}'{% elif item.sentence %}'#recentSentenceModal{{ item.sentence.id }}'{% elif item.idiom %}'#recentIdiomModal{{ item.idiom.id }}'{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}];
+  rows.forEach((row,index)=>{
+    const target=modals[index]; if(!target)return;
+    row.setAttribute('data-recent-target',target); row.setAttribute('role','button'); row.setAttribute('tabindex','0');
+    row.addEventListener('click',()=>{const el=document.querySelector(target);if(el&&window.bootstrap)bootstrap.Modal.getOrCreateInstance(el).show();});
+    row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click();}});
+  });
+})();
+</script>
+{% endif %}
