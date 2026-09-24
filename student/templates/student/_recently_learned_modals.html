@@ -1,6 +1,6 @@
 {% if recently_learned %}
 <style>
-.recent-card .recent-item[data-recent-target]{cursor:pointer;border-radius:8px;transition:background .15s ease,padding .15s ease}.recent-card .recent-item[data-recent-target]:hover,.recent-card .recent-item[data-recent-target]:focus{background:rgba(255,255,255,.09);padding-left:8px!important;padding-right:8px!important;outline:none}.recent-detail-modal .modal-content,.recent-detail-modal .modal-title,.recent-detail-modal .modal-body,.recent-detail-modal .modal-body p,.recent-detail-modal .modal-body strong{color:#212529!important}
+.recent-card .recent-item[data-recent-target]{cursor:pointer;border-radius:8px;transition:background .15s ease,padding .15s ease;color:#fff}.recent-card .recent-item[data-recent-target] strong{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px}.recent-card .recent-item[data-recent-target]:hover,.recent-card .recent-item[data-recent-target]:focus{background:rgba(255,255,255,.09);padding-left:8px!important;padding-right:8px!important;outline:none}.recent-card .recent-item[data-recent-target]:hover strong,.recent-card .recent-item[data-recent-target]:focus strong{text-decoration-color:#fff}.recent-detail-modal .modal-content,.recent-detail-modal .modal-title,.recent-detail-modal .modal-body,.recent-detail-modal .modal-body p,.recent-detail-modal .modal-body strong{color:#212529!important}
 </style>
 {% for item in recently_learned %}
   {% if item.vocabulary %}
@@ -49,10 +49,17 @@
   const rows=[...document.querySelectorAll('.recent-card .recent-item')];
   const modals=[{% for item in recently_learned %}{% if item.vocabulary %}'#recentVocabModal{{ item.vocabulary.id }}'{% elif item.sentence %}'#recentSentenceModal{{ item.sentence.id }}'{% elif item.idiom %}'#recentIdiomModal{{ item.idiom.id }}'{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}];
   rows.forEach((row,index)=>{
-    const target=modals[index]; if(!target)return;
-    row.setAttribute('data-recent-target',target); row.setAttribute('role','button'); row.setAttribute('tabindex','0');
-    row.addEventListener('click',()=>{const el=document.querySelector(target);if(el&&window.bootstrap)bootstrap.Modal.getOrCreateInstance(el).show();});
-    row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click();}});
+    const target=modals[index];
+    if(!target)return;
+    row.setAttribute('data-recent-target',target);
+    row.setAttribute('data-bs-toggle','modal');
+    row.setAttribute('data-bs-target',target);
+    row.setAttribute('role','button');
+    row.setAttribute('tabindex','0');
+    row.setAttribute('aria-label','Open details for '+(row.querySelector('strong')?.textContent||'recently learned item'));
+    row.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click();}
+    });
   });
 })();
 </script>
