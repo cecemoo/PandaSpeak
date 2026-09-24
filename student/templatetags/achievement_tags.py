@@ -2,9 +2,11 @@ from django import template
 from django.urls import reverse
 
 from student.culture_views import CULTURE_PREVIEW_CARDS
+from student.history_lessons import HISTORY_CARDS
 from student.models import (
     AIConversationUsage,
     CulturalInsightCompletion,
+    HistoryLessonCompletion,
     LearnedItem,
     PersonalFlashcard,
     StudentTestSubmission,
@@ -16,6 +18,8 @@ register = template.Library()
 
 LEVEL2_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level2'}
 LEVEL3_LESSONS = {card['slug'] for card in CULTURE_PREVIEW_CARDS if card.get('level') == 'level3'}
+LEVEL2_HISTORY = {card['slug'] for card in HISTORY_CARDS if card.get('level') == 'level2'}
+LEVEL3_HISTORY = {card['slug'] for card in HISTORY_CARDS if card.get('level') == 'level3'}
 
 
 @register.inclusion_tag('student/_dashboard_achievements_and_referral.html', takes_context=True)
@@ -31,6 +35,13 @@ def my_achievements(context):
     level3_count = len(completed & LEVEL3_LESSONS)
     level2_total = len(LEVEL2_LESSONS)
     level3_total = len(LEVEL3_LESSONS)
+
+    history_completed = set(HistoryLessonCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
+    history_level2_count = len(history_completed & LEVEL2_HISTORY)
+    history_level3_count = len(history_completed & LEVEL3_HISTORY)
+    history_level2_total = len(LEVEL2_HISTORY)
+    history_level3_total = len(LEVEL3_HISTORY)
+
     learned_count = LearnedItem.objects.filter(student=user).count()
     flashcard_count = PersonalFlashcard.objects.filter(student=user).count()
     test_count = StudentTestSubmission.objects.filter(student=user).count()
@@ -40,6 +51,9 @@ def my_achievements(context):
         {'icon':'🏮','name':'Culture Explorer','description':'Complete your first Cultural Insight.','earned':bool(completed),'progress':min(len(completed),1),'goal':1,'action_url':reverse('cultural_insights'),'action_label':'Explore Cultural Insights'},
         {'icon':'🐼🏮','name':'Level II Culture Enthusiast','description':f'Complete all {level2_total} Level II Cultural Insights.','earned':bool(level2_total) and level2_count==level2_total,'progress':level2_count,'goal':level2_total,'action_url':reverse('cultural_insights'),'action_label':'Continue Exploring'},
         {'icon':'🐼🌏','name':'Level III Culture Enthusiast','description':f'Complete all {level3_total} Level III Cultural Insights.','earned':bool(level3_total) and level3_count==level3_total,'progress':level3_count,'goal':level3_total,'action_url':reverse('cultural_insights'),'action_label':'Continue Exploring'},
+        {'icon':'🏯','name':'History Explorer','description':'Complete your first Chinese History lesson.','earned':bool(history_completed),'progress':min(len(history_completed),1),'goal':1,'action_url':reverse('chinese_history'),'action_label':'Explore Chinese History'},
+        {'icon':'📜','name':'History Storyteller','description':f'Complete all {history_level2_total} Level II History Stories.','earned':bool(history_level2_total) and history_level2_count==history_level2_total,'progress':history_level2_count,'goal':history_level2_total,'action_url':reverse('chinese_history'),'action_label':'Continue History'},
+        {'icon':'🐼🏯','name':'History Scholar','description':f'Complete all {history_level3_total} Level III Chinese History lessons.','earned':bool(history_level3_total) and history_level3_count==history_level3_total,'progress':history_level3_count,'goal':history_level3_total,'action_url':reverse('chinese_history'),'action_label':'Continue History'},
         {'icon':'📚','name':'First Steps','description':'Learn your first PandaSpeak learning item.','earned':learned_count>=1,'progress':min(learned_count,1),'goal':1,'action_url':reverse('access_learning_materials'),'action_label':'Start Learning'},
         {'icon':'🌱','name':'Growing Learner','description':'Learn 25 vocabulary, sentence, or expression items.','earned':learned_count>=25,'progress':min(learned_count,25),'goal':25,'action_url':reverse('access_learning_materials'),'action_label':'Keep Learning'},
         {'icon':'⭐','name':'Dedicated Learner','description':'Learn 100 vocabulary, sentence, or expression items.','earned':learned_count>=100,'progress':min(learned_count,100),'goal':100,'action_url':reverse('access_learning_materials'),'action_label':'Keep Learning'},
