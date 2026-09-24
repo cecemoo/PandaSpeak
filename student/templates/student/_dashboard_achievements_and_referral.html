@@ -1,4 +1,6 @@
+{% load recently_learned_tags %}
 <div class="dashboard-achievement-referral">
   {% include "student/_my_achievements.html" %}
   {% if show_referral_promotion %}{% include "student/_referral_promotion.html" %}{% endif %}
 </div>
+{% recently_learned_modals %}
