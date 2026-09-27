@@ -11,6 +11,9 @@ HISTORY_PREVIEW_SLUG = 'oracle-bones'
 
 
 def _allowed_history_levels(user):
+    if user.is_staff or user.is_superuser:
+        return ('level2', 'level3')
+
     level = getattr(user, 'learning_level', 'level1') or 'level1'
     if level == 'level3':
         return ('level2', 'level3')
@@ -65,15 +68,14 @@ def chinese_history(request):
 @login_required
 def history_lesson_detail(request, slug):
     lesson = HISTORY_LESSONS.get(slug)
-    admin_test_access = request.user.is_staff or request.user.is_superuser
+    admin_access = request.user.is_staff or request.user.is_superuser
 
-    if not lesson or (lesson['level'] not in _allowed_history_levels(request.user) and not admin_test_access):
+    if not lesson or (lesson['level'] not in _allowed_history_levels(request.user) and not admin_access):
         return redirect('chinese_history')
 
     # Standard Level II/III members may preview the first History lesson.
-    # The rest of the journey is a PandaSpeak Plus benefit.
-    # TEMPORARY: staff/admin accounts may bypass the Plus gate for testing.
-    if slug != HISTORY_PREVIEW_SLUG and not is_plus(request.user) and not admin_test_access:
+    # Staff/admin accounts permanently bypass subscriber and level gates.
+    if slug != HISTORY_PREVIEW_SLUG and not is_plus(request.user) and not admin_access:
         return redirect('plus_upgrade')
 
     completion = HistoryLessonCompletion.objects.filter(
