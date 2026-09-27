@@ -8,6 +8,13 @@ STANDARD_AI_CONVERSATIONS = 10
 PLUS_AI_CONVERSATIONS = 50
 
 
+def _is_admin(user):
+    return bool(
+        getattr(user, "is_authenticated", False)
+        and (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+    )
+
+
 def _subscription(user):
     try:
         return user.subscription
@@ -16,6 +23,9 @@ def _subscription(user):
 
 
 def has_base_access(user):
+    if _is_admin(user):
+        return True
+
     sub = _subscription(user)
     if not sub or not sub.is_active:
         return False
@@ -23,7 +33,10 @@ def has_base_access(user):
 
 
 def is_plus(user):
-    """Plus can come from paid access or an earned promotional month."""
+    """Plus can come from paid access, promotional access, or admin entitlement."""
+    if _is_admin(user):
+        return True
+
     sub = _subscription(user)
     if not sub or not has_base_access(user):
         return False
@@ -42,6 +55,9 @@ def ai_conversation_limit(user):
 
 
 def student_level_number(user):
+    if _is_admin(user):
+        return 3
+
     for attr in ("learning_level", "level", "student_level"):
         value = getattr(user, attr, None)
         if value:
