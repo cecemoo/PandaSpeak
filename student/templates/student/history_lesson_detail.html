@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 <style>
-.lesson-shell{max-width:980px;margin:0 auto;padding:88px 22px 70px}.lesson-back{display:inline-block;margin-bottom:16px;color:#7b4316;font-weight:700;text-decoration:none}.lesson-hero{border-radius:22px;padding:30px;background:linear-gradient(135deg,#4c2811,#8b4d18);color:#fff;margin-bottom:22px;position:relative;overflow:hidden}.lesson-hero .icon{font-size:3rem}.lesson-hero h1{color:#fff;margin:8px 0 2px}.lesson-hero .zh{font-size:1.35rem;color:#ffe7aa;font-weight:700}.lesson-hero p{color:#fff3df;margin:10px 0 0}.lesson-meta{font-size:.78rem;font-weight:800;color:#ffe2a1}.lesson-section{background:#fff;border:1px solid #ead8bd;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 7px 22px rgba(60,39,18,.07)}.lesson-section h2{font-size:1.18rem;color:#492a12;margin-bottom:13px}.story{font-size:1.16rem;line-height:2;color:#30271f}.listen-box,.today-box{padding:16px;border-radius:13px;background:#fff7e6;color:#5b3b1c}.today-box{border-left:4px solid #ce8f28}.history-video-box{position:relative;border-radius:16px;overflow:hidden;background:#17120e;box-shadow:0 10px 28px rgba(54,34,16,.16)}.history-video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#17120e}.qin-question-fix{display:none;position:absolute;left:10.5%;top:30.5%;width:43%;height:17%;z-index:3;pointer-events:none;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:4px 14px;background:rgb(254,245,228);color:#3b342e;border-radius:10px;font-size:clamp(16px,2.35vw,27px);font-weight:500;line-height:1.35}.video-note{margin:12px 2px 0;color:#725231;font-size:.92rem}.vocab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.vocab{border-radius:12px;padding:12px 14px;background:#f9f5ef}.vocab strong{font-size:1.08rem;color:#713d14}.vocab .pinyin{color:#9b662f;font-size:.88rem}.speak-prompt{padding:12px 14px;margin:9px 0;border-radius:12px;background:#f2f7fb;color:#263e50}.quiz-choice{display:block;border:1px solid #ddd;border-radius:12px;padding:11px 13px;margin:9px 0;cursor:pointer}.quiz-choice:hover{background:#fff8e8}.result-good{background:#e4f6e9;color:#23653a;padding:12px 14px;border-radius:12px;margin-top:12px}.result-try{background:#fff1e5;color:#84421e;padding:12px 14px;border-radius:12px;margin-top:12px}.completed-box{background:#e8f7ec;border:1px solid #91cea0;color:#27613a;padding:13px 16px;border-radius:13px;margin-bottom:18px}.preview-box{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f6f1ff;border:1px solid #d8c8fa;color:#513879;padding:16px 18px;border-radius:14px;margin-bottom:18px}.preview-box p{margin:3px 0 0;color:#6b5687}.btn-history{border:0;background:#7b4316;color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:700;text-decoration:none}.btn-plus{display:inline-block;background:linear-gradient(90deg,#7c3aed,#a855f7);color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:800;text-decoration:none;white-space:nowrap}.btn-listen{border:0;background:#b66c1f;color:#fff;border-radius:999px;padding:9px 16px;font-weight:700}.listen-status{font-size:.85rem;margin-left:8px;color:#80572b}@media(max-width:700px){.lesson-shell{padding-top:100px}.vocab-grid{grid-template-columns:1fr}.lesson-hero{padding:24px}.story{font-size:1.08rem}.preview-box{align-items:flex-start;flex-direction:column}.qin-question-fix{font-size:clamp(13px,3.6vw,18px);padding:2px 8px}}
+.lesson-shell{max-width:980px;margin:0 auto;padding:88px 22px 70px}.lesson-back{display:inline-block;margin-bottom:16px;color:#7b4316;font-weight:700;text-decoration:none}.lesson-hero{border-radius:22px;padding:30px;background:linear-gradient(135deg,#4c2811,#8b4d18);color:#fff;margin-bottom:22px;position:relative;overflow:hidden}.lesson-hero .icon{font-size:3rem}.lesson-hero h1{color:#fff;margin:8px 0 2px}.lesson-hero .zh{font-size:1.35rem;color:#ffe7aa;font-weight:700}.lesson-hero p{color:#fff3df;margin:10px 0 0}.lesson-meta{font-size:.78rem;font-weight:800;color:#ffe2a1}.lesson-section{background:#fff;border:1px solid #ead8bd;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 7px 22px rgba(60,39,18,.07)}.lesson-section h2{font-size:1.18rem;color:#492a12;margin-bottom:13px}.story{font-size:1.16rem;line-height:2;color:#30271f}.listen-box,.today-box{padding:16px;border-radius:13px;background:#fff7e6;color:#5b3b1c}.today-box{border-left:4px solid #ce8f28}.history-video-box{position:relative;border-radius:16px;overflow:hidden;background:#17120e;box-shadow:0 10px 28px rgba(54,34,16,.16)}.history-video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#17120e}.qin-subtitle{display:none;position:absolute;left:6%;right:6%;bottom:7%;z-index:4;pointer-events:none;text-align:center;color:#fff;background:rgba(0,0,0,.78);border-radius:9px;padding:8px 14px;font-size:clamp(17px,2.3vw,28px);font-weight:700;line-height:1.35;text-shadow:0 1px 2px rgba(0,0,0,.8)}.qin-question-fix{display:none;position:absolute;left:10.5%;top:30.5%;width:43%;height:17%;z-index:5;pointer-events:none;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:4px 14px;background:rgb(254,245,228);color:#3b342e;border-radius:10px;font-size:clamp(16px,2.35vw,27px);font-weight:500;line-height:1.35}.video-note{margin:12px 2px 0;color:#725231;font-size:.92rem}.vocab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.vocab{border-radius:12px;padding:12px 14px;background:#f9f5ef}.vocab strong{font-size:1.08rem;color:#713d14}.vocab .pinyin{color:#9b662f;font-size:.88rem}.speak-prompt{padding:12px 14px;margin:9px 0;border-radius:12px;background:#f2f7fb;color:#263e50}.quiz-choice{display:block;border:1px solid #ddd;border-radius:12px;padding:11px 13px;margin:9px 0;cursor:pointer}.quiz-choice:hover{background:#fff8e8}.result-good{background:#e4f6e9;color:#23653a;padding:12px 14px;border-radius:12px;margin-top:12px}.result-try{background:#fff1e5;color:#84421e;padding:12px 14px;border-radius:12px;margin-top:12px}.completed-box{background:#e8f7ec;border:1px solid #91cea0;color:#27613a;padding:13px 16px;border-radius:13px;margin-bottom:18px}.preview-box{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f6f1ff;border:1px solid #d8c8fa;color:#513879;padding:16px 18px;border-radius:14px;margin-bottom:18px}.preview-box p{margin:3px 0 0;color:#6b5687}.btn-history{border:0;background:#7b4316;color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:700;text-decoration:none}.btn-plus{display:inline-block;background:linear-gradient(90deg,#7c3aed,#a855f7);color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:800;text-decoration:none;white-space:nowrap}.btn-listen{border:0;background:#b66c1f;color:#fff;border-radius:999px;padding:9px 16px;font-weight:700}.listen-status{font-size:.85rem;margin-left:8px;color:#80572b}@media(max-width:700px){.lesson-shell{padding-top:100px}.vocab-grid{grid-template-columns:1fr}.lesson-hero{padding:24px}.story{font-size:1.08rem}.preview-box{align-items:flex-start;flex-direction:column}.qin-subtitle{left:4%;right:4%;bottom:10%;font-size:clamp(14px,4vw,19px);padding:6px 9px}.qin-question-fix{font-size:clamp(13px,3.6vw,18px);padding:2px 8px}}
 </style>
 <main class="main"><div class="lesson-shell"><a class="lesson-back" href="{% url 'chinese_history' %}">← Back to Chinese History</a>
 <div class="lesson-hero"><div class="icon">{{ lesson.icon }}</div><div class="lesson-meta">{{ lesson.era }} · {% if lesson.level == 'level2' %}LEVEL II · 歷史小故事{% else %}LEVEL III · 深入中國歷史{% endif %}{% if is_preview %} · FREE PREVIEW{% endif %}</div><h1>{{ lesson.title }}</h1><div class="zh">{{ lesson.chinese_title }}</div><p>{{ lesson.intro }}</p></div>
@@ -10,7 +10,7 @@
 {% if completed %}<div class="completed-box">✓ You completed this History Challenge{% if completed_at %} on {{ completed_at|date:"M j, Y" }}{% endif %}. You can review the lesson anytime.</div>{% endif %}
 <section class="lesson-section"><h2>📖 Discover · 歷史故事</h2><div class="story" id="history-story">{{ lesson.passage }}</div></section>
 {% if lesson.slug == 'qin-unification' %}
-<section class="lesson-section" id="qin-cartoon-section"><h2>🎬 Watch · 看動畫</h2><div class="history-video-box"><video class="history-video" id="qin-history-video" controls playsinline preload="metadata"><source src="{% static 'student/history/PandaSpeak_Qin_Unification_v3.mp4' %}?v=4" type="video/mp4">Your browser does not support HTML5 video.</video><div class="qin-question-fix" id="qin-question-fix" aria-hidden="true"><span>秦始皇在什麼時候<br>統一六國？</span></div></div><p class="video-note">Watch the short cartoon story, then listen to the Mandarin version and read the lesson aloud.</p></section>
+<section class="lesson-section" id="qin-cartoon-section"><h2>🎬 Watch · 看動畫</h2><div class="history-video-box"><video class="history-video" id="qin-history-video" controls playsinline preload="metadata"><source src="{% static 'student/history/PandaSpeak_Qin_Unification_v3.mp4' %}?v=4" type="video/mp4">Your browser does not support HTML5 video.</video><div class="qin-subtitle" id="qin-subtitle" aria-live="off"></div><div class="qin-question-fix" id="qin-question-fix" aria-hidden="true"><span>秦始皇在什麼時候<br>統一六國？</span></div></div><p class="video-note">Watch the short cartoon story, then listen to the Mandarin version and read the lesson aloud.</p></section>
 {% endif %}
 <section class="lesson-section"><h2>🔊 Listen · 聽一聽</h2><div class="listen-box"><p>Listen to the history story in Mandarin, then read it aloud yourself.</p><button type="button" class="btn-listen" id="history-listen" onclick="playHistoryAudio()">🔊 Listen in Mandarin</button><span class="listen-status" id="listen-status"></span></div></section>
 <section class="lesson-section"><h2>🧠 Key Chinese · 關鍵詞</h2><div class="vocab-grid">{% for item in lesson.vocabulary %}<div class="vocab"><strong>{{ item.word }}</strong><div class="pinyin">{{ item.pinyin }}</div><div>{{ item.meaning }}</div></div>{% endfor %}</div></section>
@@ -20,15 +20,33 @@
 {% if is_preview %}<a class="btn-plus" href="{% url 'plus_upgrade' %}">Continue with PandaSpeak Plus →</a>{% else %}<a class="btn-history" href="{% url 'chinese_history' %}">Explore More History →</a>{% endif %}</div></main>
 <script>
 const qinVideo=document.getElementById('qin-history-video');
+const qinSubtitle=document.getElementById('qin-subtitle');
 const qinQuestionFix=document.getElementById('qin-question-fix');
 const listenStatus=document.getElementById('listen-status');
+const qinSubtitleCues=[
+  {start:0.4,end:5.5,text:'兩千多年前，中國不是一個統一的國家。'},
+  {start:5.5,end:11.0,text:'當時有很多不同的國家，彼此常常發生戰爭。'},
+  {start:11.0,end:17.0,text:'大王，各國使用的文字、貨幣和制度都不一樣。'},
+  {start:17.0,end:22.0,text:'如果天下統一，大家就應該有共同的制度。'},
+  {start:22.0,end:27.5,text:'西元前二二一年，秦王嬴政統一六國。'},
+  {start:27.5,end:33.0,text:'後來，他統一了文字、貨幣和度量衡。'},
+  {start:33.0,end:41.5,text:'嬴政稱自己為「秦始皇」，成為中國歷史上第一位皇帝。'},
+  {start:41.5,end:44.3,text:'你聽懂了嗎？'},
+  {start:44.3,end:46.65,text:'秦始皇在什麼時候統一六國？'}
+];
 function stopHistorySpeech(){
   if('speechSynthesis' in window) window.speechSynthesis.cancel();
   if(listenStatus) listenStatus.textContent='';
 }
-function updateQinQuestionFix(){
-  if(!qinVideo || !qinQuestionFix) return;
-  qinQuestionFix.style.display=(qinVideo.currentTime>=46.65)?'flex':'none';
+function updateQinVideoOverlays(){
+  if(!qinVideo) return;
+  const t=qinVideo.currentTime;
+  if(qinSubtitle){
+    const cue=qinSubtitleCues.find(item=>t>=item.start && t<item.end);
+    qinSubtitle.textContent=cue?cue.text:'';
+    qinSubtitle.style.display=cue?'block':'none';
+  }
+  if(qinQuestionFix) qinQuestionFix.style.display=(t>=46.65)?'flex':'none';
 }
 if(qinVideo){
   qinVideo.addEventListener('error',()=>{
@@ -37,10 +55,10 @@ if(qinVideo){
   },true);
   qinVideo.addEventListener('play',stopHistorySpeech);
   qinVideo.addEventListener('seeking',stopHistorySpeech);
-  qinVideo.addEventListener('timeupdate',updateQinQuestionFix);
-  qinVideo.addEventListener('seeked',updateQinQuestionFix);
-  qinVideo.addEventListener('loadedmetadata',updateQinQuestionFix);
-  qinVideo.addEventListener('ended',updateQinQuestionFix);
+  qinVideo.addEventListener('timeupdate',updateQinVideoOverlays);
+  qinVideo.addEventListener('seeked',updateQinVideoOverlays);
+  qinVideo.addEventListener('loadedmetadata',updateQinVideoOverlays);
+  qinVideo.addEventListener('ended',updateQinVideoOverlays);
 }
 function playHistoryAudio(){
   const status=document.getElementById('listen-status');
