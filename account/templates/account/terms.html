@@ -132,15 +132,22 @@
         </div>
 
         <div class="terms-card">
-          {% if content %}
           <div class="terms-content">
-            {{ content.content | linebreaks }}
+            {% if content %}
+              {{ content.content | linebreaks }}
+            {% else %}
+              <p class="terms-empty">
+                Terms of Service are currently being updated.
+              </p>
+            {% endif %}
+
+            <h2>Payment Disputes and Chargebacks</h2>
+            <p>By purchasing a PandaSpeak subscription, you receive access to subscriber-only learning materials, activities, and other features made available under your subscription.</p>
+            <p>If you dispute a valid PandaSpeak charge with your bank, credit card issuer, or payment provider after receiving access to PandaSpeak services, PandaSpeak reserves the right to immediately suspend or terminate your access to paid learning materials, activities, and subscriber-only features while the dispute is being reviewed.</p>
+            <p>If the dispute or chargeback is resolved in your favor and PandaSpeak loses the payment, or incurs chargeback, dispute, processing, or related fees, PandaSpeak may immediately terminate your subscription and account. Your access to PandaSpeak learning materials, activities, and subscriber-only features will end immediately, and you will not be entitled to continued access through the remainder of the original subscription period.</p>
+            <p>PandaSpeak may delete the associated student account following termination, subject to any records PandaSpeak is required or reasonably needs to retain for legal, accounting, fraud-prevention, dispute-resolution, or regulatory purposes.</p>
+            <p><strong>Normal subscription cancellations are treated differently.</strong> If you cancel your subscription without disputing a valid charge, you may continue to access the applicable paid services through the end of your current paid subscription period, unless otherwise stated at the time of purchase.</p>
           </div>
-          {% else %}
-          <p class="terms-empty">
-            Terms of Service are currently being updated.
-          </p>
-          {% endif %}
         </div>
 
       </div>
