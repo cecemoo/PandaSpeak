@@ -53,12 +53,10 @@ def _notify_dispute_suspension(local):
 
 
 def _subscription_from_dispute_checkout(dispute):
-    """Fallback for Stripe API versions where Charge no longer exposes invoice.
+    """Verify a dispute through its Charge/PaymentIntent/Checkout Session.
 
-    For older PandaSpeak payments, the authoritative PandaSpeak metadata can live
-    on the Checkout Session rather than being duplicated onto the Subscription.
-    Verify the Checkout Session, then carry that trusted metadata forward for the
-    existing user-id verification below.
+    Older PandaSpeak subscriptions can keep the authoritative PandaSpeak user
+    metadata on the Checkout Session rather than on the Subscription object.
     """
     api_key = stripe_subscription_views._subscription_api_key()
     charge_id = stripe_subscription_views._stripe_value(dispute, "charge")
@@ -83,19 +81,19 @@ def _subscription_from_dispute_checkout(dispute):
         if not sid:
             continue
         remote = stripe.Subscription.retrieve(sid, api_key=api_key)
-        # The Checkout Session is already tied to this PaymentIntent and contains
-        # the PandaSpeak purpose/user metadata. Do not require the Subscription
-        # object to duplicate that metadata; older subscriptions may not have it.
         remote["metadata"] = metadata
         return remote, charge_id
     return None, charge_id
 
 
 def _verified_subscription_from_dispute(dispute):
-    remote, charge_id = stripe_subscription_views._stripe_subscription_from_dispute(dispute)
+    # Prefer Checkout Session verification because that is where PandaSpeak's
+    # purpose/user metadata lives for legacy annual subscriptions. The shared
+    # subscription lookup remains a fallback for older invoice-based payments.
+    remote, charge_id = _subscription_from_dispute_checkout(dispute)
     if remote is not None:
         return remote, charge_id
-    return _subscription_from_dispute_checkout(dispute)
+    return stripe_subscription_views._stripe_subscription_from_dispute(dispute)
 
 
 @login_required
