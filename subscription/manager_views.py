@@ -1,17 +1,55 @@
 import stripe
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.mail import send_mail
 from django.db.models import Count, Max, Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from account.models import Notification
 from .models import StudentActivity, Subscription
 from . import stripe_subscription_views
 
 
 def _manager(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def _notify_dispute_suspension(local):
+    student = local.user
+    Notification.objects.create(
+        user=student,
+        title="PandaSpeak Access Suspended - Payment Dispute",
+        message=(
+            "A payment dispute has been reported for your PandaSpeak annual subscription. "
+            "Your paid learning-material and activity access is suspended while the dispute remains open. "
+            "If you did not intend to dispute this payment, please contact your bank or card issuer and ask them to withdraw the dispute. "
+            "PandaSpeak will restore eligible access after Stripe confirms the dispute has been resolved in PandaSpeak's favor."
+        ),
+        link="/subscription/dispute-restricted/",
+    )
+
+    if student.email:
+        greeting_name = student.first_name or student.get_full_name() or "Student"
+        send_mail(
+            subject="PandaSpeak Access Suspended - Payment Dispute",
+            message=(
+                f"Dear {greeting_name},\n\n"
+                "We received notice through Stripe that a payment dispute has been opened for your PandaSpeak annual subscription. "
+                "While the dispute is open, your access to PandaSpeak paid learning materials and activities has been suspended.\n\n"
+                "If you did not intend to dispute this payment and would like your access restored, please contact your bank or card issuer and ask them to withdraw the dispute. "
+                "PandaSpeak cannot restore access based only on a request from the cardholder; we must first receive confirmation through Stripe that the dispute has been resolved in PandaSpeak's favor. "
+                "Once Stripe confirms that outcome and your subscription is otherwise eligible, PandaSpeak will restore your access automatically.\n\n"
+                "If you have questions, please contact PandaSpeak Support at pandaspeaksupport@gmail.com.\n\n"
+                "Best regards,\n"
+                "PandaSpeak Team"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[student.email],
+            fail_silently=True,
+        )
 
 
 @login_required
@@ -58,13 +96,7 @@ def student_activity(request):
 @user_passes_test(_manager)
 @require_POST
 def sync_existing_stripe_dispute(request, user_id):
-    """Verify an existing Stripe dispute and attach it to the correct student.
-
-    This is for disputes that began before the webhook destination subscribed to
-    charge.dispute.* events. The Stripe dispute ID is verified server-side and
-    must map back to this exact PandaSpeak annual subscription before access is
-    changed.
-    """
+    """Verify an existing Stripe dispute and attach it to the correct student."""
     local = Subscription.objects.select_related("user").filter(user_id=user_id).first()
     if not local or not local.stripe_subscription_id:
         messages.error(request, "This student does not have a Stripe annual subscription to verify.")
@@ -98,6 +130,7 @@ def sync_existing_stripe_dispute(request, user_id):
         messages.info(request, "Stripe shows this dispute as resolved in PandaSpeak's favor, so access was not blocked.")
         return redirect(f"/subscription/manager/student-activity/?student={user_id}")
 
+    newly_blocked = not local.is_disputed
     local.is_disputed = True
     local.dispute_status = status
     local.dispute_provider = "stripe"
@@ -117,6 +150,9 @@ def sync_existing_stripe_dispute(request, user_id):
         "is_active",
         "plus_is_active",
     ])
+
+    if newly_blocked:
+        _notify_dispute_suspension(local)
 
     messages.success(
         request,
