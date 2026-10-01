@@ -4,9 +4,12 @@ from . import stripe_subscription_views
 from . import paypal_subscription_views
 from . import subscription_guard_views
 from . import cancel_views
+from . import manager_views
 
 urlpatterns = [
     path('subscribe/', subscription_guard_views.guarded_subscribe, name='subscribe'),
+    path('dispute-restricted/', subscription_guard_views.dispute_restricted, name='dispute_restricted'),
+    path('manager/student-activity/', manager_views.student_activity, name='manager_student_activity'),
     path('stripe/checkout/', subscription_guard_views.guarded_stripe_subscription_checkout, name='stripe_subscription_checkout'),
     path('stripe/upgrade-plus/', stripe_subscription_views.stripe_plus_upgrade, name='stripe_plus_upgrade'),
     path('stripe/plus-success/', stripe_subscription_views.stripe_plus_success, name='stripe_plus_success'),
