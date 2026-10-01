@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+
 from .models import StudentActivity, Subscription
 
 
@@ -11,15 +13,30 @@ EXCLUDED_PREFIXES = (
 
 
 class StudentActivityMiddleware:
-    """Record authenticated student requests while paid learning access is active."""
+    """Block disputed students from student routes and record permitted activity."""
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        user = getattr(request, "user", None)
+
+        # Defense in depth: once a payment dispute is recorded, a normal student
+        # must not reach any /student/ material or activity route, even if a future
+        # view is accidentally added without @subscription_required.
+        if (
+            user
+            and user.is_authenticated
+            and not user.is_staff
+            and not user.is_superuser
+            and not getattr(user, "is_teacher", False)
+            and request.path.startswith("/student/")
+            and Subscription.objects.filter(user=user, is_disputed=True).exists()
+        ):
+            return redirect("dispute_restricted")
+
         response = self.get_response(request)
 
-        user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
             return response
         if user.is_staff or user.is_superuser or getattr(user, "is_teacher", False):
