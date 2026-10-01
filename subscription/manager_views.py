@@ -52,6 +52,45 @@ def _notify_dispute_suspension(local):
         )
 
 
+def _subscription_from_dispute_checkout(dispute):
+    """Fallback for Stripe API versions where Charge no longer exposes invoice."""
+    api_key = stripe_subscription_views._subscription_api_key()
+    charge_id = stripe_subscription_views._stripe_value(dispute, "charge")
+    if not charge_id:
+        return None, None
+
+    charge = stripe.Charge.retrieve(charge_id, api_key=api_key)
+    payment_intent_id = stripe_subscription_views._stripe_value(charge, "payment_intent")
+    if not payment_intent_id:
+        return None, charge_id
+
+    sessions = stripe.checkout.Session.list(
+        api_key=api_key,
+        payment_intent=payment_intent_id,
+        limit=10,
+    )
+    for session in sessions.auto_paging_iter():
+        metadata = stripe_subscription_views._stripe_value(session, "metadata", {}) or {}
+        if stripe_subscription_views._stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
+            continue
+        sid = stripe_subscription_views._stripe_value(session, "subscription")
+        if not sid:
+            continue
+        remote = stripe.Subscription.retrieve(sid, api_key=api_key)
+        remote_metadata = stripe_subscription_views._stripe_value(remote, "metadata", {}) or {}
+        if stripe_subscription_views._stripe_value(remote_metadata, "purpose") != "pandaspeak_annual_subscription":
+            continue
+        return remote, charge_id
+    return None, charge_id
+
+
+def _verified_subscription_from_dispute(dispute):
+    remote, charge_id = stripe_subscription_views._stripe_subscription_from_dispute(dispute)
+    if remote is not None:
+        return remote, charge_id
+    return _subscription_from_dispute_checkout(dispute)
+
+
 @login_required
 @user_passes_test(_manager)
 def student_activity(request):
@@ -116,13 +155,18 @@ def sync_existing_stripe_dispute(request, user_id):
             dispute_id,
             api_key=stripe_subscription_views._subscription_api_key(),
         )
-        remote, charge_id = stripe_subscription_views._stripe_subscription_from_dispute(dispute)
+        remote, charge_id = _verified_subscription_from_dispute(dispute)
     except stripe.error.StripeError:
         messages.error(request, "Stripe could not verify that dispute right now. No access changes were made.")
         return redirect(f"/subscription/manager/student-activity/?student={user_id}")
 
     if remote is None or stripe_subscription_views._stripe_value(remote, "id") != local.stripe_subscription_id:
         messages.error(request, "That Stripe dispute does not belong to this student's PandaSpeak annual subscription. No changes were made.")
+        return redirect(f"/subscription/manager/student-activity/?student={user_id}")
+
+    metadata = stripe_subscription_views._stripe_value(remote, "metadata", {}) or {}
+    if str(stripe_subscription_views._stripe_value(metadata, "user_id", "")) != str(user_id):
+        messages.error(request, "Stripe's PandaSpeak user metadata does not match this student. No changes were made.")
         return redirect(f"/subscription/manager/student-activity/?student={user_id}")
 
     status = stripe_subscription_views._stripe_value(dispute, "status", "open") or "open"
