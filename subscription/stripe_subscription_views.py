@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone as django_timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Subscription
@@ -67,7 +68,13 @@ def _sync_base_from_stripe(remote, user=None, payment_confirmed=None):
     local.subscription_plan = "standard"
     local.subscription_cost = 15.00
     local.stripe_subscription_id = sid
-    if payment_confirmed is True:
+
+    # Never allow later Stripe subscription events to reactivate a student
+    # after PandaSpeak has recorded a payment dispute.
+    if local.is_disputed:
+        local.is_active = False
+        local.plus_is_active = False
+    elif payment_confirmed is True:
         local.is_active = status in ("active", "trialing")
     elif payment_confirmed is False or terminal:
         local.is_active = False
@@ -89,7 +96,7 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
         except (User.DoesNotExist, ValueError, TypeError):
             return
     local = Subscription.objects.filter(user=user).first()
-    if not local or not local.is_active:
+    if not local or not local.is_active or local.is_disputed:
         return
     if local.plus_stripe_subscription_id and local.plus_stripe_subscription_id != sid:
         return
@@ -106,6 +113,59 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
     local.plus_is_cancelled = cancel_end or terminal
     local.plus_access_until = _period_end_datetime(remote)
     local.save(update_fields=["plus_stripe_subscription_id", "plus_is_active", "plus_is_cancelled", "plus_access_until"])
+
+
+def _stripe_subscription_from_dispute(dispute):
+    """Return the PandaSpeak annual Stripe subscription related to a dispute."""
+    charge_id = _stripe_value(dispute, "charge")
+    if not charge_id:
+        return None, None
+    charge = stripe.Charge.retrieve(charge_id, api_key=_subscription_api_key())
+    invoice_id = _stripe_value(charge, "invoice")
+    if not invoice_id:
+        return None, charge_id
+    invoice = stripe.Invoice.retrieve(invoice_id, api_key=_subscription_api_key())
+    sid = _stripe_value(invoice, "subscription")
+    if not sid:
+        return None, charge_id
+    remote = stripe.Subscription.retrieve(sid, api_key=_subscription_api_key())
+    metadata = _stripe_value(remote, "metadata", {}) or {}
+    if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
+        return None, charge_id
+    return remote, charge_id
+
+
+def _record_subscription_dispute(dispute):
+    """Block only a student who had active annual learning access when disputed."""
+    remote, charge_id = _stripe_subscription_from_dispute(dispute)
+    if remote is None:
+        return
+    sid = _stripe_value(remote, "id")
+    local = Subscription.objects.filter(stripe_subscription_id=sid, is_active=True, is_disputed=False).first()
+    if not local:
+        return
+
+    local.is_disputed = True
+    local.dispute_status = _stripe_value(dispute, "status", "open") or "open"
+    local.dispute_provider = "stripe"
+    local.dispute_external_id = _stripe_value(dispute, "id", "") or ""
+    local.dispute_charge_id = charge_id or ""
+    local.disputed_at = django_timezone.now()
+    local.is_active = False
+    local.plus_is_active = False
+    local.save(update_fields=[
+        "is_disputed", "dispute_status", "dispute_provider", "dispute_external_id",
+        "dispute_charge_id", "disputed_at", "is_active", "plus_is_active",
+    ])
+
+
+def _update_subscription_dispute_status(dispute):
+    dispute_id = _stripe_value(dispute, "id", "") or ""
+    if not dispute_id:
+        return
+    Subscription.objects.filter(dispute_provider="stripe", dispute_external_id=dispute_id, is_disputed=True).update(
+        dispute_status=_stripe_value(dispute, "status", "") or ""
+    )
 
 
 def _apply_reward_to_upcoming_plus_invoice(invoice):
@@ -126,30 +186,16 @@ def _apply_reward_to_upcoming_plus_invoice(invoice):
     invoice_metadata = _stripe_value(invoice, "metadata", {}) or {}
     if _stripe_value(invoice_metadata, "pandaspeak_referral_reward") == "1":
         return
-    coupon = stripe.Coupon.create(
-        api_key=_subscription_api_key(),
-        percent_off=100,
-        duration="once",
-        name="PandaSpeak Referral - Free Plus Month",
-    )
+    coupon = stripe.Coupon.create(api_key=_subscription_api_key(), percent_off=100, duration="once", name="PandaSpeak Referral - Free Plus Month")
     stripe.Invoice.modify(
-        _stripe_value(invoice, "id"),
-        api_key=_subscription_api_key(),
-        discounts=[{"coupon": coupon.id}],
-        metadata={
-            **dict(invoice_metadata),
-            "pandaspeak_referral_reward": "1",
-            "pandaspeak_reward_user_id": str(user.pk),
-        },
+        _stripe_value(invoice, "id"), api_key=_subscription_api_key(), discounts=[{"coupon": coupon.id}],
+        metadata={**dict(invoice_metadata), "pandaspeak_referral_reward": "1", "pandaspeak_reward_user_id": str(user.pk)},
     )
 
 
 def _consume_reward_from_paid_invoice(invoice):
-    """Consume the reward only after Stripe confirms the free invoice paid."""
     metadata = _stripe_value(invoice, "metadata", {}) or {}
-    if _stripe_value(metadata, "pandaspeak_referral_reward") != "1":
-        return
-    if (_stripe_value(invoice, "amount_due", 0) or 0) != 0:
+    if _stripe_value(metadata, "pandaspeak_referral_reward") != "1" or (_stripe_value(invoice, "amount_due", 0) or 0) != 0:
         return
     try:
         user = User.objects.get(pk=_stripe_value(metadata, "pandaspeak_reward_user_id"))
@@ -163,16 +209,17 @@ def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
     existing = Subscription.objects.filter(user=request.user).first()
+    if existing and existing.is_disputed:
+        messages.error(request, "This account cannot purchase PandaSpeak learning access while a payment dispute is recorded.")
+        return redirect("dispute_restricted")
     if existing and existing.is_active and not existing.is_cancelled:
         messages.info(request, "You already have an active PandaSpeak annual subscription. No additional payment was created.")
         return redirect("student_dashboard")
     try:
         session = stripe.checkout.Session.create(
-            api_key=_subscription_api_key(), mode="subscription",
-            payment_method_types=["card", "us_bank_account"],
-            payment_method_options={"us_bank_account": {"verification_method": "automatic"}},
-            customer_email=request.user.email or None, line_items=_annual_line_items(),
-            success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}",
+            api_key=_subscription_api_key(), mode="subscription", payment_method_types=["card", "us_bank_account"],
+            payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None,
+            line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri("/subscription/subscribe/"),
             metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)},
             subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}},
@@ -185,10 +232,11 @@ def stripe_subscription_checkout(request):
 
 @login_required
 def stripe_plus_upgrade(request):
-    """Create a separate monthly Plus add-on; never replace the $15 annual membership."""
     if request.method != "POST":
         return redirect("plus_upgrade")
     local = Subscription.objects.filter(user=request.user).first()
+    if local and local.is_disputed:
+        return redirect("dispute_restricted")
     if not local or not local.is_active or local.is_cancelled:
         messages.error(request, "An active PandaSpeak Standard annual subscription is required before upgrading.")
         return redirect("subscribe")
@@ -200,12 +248,9 @@ def stripe_plus_upgrade(request):
         return redirect("plus_upgrade")
     try:
         session = stripe.checkout.Session.create(
-            api_key=_subscription_api_key(), mode="subscription", payment_method_types=["card"],
-            customer_email=request.user.email or None,
-            line_items=[{"price": _plus_price(), "quantity": 1}],
-            success_url=request.build_absolute_uri("/subscription/stripe/plus-success/") + "?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=request.build_absolute_uri("/student/plus/"),
-            metadata={"purpose": "pandaspeak_plus_addon", "user_id": str(request.user.id)},
+            api_key=_subscription_api_key(), mode="subscription", payment_method_types=["card"], customer_email=request.user.email or None,
+            line_items=[{"price": _plus_price(), "quantity": 1}], success_url=request.build_absolute_uri("/subscription/stripe/plus-success/") + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=request.build_absolute_uri("/student/plus/"), metadata={"purpose": "pandaspeak_plus_addon", "user_id": str(request.user.id)},
             subscription_data={"metadata": {"purpose": "pandaspeak_plus_addon", "user_id": str(request.user.id)}},
         )
         return redirect(session.url)
@@ -214,8 +259,6 @@ def stripe_plus_upgrade(request):
         return redirect("plus_upgrade")
 
 
-# Kept for compatibility with the route/button created during the earlier PayPal
-# migration work. PayPal Standard now stays active; only Plus is purchased on Stripe.
 @login_required
 def stripe_plus_migration_checkout(request):
     return stripe_plus_upgrade(request)
@@ -268,6 +311,8 @@ def stripe_subscription_success(request):
     except stripe.error.StripeError:
         return render(request, "subscription/ach_pending.html", {"user": request.user})
     local = Subscription.objects.filter(user=request.user).first()
+    if local and local.is_disputed:
+        return redirect("dispute_restricted")
     if status != "paid" or not local or not local.is_active:
         return render(request, "subscription/ach_pending.html", {"user": request.user})
     return render(request, "subscription/success.html", {"user": request.user, "first_name": request.user.first_name})
@@ -287,7 +332,11 @@ def stripe_subscription_webhook(request):
     event_type = _stripe_value(event, "type")
     obj = _stripe_value(_stripe_value(event, "data", {}) or {}, "object", {}) or {}
     try:
-        if event_type == "invoice.created":
+        if event_type == "charge.dispute.created":
+            _record_subscription_dispute(obj)
+        elif event_type in ("charge.dispute.updated", "charge.dispute.closed"):
+            _update_subscription_dispute_status(obj)
+        elif event_type == "invoice.created":
             _apply_reward_to_upcoming_plus_invoice(obj)
         elif event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
             metadata = _stripe_value(obj, "metadata", {}) or {}
