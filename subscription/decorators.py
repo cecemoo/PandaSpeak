@@ -13,12 +13,11 @@ def subscription_required(view_func):
         if request.user.is_staff or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
 
-        has_subscription = Subscription.objects.filter(
-            user=request.user,
-            is_active=True
-        ).exists()
+        subscription = Subscription.objects.filter(user=request.user).first()
+        if subscription and subscription.is_disputed:
+            return redirect("dispute_restricted")
 
-        if not has_subscription:
+        if not subscription or not subscription.is_active:
             return redirect("subscription_plans")
 
         return view_func(request, *args, **kwargs)
