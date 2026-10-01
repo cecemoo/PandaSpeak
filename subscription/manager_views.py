@@ -53,7 +53,13 @@ def _notify_dispute_suspension(local):
 
 
 def _subscription_from_dispute_checkout(dispute):
-    """Fallback for Stripe API versions where Charge no longer exposes invoice."""
+    """Fallback for Stripe API versions where Charge no longer exposes invoice.
+
+    For older PandaSpeak payments, the authoritative PandaSpeak metadata can live
+    on the Checkout Session rather than being duplicated onto the Subscription.
+    Verify the Checkout Session, then carry that trusted metadata forward for the
+    existing user-id verification below.
+    """
     api_key = stripe_subscription_views._subscription_api_key()
     charge_id = stripe_subscription_views._stripe_value(dispute, "charge")
     if not charge_id:
@@ -77,9 +83,10 @@ def _subscription_from_dispute_checkout(dispute):
         if not sid:
             continue
         remote = stripe.Subscription.retrieve(sid, api_key=api_key)
-        remote_metadata = stripe_subscription_views._stripe_value(remote, "metadata", {}) or {}
-        if stripe_subscription_views._stripe_value(remote_metadata, "purpose") != "pandaspeak_annual_subscription":
-            continue
+        # The Checkout Session is already tied to this PaymentIntent and contains
+        # the PandaSpeak purpose/user metadata. Do not require the Subscription
+        # object to duplicate that metadata; older subscriptions may not have it.
+        remote["metadata"] = metadata
         return remote, charge_id
     return None, charge_id
 
