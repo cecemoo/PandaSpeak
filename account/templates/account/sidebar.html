@@ -2,6 +2,7 @@
 <div class="col-md-3">
     <div class="nav flex-column nav-pills bg-light" aria-orientation="vertical">
         <a href="{% url 'manager_dashboard' %}" class="nav-link text-dark{% if request.path == '/manager_dashboard/' %} bg-warning{% endif %}">Dashboard</a>
+        <a href="{% url 'manager_student_activity' %}" class="nav-link text-dark{% if request.resolver_match.url_name == 'manager_student_activity' %} bg-warning{% endif %}">Student Activity</a>
         <a href="{% url 'categories' %}" class="nav-link text-dark{% if request.path == '/categories/' %} bg-warning{% endif %}">Categories</a>
         <a href="{% url 'vocabularies' %}" class="nav-link text-dark{% if request.path == '/vocabularies/' %} bg-warning{% endif %}">Vocabularies</a>
         <a href="{% url 'sentences' %}" class="nav-link text-dark{% if request.path == '/sentences/' %} bg-warning{% endif %}">Sentences</a>
