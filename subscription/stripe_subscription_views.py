@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone as django_timezone
@@ -70,7 +71,7 @@ def _sync_base_from_stripe(remote, user=None, payment_confirmed=None):
     local.stripe_subscription_id = sid
 
     # Never allow later Stripe subscription events to reactivate a student
-    # after PandaSpeak has recorded a payment dispute.
+    # while PandaSpeak still has an unresolved or lost payment dispute recorded.
     if local.is_disputed:
         local.is_active = False
         local.plus_is_active = False
@@ -159,13 +160,101 @@ def _record_subscription_dispute(dispute):
     ])
 
 
+def _send_dispute_resolution_email(local, restored):
+    student = local.user
+    if not student.email:
+        return
+    greeting_name = student.first_name or student.get_full_name() or "Student"
+    if restored:
+        subject = "PandaSpeak Access Restored - Payment Dispute Resolved"
+        message = (
+            f"Dear {greeting_name},\n\n"
+            "We received confirmation through Stripe that the payment dispute associated with your PandaSpeak annual subscription has been resolved in PandaSpeak's favor. "
+            "Your PandaSpeak learning-material access has been restored for the remainder of your current eligible subscription period.\n\n"
+            "You may sign in and continue using PandaSpeak normally.\n\n"
+            "Best,\n"
+            "PandaSpeak Team"
+        )
+    else:
+        subject = "PandaSpeak Payment Dispute Resolved"
+        message = (
+            f"Dear {greeting_name},\n\n"
+            "We received the final outcome of the payment dispute associated with your PandaSpeak annual subscription. "
+            "The dispute was resolved in the cardholder's favor, so your PandaSpeak paid learning-material access remains suspended.\n\n"
+            "If you believe this status is incorrect, please contact your bank or card issuer and PandaSpeak Support at pandaspeaksupport@gmail.com.\n\n"
+            "Best,\n"
+            "PandaSpeak Team"
+        )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[student.email],
+        fail_silently=True,
+    )
+
+
 def _update_subscription_dispute_status(dispute):
     dispute_id = _stripe_value(dispute, "id", "") or ""
+    status = _stripe_value(dispute, "status", "") or ""
     if not dispute_id:
         return
-    Subscription.objects.filter(dispute_provider="stripe", dispute_external_id=dispute_id, is_disputed=True).update(
-        dispute_status=_stripe_value(dispute, "status", "") or ""
+
+    local = (
+        Subscription.objects.select_related("user")
+        .filter(dispute_provider="stripe", dispute_external_id=dispute_id)
+        .first()
     )
+    if not local:
+        return
+
+    previous_status = local.dispute_status
+    final_favorable = status in ("won", "warning_closed")
+    final_lost = status == "lost"
+
+    if final_favorable:
+        # A withdrawal is not trusted merely because the student reports it.
+        # Stripe/the issuer must close the dispute favorably first.
+        try:
+            remote = stripe.Subscription.retrieve(local.stripe_subscription_id, api_key=_subscription_api_key())
+            remote_status = _stripe_value(remote, "status", "")
+            access_until = _period_end_datetime(remote) or local.access_until
+        except stripe.error.StripeError:
+            remote_status = ""
+            access_until = local.access_until
+
+        still_in_paid_period = not access_until or access_until > django_timezone.now()
+        restore_access = remote_status in ("active", "trialing") and still_in_paid_period
+
+        Subscription.objects.filter(pk=local.pk).update(
+            dispute_status=status,
+            is_disputed=False,
+            is_active=restore_access,
+            access_until=access_until,
+        )
+        if previous_status != status:
+            local.dispute_status = status
+            local.is_disputed = False
+            local.is_active = restore_access
+            local.access_until = access_until
+            _send_dispute_resolution_email(local, restored=restore_access)
+        return
+
+    if final_lost:
+        Subscription.objects.filter(pk=local.pk).update(
+            dispute_status=status,
+            is_disputed=True,
+            is_active=False,
+            plus_is_active=False,
+        )
+        if previous_status != status:
+            local.dispute_status = status
+            local.is_disputed = True
+            local.is_active = False
+            _send_dispute_resolution_email(local, restored=False)
+        return
+
+    Subscription.objects.filter(pk=local.pk).update(dispute_status=status)
 
 
 def _apply_reward_to_upcoming_plus_invoice(invoice):
