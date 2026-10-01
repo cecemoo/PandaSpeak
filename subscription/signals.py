@@ -25,28 +25,31 @@ def _manager_queryset():
 
 @receiver(pre_save, sender=Subscription)
 def mark_subscription_changes(sender, instance, **kwargs):
-    """Track activation and cancellation transitions for notifications."""
+    """Track activation, cancellation, and dispute transitions for notifications."""
     if not instance.pk:
         instance._became_active = bool(instance.is_active)
         instance._became_cancelled = bool(instance.is_cancelled)
+        instance._became_disputed = bool(instance.is_disputed)
         return
 
     previous = (
         Subscription.objects.filter(pk=instance.pk)
-        .values("is_active", "is_cancelled")
+        .values("is_active", "is_cancelled", "is_disputed")
         .first()
-    ) or {"is_active": False, "is_cancelled": False}
+    ) or {"is_active": False, "is_cancelled": False, "is_disputed": False}
 
     instance._became_active = bool(instance.is_active and not previous["is_active"])
     instance._became_cancelled = bool(instance.is_cancelled and not previous["is_cancelled"])
+    instance._became_disputed = bool(instance.is_disputed and not previous["is_disputed"])
 
 
 @receiver(post_save, sender=Subscription)
 def notify_managers_on_subscription(sender, instance, created, **kwargs):
-    """Notify the student and PandaSpeak managers on activation or cancellation."""
+    """Notify students and PandaSpeak managers about important subscription changes."""
     became_active = getattr(instance, "_became_active", False)
     became_cancelled = getattr(instance, "_became_cancelled", False)
-    if not became_active and not became_cancelled:
+    became_disputed = getattr(instance, "_became_disputed", False)
+    if not became_active and not became_cancelled and not became_disputed:
         return
 
     student = instance.user
@@ -158,3 +161,38 @@ def notify_managers_on_subscription(sender, instance, created, **kwargs):
                 recipient_list=manager_emails,
                 fail_silently=True,
             )
+
+    if became_disputed:
+        greeting_name = student.first_name or student.get_full_name() or "Student"
+
+        if student.email:
+            send_mail(
+                subject="PandaSpeak Access Temporarily Suspended - Payment Dispute",
+                message=(
+                    f"Dear {greeting_name},\n\n"
+                    "We received notice that a payment dispute has been opened with your bank or card issuer for your PandaSpeak annual subscription. "
+                    "Because the disputed payment is associated with your current access to PandaSpeak learning materials, your paid learning access has been temporarily suspended while the dispute is unresolved.\n\n"
+                    "If you opened the dispute by mistake and would like to resume access, please contact your bank or card issuer and ask them to withdraw or cancel the dispute. "
+                    "After you have done so, please contact PandaSpeak Support at pandaspeaksupport@gmail.com. "
+                    "Access will remain suspended until PandaSpeak can confirm that the dispute has been withdrawn or otherwise resolved.\n\n"
+                    "If you believe this notice is an error, please contact PandaSpeak Support.\n\n"
+                    "PandaSpeak Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[student.email],
+                fail_silently=True,
+            )
+
+        title = "Student Payment Dispute - Access Suspended"
+        message = (
+            f"{student_name} ({student.email}) opened a payment dispute for an active PandaSpeak annual subscription. "
+            "Paid learning access has been suspended while the dispute is unresolved."
+        )
+        for manager in managers:
+            Notification.objects.create(
+                user=manager,
+                title=title,
+                message=message,
+                link=link,
+            )
+            send_push_to_user(manager, title, message, link)
