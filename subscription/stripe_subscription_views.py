@@ -153,6 +153,15 @@ def _stripe_subscription_from_dispute(dispute):
         api_key=_subscription_api_key(),
     )
     for session in sessions.auto_paging_iter():
+        print(
+            "DISPUTE DEBUG: checkout session =",
+            _stripe_value(session, "id"),
+            "subscription =",
+            _stripe_value(session, "subscription"),
+            "metadata =",
+            _stripe_value(session, "metadata", {}),
+            )
+
         metadata = _stripe_value(session, "metadata", {}) or {}
         if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
             continue
