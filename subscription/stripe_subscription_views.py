@@ -119,12 +119,15 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
 def _stripe_subscription_from_dispute(dispute):
     """Return the PandaSpeak annual Stripe subscription related to a dispute."""
     charge_id = _stripe_value(dispute, "charge")
+    print("DISPUTE DEBUG: disput_id =", _stripe_value(dispute, "id"))
+    print("DISPUTE DEBUG: charge_id =", charge_id)
     if not charge_id:
         return None, None
     charge = stripe.Charge.retrieve(
         charge_id,
         api_key=_subscription_api_key(),
     )
+    print("DISPUTE DEBUG: charge invoice =", _stripe_value(charge, "invoice"),"payment_intent =",_stripe_value(charge, "payment_intent"))
     # First support the older Charge -> Invoice -> Subscription path.
     invoice_id = _stripe_value(charge, "invoice")
     if invoice_id:
