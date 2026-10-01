@@ -10,6 +10,7 @@ urlpatterns = [
     path('subscribe/', subscription_guard_views.guarded_subscribe, name='subscribe'),
     path('dispute-restricted/', subscription_guard_views.dispute_restricted, name='dispute_restricted'),
     path('manager/student-activity/', manager_views.student_activity, name='manager_student_activity'),
+    path('manager/student-activity/<int:user_id>/sync-stripe-dispute/', manager_views.sync_existing_stripe_dispute, name='manager_sync_stripe_dispute'),
     path('stripe/checkout/', subscription_guard_views.guarded_stripe_subscription_checkout, name='stripe_subscription_checkout'),
     path('stripe/upgrade-plus/', stripe_subscription_views.stripe_plus_upgrade, name='stripe_plus_upgrade'),
     path('stripe/plus-success/', stripe_subscription_views.stripe_plus_success, name='stripe_plus_success'),
