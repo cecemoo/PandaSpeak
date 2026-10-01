@@ -1,0 +1,89 @@
+{% extends "account/base.html" %}
+
+{% block content %}
+<main class="main">
+  <section class="section">
+    <div class="container py-4">
+      <div class="row">
+        {% include 'account/sidebar.html' %}
+        <div class="col-md-9">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h2 class="mb-1">Student Activity</h2>
+              <p class="text-muted mb-0">Review paid-learning usage and dispute status without deleting evidence.</p>
+            </div>
+          </div>
+
+          <form method="get" class="card card-body mb-4">
+            <div class="input-group">
+              <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Search student name or email">
+              <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+          </form>
+
+          <div class="table-responsive mb-4">
+            <table class="table table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Access</th>
+                  <th>Dispute</th>
+                  <th>Last activity</th>
+                  <th>Activities</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in subscriptions %}
+                <tr>
+                  <td><strong>{{ sub.user.get_full_name|default:sub.user.email }}</strong><br><small>{{ sub.user.email }}</small></td>
+                  <td>{% if sub.is_active and not sub.is_disputed %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Blocked/Inactive</span>{% endif %}</td>
+                  <td>{% if sub.is_disputed %}<span class="badge bg-danger">{{ sub.dispute_status|default:"Disputed" }}</span>{% else %}—{% endif %}</td>
+                  <td>{{ sub.last_activity|date:"M j, Y g:i A"|default:"—" }}</td>
+                  <td>{{ sub.activity_count }}</td>
+                  <td><a class="btn btn-sm btn-outline-primary" href="?student={{ sub.user_id }}{% if query %}&q={{ query|urlencode }}{% endif %}">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-muted">No students found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if selected_subscription %}
+          <div class="card mb-4">
+            <div class="card-header fw-bold">Evidence summary — {{ selected_subscription.user.email }}</div>
+            <div class="card-body">
+              <div><strong>Subscription:</strong> {{ selected_subscription.subscription_plan }} · {% if selected_subscription.is_active %}Active{% else %}Inactive{% endif %}</div>
+              <div><strong>Provider:</strong> {% if selected_subscription.stripe_subscription_id %}Stripe{% elif selected_subscription.paypal_subscription_id %}PayPal{% else %}Unknown{% endif %}</div>
+              {% if selected_subscription.is_disputed %}
+              <div class="text-danger"><strong>Payment dispute:</strong> {{ selected_subscription.dispute_provider|title }} · {{ selected_subscription.dispute_status|default:"open" }} · {{ selected_subscription.disputed_at|date:"M j, Y g:i A" }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-hover">
+              <thead><tr><th>Time</th><th>Activity</th><th>Page/View</th><th>IP</th><th>Device/Browser</th></tr></thead>
+              <tbody>
+                {% for activity in activities %}
+                <tr>
+                  <td style="white-space:nowrap">{{ activity.created_at|date:"M j, Y g:i:s A" }}</td>
+                  <td>{{ activity.method }} {{ activity.activity_type }}</td>
+                  <td><div>{{ activity.view_name|default:"—" }}</div><small class="text-muted">{{ activity.path }}</small></td>
+                  <td>{{ activity.ip_address|default:"—" }}</td>
+                  <td><small>{{ activity.user_agent|truncatechars:90 }}</small></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-muted">No recorded activity for this student yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
