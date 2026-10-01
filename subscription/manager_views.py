@@ -190,8 +190,13 @@ def sync_existing_stripe_dispute(request, user_id):
         purpose != "pandaspeak_annual_subscription"
         or stripe_user_id != str(user_id)
     ):
-    messages.error(request, "Stripe's PandaSpeak user metadata does not match this student. No changes were made.",)
-    return redirect(f"/subscription/manager/student-activity/?student={user_id}")
+        messages.error(
+            request,
+            "Stripe's PandaSpeak user metadata does not match this student. No changes were made.",
+        )
+        return redirect(
+            f"/subscription/manager/student-activity/?student={user_id}"
+        )
 
     status = stripe_subscription_views._stripe_value(dispute, "status", "open") or "open"
     if status in ("won", "warning_closed"):
