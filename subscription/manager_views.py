@@ -165,7 +165,14 @@ def sync_existing_stripe_dispute(request, user_id):
         messages.error(request, "Stripe could not verify that dispute right now. No access changes were made.")
         return redirect(f"/subscription/manager/student-activity/?student={user_id}")
 
-    if remote is None or stripe_subscription_views._stripe_value(remote, "id") != local.stripe_subscription_id:
+    remote_sid = str(stripe_subscription_views._stripe_value(remote, "id") or "").strip()
+    local_sid = str(local.stripe_subscription_id or "").strip()
+
+    print("DISPUTE MANAGER DEBUG: remote_sid =", repr(remote_sid))
+    print("DISPUTE MANAGER DEBUG: local_sid =", repr(local_sid))
+    print("DISPUTE MANAGER DEBUG: match =", remote_sid == local_sid)
+
+    if remote is None or remote_sid != local_sid:
         messages.error(request, "That Stripe dispute does not belong to this student's PandaSpeak annual subscription. No changes were made.")
         return redirect(f"/subscription/manager/student-activity/?student={user_id}")
 
