@@ -121,19 +121,47 @@ def _stripe_subscription_from_dispute(dispute):
     charge_id = _stripe_value(dispute, "charge")
     if not charge_id:
         return None, None
-    charge = stripe.Charge.retrieve(charge_id, api_key=_subscription_api_key())
+    charge = stripe.Charge.retrieve(
+        charge_id,
+        api_key=_subscription_api_key(),
+    )
+    # First support the older Charge -> Invoice -> Subscription path.
     invoice_id = _stripe_value(charge, "invoice")
-    if not invoice_id:
+    if invoice_id:
+        invoice = stripe.Invoice.retrieve(
+            invoice_id,
+            api_key=_subscription_api_key(),
+        )
+        sid = _stripe_value(invoice, "subscription")
+        if sid:
+            remote = stripe.Subscription.retrieve(
+                sid,
+                api_key=_subscription_api_key(),
+            )
+            return remote, charge_id
+    # Current Stripe path:
+    # Charge -> PaymentIntent -> Checkout Session -> Subscription.
+    payment_intent_id = _stripe_value(charge, "payment_intent")
+    if not payment_intent_id:
         return None, charge_id
-    invoice = stripe.Invoice.retrieve(invoice_id, api_key=_subscription_api_key())
-    sid = _stripe_value(invoice, "subscription")
-    if not sid:
-        return None, charge_id
-    remote = stripe.Subscription.retrieve(sid, api_key=_subscription_api_key())
-    metadata = _stripe_value(remote, "metadata", {}) or {}
-    if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
-        return None, charge_id
-    return remote, charge_id
+    sessions = stripe.checkout.Session.list(
+        payment_intent=payment_intent_id,
+        limit=10,
+        api_key=_subscription_api_key(),
+    )
+    for session in sessions.auto_paging_iter():
+        metadata = _stripe_value(session, "metadata", {}) or {}
+        if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
+            continue
+        sid = _stripe_value(session, "subscription")
+        if not sid:
+            continue
+        remote = stripe.Subscription.retrieve(
+            sid,
+            api_key=_subscription_api_key(),
+        )
+        return remote, charge_id
+    return None, charge_id
 
 
 def _record_subscription_dispute(dispute):
