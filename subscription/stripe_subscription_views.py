@@ -173,10 +173,12 @@ def _stripe_subscription_from_dispute(dispute):
         sid = _stripe_value(session, "subscription")
         if not sid:
             continue
+        print("DISPUTE DEBUG: about to retrieve Stripe subscription side =", sid)
         remote = stripe.Subscription.retrieve(
             sid,
             api_key=_subscription_api_key(),
         )
+        print("DISPUTE DEBUG: Stripe subscription retrieved =", _stripe_value(remote, "id"))
         return remote, charge_id
     return None, charge_id
 
