@@ -214,15 +214,11 @@ def _update_subscription_dispute_status(dispute):
 
     if final_favorable:
         # A withdrawal is not trusted merely because the student reports it.
-        # Stripe/the issuer must close the dispute favorably first.
-        try:
-            remote = stripe.Subscription.retrieve(local.stripe_subscription_id, api_key=_subscription_api_key())
-            remote_status = _stripe_value(remote, "status", "")
-            access_until = _period_end_datetime(remote) or local.access_until
-        except stripe.error.StripeError:
-            remote_status = ""
-            access_until = local.access_until
-
+        # Stripe/the issuer must close the dispute favorably first. If Stripe
+        # cannot verify the subscription, let the webhook fail so Stripe retries.
+        remote = stripe.Subscription.retrieve(local.stripe_subscription_id, api_key=_subscription_api_key())
+        remote_status = _stripe_value(remote, "status", "")
+        access_until = _period_end_datetime(remote) or local.access_until
         still_in_paid_period = not access_until or access_until > django_timezone.now()
         restore_access = remote_status in ("active", "trialing") and still_in_paid_period
 
