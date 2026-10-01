@@ -163,7 +163,12 @@ def _stripe_subscription_from_dispute(dispute):
             )
 
         metadata = _stripe_value(session, "metadata", {}) or {}
-        if _stripe_value(metadata, "purpose") != "pandaspeak_annual_subscription":
+        # New PandaSpeak Checkout Sessions identify themselves with metadata.
+        # Legacy PandaSpeak subscriptions may have no metadata, so allow those
+        # to continue. The subscription ID is verified against PandaSpeak's
+        # local Subscription record before any access is changed.
+        purpose = _stripe_value(metadata, "purpose")
+        if purpose and purpose != "pandaspeak_annual_subscription":
             continue
         sid = _stripe_value(session, "subscription")
         if not sid:
