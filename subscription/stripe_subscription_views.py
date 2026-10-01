@@ -187,6 +187,13 @@ def _record_subscription_dispute(dispute):
     if remote is None:
         return
     sid = _stripe_value(remote, "id")
+    print("DISPUTE DEBUG: returned sid =", sid)
+    print(
+        "DISPUTE DEBUG: local subscription =",
+        Subscription.objects.filter(stripe_subscription_id=sid).values(
+            "id", "stripe_subscription_id", "is_active", "is_disputed"
+        ).first()
+    )
     local = Subscription.objects.filter(stripe_subscription_id=sid, is_active=True, is_disputed=False).first()
     if not local:
         return
