@@ -176,6 +176,7 @@ def notify_managers_on_subscription(sender, instance, created, **kwargs):
                     "After you have done so, please contact PandaSpeak Support at pandaspeaksupport@gmail.com. "
                     "Access will remain suspended until PandaSpeak can confirm that the dispute has been withdrawn or otherwise resolved.\n\n"
                     "If you believe this notice is an error, please contact PandaSpeak Support.\n\n"
+                    "Best,\n"
                     "PandaSpeak Team"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
