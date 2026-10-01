@@ -58,6 +58,23 @@
               <div><strong>Provider:</strong> {% if selected_subscription.stripe_subscription_id %}Stripe{% elif selected_subscription.paypal_subscription_id %}PayPal{% else %}Unknown{% endif %}</div>
               {% if selected_subscription.is_disputed %}
               <div class="text-danger"><strong>Payment dispute:</strong> {{ selected_subscription.dispute_provider|title }} · {{ selected_subscription.dispute_status|default:"open" }} · {{ selected_subscription.disputed_at|date:"M j, Y g:i A" }}</div>
+              {% if selected_subscription.dispute_external_id %}<div><strong>Stripe dispute ID:</strong> <code>{{ selected_subscription.dispute_external_id }}</code></div>{% endif %}
+              {% elif selected_subscription.stripe_subscription_id %}
+              <hr>
+              <div class="alert alert-warning mb-3">
+                If a Stripe dispute began before dispute webhooks were enabled, enter its Stripe dispute ID below. PandaSpeak will verify with Stripe that it belongs to this exact annual subscription before changing access.
+              </div>
+              <form method="post" action="{% url 'manager_sync_stripe_dispute' selected_subscription.user_id %}" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <div class="col-md-8">
+                  <label class="form-label" for="stripe-dispute-id">Stripe dispute ID</label>
+                  <input id="stripe-dispute-id" class="form-control" type="text" name="stripe_dispute_id" placeholder="du_..." required autocomplete="off">
+                </div>
+                <div class="col-md-4">
+                  <button class="btn btn-danger w-100" type="submit">Verify &amp; Block Access</button>
+                </div>
+              </form>
+              <small class="text-muted d-block mt-2">This action does not trust the typed ID alone. It verifies the dispute with Stripe and checks that it maps to this student's PandaSpeak annual subscription.</small>
               {% endif %}
             </div>
           </div>
