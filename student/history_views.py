@@ -3,9 +3,20 @@ from django.shortcuts import redirect, render
 
 from subscription.plan_access import is_plus
 
-from .history_lessons import HISTORY_CARDS, HISTORY_LESSONS
+from .history_lessons import HISTORY_CARDS as EXISTING_HISTORY_CARDS, HISTORY_LESSONS as EXISTING_HISTORY_LESSONS
+from .early_history_lessons import EARLY_AFTER_ORACLE, EARLY_BEFORE_ORACLE, EARLY_HISTORY_LESSONS
 from .models import HistoryLessonCompletion
 
+
+# Build one chronological History Journey while keeping the existing lessons intact.
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS}
+_oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
+HISTORY_CARDS = (
+    EARLY_BEFORE_ORACLE
+    + [_oracle_card]
+    + EARLY_AFTER_ORACLE
+    + [card for card in EXISTING_HISTORY_CARDS if card['slug'] != 'oracle-bones']
+)
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
 
