@@ -38,9 +38,8 @@ HISTORY_MEDIA = {
         'video': 'student/history/Qin/jing-ke-1min.mp4',
     },
     'qin-unification': {
-        'audio': 'student/history/qin_unification_listen.m4a',
-        'video': 'student/history/PandaSpeak_Qin_Unification_v3.mp4',
-        'video_version': 4,
+        'audio': 'student/history/Qin/qin-unification-discover-narration.m4a',
+        'video': 'student/history/Qin/qin-unification-1min.mp4',
     },
     'qin-standardization': {
         'audio': 'student/history/Qin/qin-standardization-discover-narration.m4a',
