@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import bingo_views
+from . import duplicate_check_views
 
 
 
@@ -12,6 +13,7 @@ urlpatterns = [
     path('add_vocabulary/', views.add_vocabulary, name='add_vocabulary'), 
     path('add_sentence/', views.add_sentence, name='add_sentence'),
     path('add_idiom/', views.add_idiom, name='add_idiom'),
+    path('materials/duplicate-search/', duplicate_check_views.material_duplicate_search, name='material_duplicate_search'),
     path('add_pronunciation/', views.add_pronunciation, name='add_pronunciation'),
     path('add_tone/', views.add_tone, name='add_tone'),
 
