@@ -66,6 +66,10 @@ def _lesson_items(user, allowed, plus_active):
     return items
 
 
+def _dynasty_for_story(story_slug):
+    return next((dynasty for dynasty in DYNASTIES if story_slug in dynasty['story_slugs']), None)
+
+
 @login_required
 def chinese_history(request):
     level = getattr(request.user, 'learning_level', 'level1') or 'level1'
@@ -132,8 +136,10 @@ def history_lesson_detail(request, slug):
             if result:
                 completion, _ = HistoryLessonCompletion.objects.get_or_create(student=request.user, lesson_slug=slug)
                 completed = True
+    dynasty = _dynasty_for_story(slug)
     return render(request, 'student/history_lesson_detail.html', {
         'lesson': lesson, 'slug': slug, 'quiz_result': result, 'selected_answer': selected,
         'completed': completed, 'completed_at': completion.completed_at if completion else None,
         'is_preview': slug == HISTORY_PREVIEW_SLUG and not is_plus(request.user), 'plus_active': is_plus(request.user),
+        'dynasty': dynasty,
     })
