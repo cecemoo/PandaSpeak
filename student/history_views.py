@@ -5,6 +5,7 @@ from subscription.plan_access import is_plus
 
 from .history_lessons import HISTORY_CARDS as EXISTING_HISTORY_CARDS, HISTORY_LESSONS as EXISTING_HISTORY_LESSONS
 from .early_history_lessons import EARLY_AFTER_ORACLE, EARLY_BEFORE_ORACLE, EARLY_HISTORY_LESSONS
+from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
@@ -20,8 +21,7 @@ HISTORY_CARDS = (
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
 
-# Main journey organization. A story about the fall of a dynasty belongs to
-# the dynasty that is ending (for example 商湯滅夏 -> Xia, 武王伐紂 -> Shang).
+# A story about the fall of a dynasty belongs to the dynasty that is ending.
 DYNASTIES = [
     {'slug': 'xia', 'name': 'Xia Dynasty', 'chinese_name': '夏朝', 'dates': 'c. 2070–1600 BCE', 'icon': '🌊', 'description': 'Early dynastic tradition, Yu the Great, revival, and the fall of Xia.', 'story_slugs': ['yu-controls-floods', 'shao-kang-revival', 'shang-tang-overthrows-xia']},
     {'slug': 'shang', 'name': 'Shang Dynasty', 'chinese_name': '商朝', 'dates': 'c. 1600–1046 BCE', 'icon': '🐉', 'description': 'Oracle bones, early writing, bronze culture, and the fall of Shang.', 'story_slugs': ['oracle-bones', 'king-wu-overthrows-shang']},
@@ -125,10 +125,12 @@ def history_lesson_detail(request, slug):
         return redirect('chinese_history')
     if slug != HISTORY_PREVIEW_SLUG and not is_plus(request.user) and not admin_access:
         return redirect('plus_upgrade')
+
     completion = HistoryLessonCompletion.objects.filter(student=request.user, lesson_slug=slug).first()
     completed = completion is not None
     result = None
     selected = None
+
     if request.method == 'POST':
         selected = request.POST.get('answer')
         if selected:
@@ -136,10 +138,17 @@ def history_lesson_detail(request, slug):
             if result:
                 completion, _ = HistoryLessonCompletion.objects.get_or_create(student=request.user, lesson_slug=slug)
                 completed = True
-    dynasty = _dynasty_for_story(slug)
+
+    plus_active = is_plus(request.user)
     return render(request, 'student/history_lesson_detail.html', {
-        'lesson': lesson, 'slug': slug, 'quiz_result': result, 'selected_answer': selected,
-        'completed': completed, 'completed_at': completion.completed_at if completion else None,
-        'is_preview': slug == HISTORY_PREVIEW_SLUG and not is_plus(request.user), 'plus_active': is_plus(request.user),
-        'dynasty': dynasty,
+        'lesson': lesson,
+        'slug': slug,
+        'media': media_for_lesson(slug),
+        'quiz_result': result,
+        'selected_answer': selected,
+        'completed': completed,
+        'completed_at': completion.completed_at if completion else None,
+        'is_preview': slug == HISTORY_PREVIEW_SLUG and not plus_active,
+        'plus_active': plus_active,
+        'dynasty': _dynasty_for_story(slug),
     })
