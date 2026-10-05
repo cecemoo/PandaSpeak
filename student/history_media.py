@@ -78,8 +78,8 @@ HISTORY_MEDIA = {
         'video': 'student/history/Qin/qin-falls-1min.mp4',
     },
     'han-silk-road': {
-        'audio': 'student/history/Silkroad.m4a',
-        'video': 'student/history/silkroad.mp4',
+        'audio': 'student/history/Han/han-silk-road-discovery-narration.m4a',
+        'video': 'student/history/Han/han-silk-road-1min.mp4',
     },
     'tang-changan': {
         'audio': 'student/history/Tang.m4a',
