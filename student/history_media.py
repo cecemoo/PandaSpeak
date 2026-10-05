@@ -65,6 +65,18 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Qin/deer-horse-discover-narration.m4a',
         'video': 'student/history/Qin/deer-horse-1min.mp4',
     },
+    'dazexiang-uprising': {
+        'audio': 'student/history/Qin/dazexiang-discover-narration.m4a',
+        'video': 'student/history/Qin/dazexiang-1min.mp4',
+    },
+    'battle-of-julu': {
+        'audio': 'student/history/Qin/julu-discover-narration.m4a',
+        'video': 'student/history/Qin/julu-1min.mp4',
+    },
+    'fall-of-qin': {
+        'audio': 'student/history/Qin/qin-falls-discover-narration.m4a',
+        'video': 'student/history/Qin/qin-falls-1min.mp4',
+    },
     'han-silk-road': {
         'audio': 'student/history/Silkroad.m4a',
         'video': 'student/history/silkroad.mp4',
