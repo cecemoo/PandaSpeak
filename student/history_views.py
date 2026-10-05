@@ -5,18 +5,26 @@ from subscription.plan_access import is_plus
 
 from .history_lessons import HISTORY_CARDS as EXISTING_HISTORY_CARDS, HISTORY_LESSONS as EXISTING_HISTORY_LESSONS
 from .early_history_lessons import EARLY_AFTER_ORACLE, EARLY_BEFORE_ORACLE, EARLY_HISTORY_LESSONS
+from .qin_history_lessons import QIN_AFTER_UNIFICATION, QIN_BEFORE_UNIFICATION, QIN_HISTORY_LESSONS
 from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
 # Build one chronological History Journey while keeping the existing lessons intact.
-HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS}
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS}
 _oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
+_qin_card = EXISTING_HISTORY_LESSONS['qin-unification']
+_other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug'] not in ('oracle-bones', 'qin-unification')]
+_han_index = next((i for i, card in enumerate(_other_existing_cards) if card['slug'] == 'han-silk-road'), len(_other_existing_cards))
 HISTORY_CARDS = (
     EARLY_BEFORE_ORACLE
     + [_oracle_card]
     + EARLY_AFTER_ORACLE
-    + [card for card in EXISTING_HISTORY_CARDS if card['slug'] != 'oracle-bones']
+    + _other_existing_cards[:_han_index]
+    + QIN_BEFORE_UNIFICATION
+    + [_qin_card]
+    + QIN_AFTER_UNIFICATION
+    + _other_existing_cards[_han_index:]
 )
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
@@ -26,7 +34,7 @@ DYNASTIES = [
     {'slug': 'xia', 'name': 'Xia Dynasty', 'chinese_name': '夏朝', 'dates': 'c. 2070–1600 BCE', 'icon': '🌊', 'description': 'Early dynastic tradition, Yu the Great, revival, and the fall of Xia.', 'story_slugs': ['yu-controls-floods', 'shao-kang-revival', 'shang-tang-overthrows-xia']},
     {'slug': 'shang', 'name': 'Shang Dynasty', 'chinese_name': '商朝', 'dates': 'c. 1600–1046 BCE', 'icon': '🐉', 'description': 'Oracle bones, early writing, bronze culture, and the fall of Shang.', 'story_slugs': ['oracle-bones', 'king-wu-overthrows-shang']},
     {'slug': 'zhou', 'name': 'Zhou Dynasty', 'chinese_name': '周朝', 'dates': '1046–256 BCE', 'icon': '🏹', 'description': 'Ritual, political order, the Mandate of Heaven, and the long Zhou era.', 'story_slugs': ['duke-of-zhou', 'beacon-fires']},
-    {'slug': 'qin', 'name': 'Qin Dynasty', 'chinese_name': '秦朝', 'dates': '221–206 BCE', 'icon': '🧱', 'description': 'Unification, standardization, and the first imperial dynasty.', 'story_slugs': ['qin-unification']},
+    {'slug': 'qin', 'name': 'Qin Dynasty', 'chinese_name': '秦朝', 'dates': '221–206 BCE', 'icon': '🧱', 'description': 'From the rise of Qin and unification to standardization, rebellion, and the fall of the first imperial dynasty.', 'story_slugs': ['jing-ke-assassination', 'qin-unification', 'qin-standardization', 'qin-great-wall', 'meng-jiangnu', 'burning-books', 'sha-qiu-coup', 'calling-deer-horse', 'dazexiang-uprising', 'battle-of-julu', 'fall-of-qin']},
     {'slug': 'han', 'name': 'Han Dynasty', 'chinese_name': '漢朝', 'dates': '206 BCE–220 CE', 'icon': '🐫', 'description': 'Imperial expansion and the Silk Road.', 'story_slugs': ['han-silk-road']},
     {'slug': 'three-kingdoms', 'name': 'Three Kingdoms', 'chinese_name': '三國', 'dates': '220–280', 'icon': '⚔️', 'description': 'A famous age of competing states, strategy, and legendary figures.', 'story_slugs': []},
     {'slug': 'jin', 'name': 'Jin Dynasty', 'chinese_name': '晉朝', 'dates': '266–420', 'icon': '📜', 'description': 'Reunification followed by division and migration.', 'story_slugs': []},
