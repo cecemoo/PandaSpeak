@@ -1,0 +1,83 @@
+<div class="card mb-4 border-warning-subtle" id="duplicate-check-card">
+  <div class="card-body">
+    <h5 class="card-title mb-2">🔎 Check before adding</h5>
+    <p class="text-muted mb-3">Search existing {{ material_label }} to make sure this item has not already been added.</p>
+    <div class="input-group">
+      <input type="search" class="form-control" id="duplicate-search-input" placeholder="Search Chinese, pinyin, or English..." autocomplete="off">
+      <button class="btn btn-outline-secondary" type="button" id="duplicate-search-button">Search</button>
+    </div>
+    <div id="duplicate-search-status" class="small mt-2 text-muted"></div>
+    <div id="duplicate-search-results" class="list-group mt-2"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const searchInput = document.getElementById('duplicate-search-input');
+  const searchButton = document.getElementById('duplicate-search-button');
+  const status = document.getElementById('duplicate-search-status');
+  const resultsBox = document.getElementById('duplicate-search-results');
+  const formField = document.getElementById('{{ form_field_id }}');
+  let timer = null;
+
+  function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value || '';
+    return div.innerHTML;
+  }
+
+  async function runSearch(value) {
+    const q = (value || '').trim();
+    resultsBox.innerHTML = '';
+    if (!q) {
+      status.textContent = 'Type something to check the existing materials.';
+      return;
+    }
+    status.textContent = 'Searching…';
+    try {
+      const url = "{% url 'material_duplicate_search' %}?type={{ material_type|urlencode }}&q=" + encodeURIComponent(q);
+      const response = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      if (!response.ok) throw new Error('Search failed');
+      const data = await response.json();
+      if (!data.results.length) {
+        status.innerHTML = '<span class="text-success">✓ No matching {{ material_label }} found.</span>';
+        return;
+      }
+      status.innerHTML = data.exact
+        ? '<span class="text-danger fw-semibold">⚠ Exact duplicate found. Please use the existing entry instead of adding it again.</span>'
+        : '<span class="text-warning-emphasis fw-semibold">Possible matches found. Please review them before adding.</span>';
+      data.results.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'list-group-item' + (item.exact ? ' list-group-item-danger' : '');
+        row.innerHTML = '<div class="fw-semibold">' + escapeHtml(item.primary) + '</div>' +
+          (item.secondary ? '<div class="small text-muted">' + escapeHtml(item.secondary) + '</div>' : '') +
+          (item.exact ? '<div class="small text-danger">Exact match</div>' : '');
+        resultsBox.appendChild(row);
+      });
+    } catch (error) {
+      status.innerHTML = '<span class="text-danger">Unable to search right now. The form will still check exact duplicates when you save.</span>';
+    }
+  }
+
+  function scheduleSearch(value) {
+    clearTimeout(timer);
+    timer = setTimeout(() => runSearch(value), 300);
+  }
+
+  searchInput.addEventListener('input', () => scheduleSearch(searchInput.value));
+  searchButton.addEventListener('click', () => runSearch(searchInput.value));
+  searchInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      runSearch(searchInput.value);
+    }
+  });
+
+  if (formField) {
+    formField.addEventListener('input', () => {
+      searchInput.value = formField.value;
+      scheduleSearch(formField.value);
+    });
+  }
+})();
+</script>
