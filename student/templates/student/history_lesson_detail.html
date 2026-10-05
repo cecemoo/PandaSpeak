@@ -2,79 +2,193 @@
 {% load static %}
 {% block content %}
 <style>
-.lesson-shell{max-width:980px;margin:0 auto;padding:88px 22px 70px}.lesson-back{display:inline-block;margin-bottom:16px;color:#7b4316;font-weight:700;text-decoration:none}.lesson-hero{border-radius:22px;padding:30px;background:linear-gradient(135deg,#4c2811,#8b4d18);color:#fff;margin-bottom:22px;position:relative;overflow:hidden}.lesson-hero .icon{font-size:3rem}.lesson-hero h1{color:#fff;margin:8px 0 2px}.lesson-hero .zh{font-size:1.35rem;color:#ffe7aa;font-weight:700}.lesson-hero p{color:#fff3df;margin:10px 0 0}.lesson-meta{font-size:.78rem;font-weight:800;color:#ffe2a1}.lesson-section{background:#fff;border:1px solid #ead8bd;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 7px 22px rgba(60,39,18,.07)}.lesson-section h2{font-size:1.18rem;color:#492a12;margin-bottom:13px}.story{font-size:1.16rem;line-height:2;color:#30271f}.listen-box,.today-box{padding:16px;border-radius:13px;background:#fff7e6;color:#5b3b1c}.today-box{border-left:4px solid #ce8f28}.history-video-box{position:relative;border-radius:16px;overflow:hidden;background:#17120e;box-shadow:0 10px 28px rgba(54,34,16,.16)}.history-video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#17120e}.qin-question-fix{display:none;position:absolute;left:10.5%;top:30.5%;width:43%;height:17%;z-index:3;pointer-events:none;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:4px 14px;background:rgb(254,245,228);color:#3b342e;border-radius:10px;font-size:clamp(16px,2.35vw,27px);font-weight:500;line-height:1.35}.video-note{margin:12px 2px 0;color:#725231;font-size:.92rem}.vocab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.vocab{border-radius:12px;padding:12px 14px;background:#f9f5ef}.vocab strong{font-size:1.08rem;color:#713d14}.vocab .pinyin{color:#9b662f;font-size:.88rem}.speak-prompt{padding:12px 14px;margin:9px 0;border-radius:12px;background:#f2f7fb;color:#263e50}.quiz-choice{display:block;border:1px solid #ddd;border-radius:12px;padding:11px 13px;margin:9px 0;cursor:pointer}.quiz-choice:hover{background:#fff8e8}.result-good{background:#e4f6e9;color:#23653a;padding:12px 14px;border-radius:12px;margin-top:12px}.result-try{background:#fff1e5;color:#84421e;padding:12px 14px;border-radius:12px;margin-top:12px}.completed-box{background:#e8f7ec;border:1px solid #91cea0;color:#27613a;padding:13px 16px;border-radius:13px;margin-bottom:18px}.preview-box{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f6f1ff;border:1px solid #d8c8fa;color:#513879;padding:16px 18px;border-radius:14px;margin-bottom:18px}.preview-box p{margin:3px 0 0;color:#6b5687}.btn-history{border:0;background:#7b4316;color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:700;text-decoration:none}.btn-plus{display:inline-block;background:linear-gradient(90deg,#7c3aed,#a855f7);color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:800;text-decoration:none;white-space:nowrap}.btn-listen{border:0;background:#b66c1f;color:#fff;border-radius:999px;padding:9px 16px;font-weight:700;margin-right:6px}.listen-status{font-size:.85rem;margin-left:8px;color:#80572b}@media(max-width:700px){.lesson-shell{padding-top:100px}.vocab-grid{grid-template-columns:1fr}.lesson-hero{padding:24px}.story{font-size:1.08rem}.preview-box{align-items:flex-start;flex-direction:column}.qin-question-fix{font-size:clamp(13px,3.6vw,18px);padding:2px 8px}}
+.lesson-shell{max-width:980px;margin:0 auto;padding:88px 22px 70px}
+.lesson-back{display:inline-block;margin-bottom:16px;color:#7b4316;font-weight:700;text-decoration:none}
+.lesson-hero{border-radius:22px;padding:30px;background:linear-gradient(135deg,#4c2811,#8b4d18);color:#fff;margin-bottom:22px;position:relative;overflow:hidden}
+.lesson-hero .icon{font-size:3rem}.lesson-hero h1{color:#fff;margin:8px 0 2px}.lesson-hero .zh{font-size:1.35rem;color:#ffe7aa;font-weight:700}.lesson-hero p{color:#fff3df;margin:10px 0 0}.lesson-meta{font-size:.78rem;font-weight:800;color:#ffe2a1}
+.lesson-section{background:#fff;border:1px solid #ead8bd;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 7px 22px rgba(60,39,18,.07)}
+.lesson-section h2{font-size:1.18rem;color:#492a12;margin-bottom:13px}.story{font-size:1.16rem;line-height:2;color:#30271f}
+.listen-box,.today-box{padding:16px;border-radius:13px;background:#fff7e6;color:#5b3b1c}.today-box{border-left:4px solid #ce8f28}
+.history-video-box{position:relative;border-radius:16px;overflow:hidden;background:#17120e;box-shadow:0 10px 28px rgba(54,34,16,.16)}
+.history-video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#17120e}.video-note{margin:12px 2px 0;color:#725231;font-size:.92rem}
+.qin-question-fix{display:none;position:absolute;left:10.5%;top:30.5%;width:43%;height:17%;z-index:3;pointer-events:none;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:4px 14px;background:rgb(254,245,228);color:#3b342e;border-radius:10px;font-size:clamp(16px,2.35vw,27px);font-weight:500;line-height:1.35}
+.vocab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.vocab{border-radius:12px;padding:12px 14px;background:#f9f5ef}.vocab strong{font-size:1.08rem;color:#713d14}.vocab .pinyin{color:#9b662f;font-size:.88rem}
+.speak-prompt{padding:12px 14px;margin:9px 0;border-radius:12px;background:#f2f7fb;color:#263e50}.quiz-choice{display:block;border:1px solid #ddd;border-radius:12px;padding:11px 13px;margin:9px 0;cursor:pointer}.quiz-choice:hover{background:#fff8e8}
+.result-good{background:#e4f6e9;color:#23653a;padding:12px 14px;border-radius:12px;margin-top:12px}.result-try{background:#fff1e5;color:#84421e;padding:12px 14px;border-radius:12px;margin-top:12px}.completed-box{background:#e8f7ec;border:1px solid #91cea0;color:#27613a;padding:13px 16px;border-radius:13px;margin-bottom:18px}
+.preview-box{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f6f1ff;border:1px solid #d8c8fa;color:#513879;padding:16px 18px;border-radius:14px;margin-bottom:18px}.preview-box p{margin:3px 0 0;color:#6b5687}
+.btn-history{border:0;background:#7b4316;color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:700;text-decoration:none}.btn-plus{display:inline-block;background:linear-gradient(90deg,#7c3aed,#a855f7);color:#fff!important;border-radius:999px;padding:9px 17px;font-weight:800;text-decoration:none;white-space:nowrap}.btn-listen{border:0;background:#b66c1f;color:#fff;border-radius:999px;padding:9px 16px;font-weight:700;margin-right:6px}.listen-status{font-size:.85rem;margin-left:8px;color:#80572b}
+@media(max-width:700px){.lesson-shell{padding-top:100px}.vocab-grid{grid-template-columns:1fr}.lesson-hero{padding:24px}.story{font-size:1.08rem}.preview-box{align-items:flex-start;flex-direction:column}.qin-question-fix{font-size:clamp(13px,3.6vw,18px);padding:2px 8px}}
 </style>
-<main class="main"><div class="lesson-shell">{% if dynasty %}<a class="lesson-back" href="{% url 'history_dynasty_detail' dynasty.slug %}">← Back to {{ dynasty.name }} · {{ dynasty.chinese_name }}</a>{% else %}<a class="lesson-back" href="{% url 'chinese_history' %}">← Back to Chinese History</a>{% endif %}
-<div class="lesson-hero"><div class="icon">{{ lesson.icon }}</div><div class="lesson-meta">{{ lesson.era }} · {% if lesson.level == 'level2' %}LEVEL II · 歷史小故事{% else %}LEVEL III · 深入中國歷史{% endif %}{% if is_preview %} · FREE PREVIEW{% endif %}</div><h1>{{ lesson.title }}</h1><div class="zh">{{ lesson.chinese_title }}</div><p>{{ lesson.intro }}</p></div>
-{% if is_preview %}<div class="preview-box"><div><strong>✨ PandaSpeak Plus Preview</strong><p>This complete first lesson is included with Standard. Upgrade to Plus to continue the full Chinese History Journey.</p></div><a class="btn-plus" href="{% url 'plus_upgrade' %}">Unlock Full Journey</a></div>{% endif %}
-{% if completed %}<div class="completed-box">✓ You completed this History Challenge{% if completed_at %} on {{ completed_at|date:"M j, Y" }}{% endif %}. You can review the lesson anytime.</div>{% endif %}
-<section class="lesson-section"><h2>📖 Discover · 歷史故事</h2><div class="story" id="history-story">{{ lesson.passage }}</div></section>
-<section class="lesson-section"><h2>🔊 Listen · 聽一聽</h2><div class="listen-box"><p>Listen to the history story in Mandarin, then read it aloud yourself.</p>{% if lesson.slug == 'yu-controls-floods' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/yu-floods-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'shao-kang-revival' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/shao-kang-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'shang-tang-overthrows-xia' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/tang-xia-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'duke-of-zhou' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/duke-zhou-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'beacon-fires' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/beacon-fires-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'qin-unification' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/qin_unification_listen.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'oracle-bones' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/oracle-bones.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'han-silk-road' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/Silkroad.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'tang-changan' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/Tang.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'song-innovation' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/Song.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'zheng-he' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/zhenghe.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'ming-qing-beijing' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/forbidden-city-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% elif lesson.slug == 'modern-and-taiwan' %}<audio id="qin-listen-audio" preload="metadata"><source src="{% static 'student/history/modern-world-discovery-narration.m4a' %}?v=1" type="audio/mp4"></audio>{% endif %}<button type="button" class="btn-listen" id="history-listen" onclick="playHistoryAudio()">🔊 Listen in Mandarin</button><button type="button" class="btn-listen" id="history-pause" onclick="pauseHistoryAudio()">⏸ Pause</button><span class="listen-status" id="listen-status"></span></div></section>
-<section class="lesson-section" id="history-cartoon-section"><h2>🎬 Watch · 看動畫</h2><div class="history-video-box"><video class="history-video" id="history-video" controls playsinline preload="metadata">{% if lesson.slug == 'yu-controls-floods' %}<source src="{% static 'student/history/yu-floods-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'shao-kang-revival' %}<source src="{% static 'student/history/shao-kang-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'shang-tang-overthrows-xia' %}<source src="{% static 'student/history/tang-xia-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'duke-of-zhou' %}<source src="{% static 'student/history/duke-zhou-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'beacon-fires' %}<source src="{% static 'student/history/beacon-fires-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'qin-unification' %}<source src="{% static 'student/history/PandaSpeak_Qin_Unification_v3.mp4' %}?v=4" type="video/mp4">{% elif lesson.slug == 'han-silk-road' %}<source src="{% static 'student/history/silkroad.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'tang-changan' %}<source src="{% static 'student/history/Tang.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'song-innovation' %}<source src="{% static 'student/history/Song.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'zheng-he' %}<source src="{% static 'student/history/Zhenghe.MP4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'ming-qing-beijing' %}<source src="{% static 'student/history/forbidden-city-1min.mp4' %}?v=1" type="video/mp4">{% elif lesson.slug == 'modern-and-taiwan' %}<source src="{% static 'student/history/modern-world-1min.mp4' %}?v=1" type="video/mp4">{% else %}<source src="{% static 'student/history/' %}{{ lesson.slug }}.mp4?v=1" type="video/mp4">{% endif %}Your browser does not support HTML5 video.</video>{% if lesson.slug == 'qin-unification' %}<div class="qin-question-fix" id="qin-question-fix" aria-hidden="true"><span>秦始皇在什麼時候<br>統一六國？</span></div>{% endif %}</div><p class="video-note">Watch the short cartoon story, then listen to the Mandarin version and read the lesson aloud.</p></section>
-<section class="lesson-section"><h2>🧠 Key Chinese · 關鍵詞</h2><div class="vocab-grid">{% for item in lesson.vocabulary %}<div class="vocab"><strong>{{ item.word }}</strong><div class="pinyin">{{ item.pinyin }}</div><div>{{ item.meaning }}</div></div>{% endfor %}</section>
-<section class="lesson-section"><h2>⏳ History → Today · 歷史到今天</h2><div class="today-box">{{ lesson.today }}</div></section>
-<section class="lesson-section"><h2>🗣️ Speak · 說一說</h2><p>Answer aloud in Chinese. There is no single perfect answer — the goal is to use Chinese to talk about history.</p>{% for prompt in lesson.speak_prompts %}<div class="speak-prompt"><strong>{{ forloop.counter }}.</strong> {{ prompt }}</div>{% endfor %}</section>
-<section class="lesson-section"><h2>🎯 Challenge · 小挑戰</h2><form method="post">{% csrf_token %}<p><strong>{{ lesson.quiz.question }}</strong></p>{% for choice in lesson.quiz.choices %}<label class="quiz-choice"><input type="radio" name="answer" value="{{ choice }}" {% if selected_answer == choice %}checked{% endif %} required> &nbsp;{{ choice }}</label>{% endfor %}<button type="submit" class="btn-history">Check Answer</button></form>{% if quiz_result is True %}<div class="result-good">🎉 Correct! History lesson completed.</div>{% elif quiz_result is False %}<div class="result-try">Not quite. Review the story and try again.</div>{% endif %}</section>
-{% if is_preview %}<a class="btn-plus" href="{% url 'plus_upgrade' %}">Continue with PandaSpeak Plus →</a>{% elif dynasty %}<a class="btn-history" href="{% url 'history_dynasty_detail' dynasty.slug %}">Explore More {{ dynasty.chinese_name }} Stories →</a>{% else %}<a class="btn-history" href="{% url 'chinese_history' %}">Explore More History →</a>{% endif %}</div></main>
+
+<main class="main">
+<div class="lesson-shell">
+  {% if dynasty %}
+    <a class="lesson-back" href="{% url 'history_dynasty_detail' dynasty.slug %}">← Back to {{ dynasty.name }} · {{ dynasty.chinese_name }}</a>
+  {% else %}
+    <a class="lesson-back" href="{% url 'chinese_history' %}">← Back to Chinese History</a>
+  {% endif %}
+
+  <div class="lesson-hero">
+    <div class="icon">{{ lesson.icon }}</div>
+    <div class="lesson-meta">{{ lesson.era }} · {% if lesson.level == 'level2' %}LEVEL II · 歷史小故事{% else %}LEVEL III · 深入中國歷史{% endif %}{% if is_preview %} · FREE PREVIEW{% endif %}</div>
+    <h1>{{ lesson.title }}</h1>
+    <div class="zh">{{ lesson.chinese_title }}</div>
+    <p>{{ lesson.intro }}</p>
+  </div>
+
+  {% if is_preview %}
+    <div class="preview-box">
+      <div><strong>✨ PandaSpeak Plus Preview</strong><p>This complete first lesson is included with Standard. Upgrade to Plus to continue the full Chinese History Journey.</p></div>
+      <a class="btn-plus" href="{% url 'plus_upgrade' %}">Unlock Full Journey</a>
+    </div>
+  {% endif %}
+
+  {% if completed %}<div class="completed-box">✓ You completed this History Challenge{% if completed_at %} on {{ completed_at|date:"M j, Y" }}{% endif %}. You can review the lesson anytime.</div>{% endif %}
+
+  <section class="lesson-section">
+    <h2>📖 Discover · 歷史故事</h2>
+    <div class="story" id="history-story">{{ lesson.passage }}</div>
+  </section>
+
+  <section class="lesson-section">
+    <h2>🔊 Listen · 聽一聽</h2>
+    <div class="listen-box">
+      <p>Listen to the history story in Mandarin, then read it aloud yourself.</p>
+      {% if media.audio %}
+        <audio id="history-listen-audio" preload="metadata"><source src="{% static media.audio %}?v=1" type="audio/mp4"></audio>
+      {% endif %}
+      <button type="button" class="btn-listen" onclick="playHistoryAudio()">🔊 Listen in Mandarin</button>
+      <button type="button" class="btn-listen" onclick="pauseHistoryAudio()">⏸ Pause</button>
+      <span class="listen-status" id="listen-status"></span>
+    </div>
+  </section>
+
+  {% if media.video %}
+  <section class="lesson-section" id="history-cartoon-section">
+    <h2>🎬 Watch · 看動畫</h2>
+    <div class="history-video-box">
+      <video class="history-video" id="history-video" controls playsinline preload="metadata">
+        <source src="{% static media.video %}?v={{ media.video_version|default:1 }}" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
+      {% if lesson.slug == 'qin-unification' %}<div class="qin-question-fix" id="qin-question-fix" aria-hidden="true"><span>秦始皇在什麼時候<br>統一六國？</span></div>{% endif %}
+    </div>
+    <p class="video-note">Watch the short cartoon story, then listen to the Mandarin version and read the lesson aloud.</p>
+  </section>
+  {% endif %}
+
+  <section class="lesson-section">
+    <h2>🧠 Key Chinese · 關鍵詞</h2>
+    <div class="vocab-grid">{% for item in lesson.vocabulary %}<div class="vocab"><strong>{{ item.word }}</strong><div class="pinyin">{{ item.pinyin }}</div><div>{{ item.meaning }}</div></div>{% endfor %}</div>
+  </section>
+
+  <section class="lesson-section"><h2>⏳ History → Today · 歷史到今天</h2><div class="today-box">{{ lesson.today }}</div></section>
+
+  <section class="lesson-section">
+    <h2>🗣️ Speak · 說一說</h2>
+    <p>Answer aloud in Chinese. There is no single perfect answer — the goal is to use Chinese to talk about history.</p>
+    {% for prompt in lesson.speak_prompts %}<div class="speak-prompt"><strong>{{ forloop.counter }}.</strong> {{ prompt }}</div>{% endfor %}
+  </section>
+
+  <section class="lesson-section">
+    <h2>🎯 Challenge · 小挑戰</h2>
+    <form method="post">{% csrf_token %}<p><strong>{{ lesson.quiz.question }}</strong></p>{% for choice in lesson.quiz.choices %}<label class="quiz-choice"><input type="radio" name="answer" value="{{ choice }}" {% if selected_answer == choice %}checked{% endif %} required> &nbsp;{{ choice }}</label>{% endfor %}<button type="submit" class="btn-history">Check Answer</button></form>
+    {% if quiz_result is True %}<div class="result-good">🎉 Correct! History lesson completed.</div>{% elif quiz_result is False %}<div class="result-try">Not quite. Review the story and try again.</div>{% endif %}
+  </section>
+
+  {% if is_preview %}
+    <a class="btn-plus" href="{% url 'plus_upgrade' %}">Continue with PandaSpeak Plus →</a>
+  {% elif dynasty %}
+    <a class="btn-history" href="{% url 'history_dynasty_detail' dynasty.slug %}">Explore More {{ dynasty.chinese_name }} Stories →</a>
+  {% else %}
+    <a class="btn-history" href="{% url 'chinese_history' %}">Explore More History →</a>
+  {% endif %}
+</div>
+</main>
+
 <script>
-const historyVideo=document.getElementById('history-video');
-const qinQuestionFix=document.getElementById('qin-question-fix');
-const qinListenAudio=document.getElementById('qin-listen-audio');
-const listenStatus=document.getElementById('listen-status');
-function stopHistorySpeech(){
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
-  if(qinListenAudio && !qinListenAudio.paused){qinListenAudio.pause();qinListenAudio.currentTime=0;}
-  if(listenStatus) listenStatus.textContent='';
+const historyVideo = document.getElementById('history-video');
+const historyAudio = document.getElementById('history-listen-audio');
+const listenStatus = document.getElementById('listen-status');
+const qinQuestionFix = document.getElementById('qin-question-fix');
+
+function stopHistoryAudio() {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  if (historyAudio && !historyAudio.paused) {
+    historyAudio.pause();
+    historyAudio.currentTime = 0;
+  }
+  if (listenStatus) listenStatus.textContent = '';
 }
-function updateQinQuestionFix(){
-  if(!historyVideo || !qinQuestionFix) return;
-  qinQuestionFix.style.display=(historyVideo.currentTime>=46.65)?'flex':'none';
+
+function updateQinQuestionFix() {
+  if (!historyVideo || !qinQuestionFix) return;
+  qinQuestionFix.style.display = historyVideo.currentTime >= 46.65 ? 'flex' : 'none';
 }
-if(historyVideo){
-  historyVideo.addEventListener('error',()=>{
-    const section=document.getElementById('history-cartoon-section');
-    if(section) section.style.display='none';
-  },true);
-  historyVideo.addEventListener('play',stopHistorySpeech);
-  historyVideo.addEventListener('seeking',stopHistorySpeech);
-  historyVideo.addEventListener('timeupdate',updateQinQuestionFix);
-  historyVideo.addEventListener('seeked',updateQinQuestionFix);
-  historyVideo.addEventListener('loadedmetadata',updateQinQuestionFix);
-  historyVideo.addEventListener('ended',updateQinQuestionFix);
+
+if (historyVideo) {
+  historyVideo.addEventListener('error', () => {
+    const section = document.getElementById('history-cartoon-section');
+    if (section) section.style.display = 'none';
+  }, true);
+  historyVideo.addEventListener('play', stopHistoryAudio);
+  historyVideo.addEventListener('seeking', stopHistoryAudio);
+  ['timeupdate', 'seeked', 'loadedmetadata', 'ended'].forEach(event => historyVideo.addEventListener(event, updateQinQuestionFix));
 }
-if(qinListenAudio){
-  qinListenAudio.addEventListener('play',()=>{if(historyVideo && !historyVideo.paused) historyVideo.pause();if(listenStatus) listenStatus.textContent='Playing…';});
-  qinListenAudio.addEventListener('pause',()=>{if(!qinListenAudio.ended && listenStatus) listenStatus.textContent='Paused';});
-  qinListenAudio.addEventListener('ended',()=>{if(listenStatus) listenStatus.textContent='';});
-  qinListenAudio.addEventListener('error',()=>{if(listenStatus) listenStatus.textContent='Unable to play audio.';});
+
+if (historyAudio) {
+  historyAudio.addEventListener('play', () => {
+    if (historyVideo && !historyVideo.paused) historyVideo.pause();
+    if (listenStatus) listenStatus.textContent = 'Playing…';
+  });
+  historyAudio.addEventListener('pause', () => {
+    if (!historyAudio.ended && listenStatus) listenStatus.textContent = 'Paused';
+  });
+  historyAudio.addEventListener('ended', () => { if (listenStatus) listenStatus.textContent = ''; });
+  historyAudio.addEventListener('error', () => { if (listenStatus) listenStatus.textContent = 'Unable to play audio.'; });
 }
-function playHistoryAudio(){
-  const status=document.getElementById('listen-status');
-  if(qinListenAudio){
-    if('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if(historyVideo && !historyVideo.paused) historyVideo.pause();
-    if(qinListenAudio.ended || qinListenAudio.currentTime===0) qinListenAudio.currentTime=0;
-    qinListenAudio.play().catch(()=>{status.textContent='Unable to play audio.';});
+
+function playHistoryAudio() {
+  if (historyAudio) {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (historyVideo && !historyVideo.paused) historyVideo.pause();
+    if (historyAudio.ended) historyAudio.currentTime = 0;
+    historyAudio.play().catch(() => { if (listenStatus) listenStatus.textContent = 'Unable to play audio.'; });
     return;
   }
-  if(!('speechSynthesis' in window)){status.textContent='Audio is not supported by this browser.';return;}
-  if(window.speechSynthesis.paused){window.speechSynthesis.resume();status.textContent='Playing…';return;}
-  if(historyVideo && !historyVideo.paused) historyVideo.pause();
+
+  if (!('speechSynthesis' in window)) {
+    if (listenStatus) listenStatus.textContent = 'Audio is not supported by this browser.';
+    return;
+  }
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+    if (listenStatus) listenStatus.textContent = 'Playing…';
+    return;
+  }
+  if (historyVideo && !historyVideo.paused) historyVideo.pause();
   window.speechSynthesis.cancel();
-  const text=document.getElementById('history-story').innerText;
-  const utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang='zh-TW'; utterance.rate=0.82;
-  const voices=window.speechSynthesis.getVoices();
-  const mandarin=voices.find(v=>/^zh-(TW|CN)/i.test(v.lang)) || voices.find(v=>/^zh/i.test(v.lang));
-  if(mandarin) utterance.voice=mandarin;
-  utterance.onstart=()=>status.textContent='Playing…';
-  utterance.onend=()=>status.textContent='';
-  utterance.onerror=()=>status.textContent='Unable to play audio.';
+  const utterance = new SpeechSynthesisUtterance(document.getElementById('history-story').innerText);
+  utterance.lang = 'zh-TW';
+  utterance.rate = 0.82;
+  const voices = window.speechSynthesis.getVoices();
+  const mandarin = voices.find(v => /^zh-(TW|CN)/i.test(v.lang)) || voices.find(v => /^zh/i.test(v.lang));
+  if (mandarin) utterance.voice = mandarin;
+  utterance.onstart = () => { if (listenStatus) listenStatus.textContent = 'Playing…'; };
+  utterance.onend = () => { if (listenStatus) listenStatus.textContent = ''; };
+  utterance.onerror = () => { if (listenStatus) listenStatus.textContent = 'Unable to play audio.'; };
   window.speechSynthesis.speak(utterance);
 }
-function pauseHistoryAudio(){
-  if(qinListenAudio && !qinListenAudio.paused){qinListenAudio.pause();return;}
-  if('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused){window.speechSynthesis.pause();if(listenStatus) listenStatus.textContent='Paused';}
+
+function pauseHistoryAudio() {
+  if (historyAudio && !historyAudio.paused) {
+    historyAudio.pause();
+    return;
+  }
+  if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+    window.speechSynthesis.pause();
+    if (listenStatus) listenStatus.textContent = 'Paused';
+  }
 }
 </script>
 {% endblock %}
