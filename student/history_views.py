@@ -13,12 +13,13 @@ from .tang_history_lessons import TANG_CARDS, TANG_HISTORY_LESSONS
 from .five_dynasties_history_lessons import FIVE_DYNASTIES_CARDS, FIVE_DYNASTIES_HISTORY_LESSONS
 from .song_history_lessons import SONG_CARDS, SONG_HISTORY_LESSONS
 from .yuan_history_lessons import YUAN_CARDS, YUAN_HISTORY_LESSONS
+from .ming_history_lessons import MING_CARDS, MING_HISTORY_LESSONS
 from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
 # Build one chronological History Journey while keeping the existing lessons intact.
-HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS, **FIVE_DYNASTIES_HISTORY_LESSONS, **SONG_HISTORY_LESSONS, **YUAN_HISTORY_LESSONS}
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS, **FIVE_DYNASTIES_HISTORY_LESSONS, **SONG_HISTORY_LESSONS, **YUAN_HISTORY_LESSONS, **MING_HISTORY_LESSONS}
 _oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
 _qin_card = EXISTING_HISTORY_LESSONS['qin-unification']
 _other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug'] not in ('oracle-bones', 'qin-unification')]
@@ -39,6 +40,7 @@ HISTORY_CARDS = (
     + FIVE_DYNASTIES_CARDS
     + SONG_CARDS
     + YUAN_CARDS
+    + MING_CARDS
 )
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
@@ -58,7 +60,7 @@ DYNASTIES = [
     {'slug': 'five-dynasties', 'name': 'Five Dynasties & Ten Kingdoms', 'chinese_name': '五代十國', 'dates': '907–960', 'icon': '🗺️', 'description': 'A fragmented era of competing dynasties and kingdoms, famous rulers, political upheaval, and the transition to Song.', 'story_slugs': ['zhu-wen-founds-later-liang', 'li-cunxu-destroys-later-liang', 'actors-disaster', 'shi-jingtang-khitan-aid', 'sixteen-prefectures', 'child-emperor-shi-jingtang', 'feng-dao-four-dynasties', 'guo-wei-overthrows-later-han', 'guo-wei-yellow-banner', 'chai-rong-gaoping', 'qian-liu-wuyue', 'wang-shenzhi-min', 'li-yu-loses-southern-tang', 'li-yu-yumeiren', 'chenqiao-mutiny', 'five-dynasties-yellow-robe']},
     {'slug': 'song', 'name': 'Song Dynasty', 'chinese_name': '宋朝', 'dates': '960–1279', 'icon': '🧭', 'description': 'Innovation, commerce, cities, printing, and new technologies.', 'story_slugs': ['yellow-robe', 'wine-cup-military-power', 'candle-shadow-axe-sound', 'yang-family-generals', 'chanyuan-treaty', 'bao-zheng-cases', 'fan-zhongyan', 'wang-anshi-reforms', 'sima-guang-vat', 'su-dongpo-pork', 'crow-terrace-poetry-case', 'jingkang-incident', 'yue-fei-loyalty', 'yue-mother-tattoo', 'twelve-gold-plaques', 'groundless-charge', 'xin-qiji-resistance', 'wen-tianxiang', 'battle-yamen', 'song-innovation']},
     {'slug': 'yuan', 'name': 'Yuan Dynasty', 'chinese_name': '元朝', 'dates': '1271–1368', 'icon': '🐎', 'description': 'Mongol origins, Yuan rule, Eurasian connections, science, drama, and the transition to Ming.', 'story_slugs': ['genghis-unifies-mongols', 'genghis-western-campaigns', 'qiu-chuji-meets-genghis', 'kublai-founds-yuan', 'kublai-capital-dadu', 'battle-xiangyang', 'battle-yamen-yuan', 'wen-tianxiang-unyielding', 'who-can-escape-death', 'marco-polo-china', 'guo-shoujing-calendar', 'huang-daopo-textiles', 'zhao-mengfu-art', 'guan-hanqing-dou-e', 'injustice-dou-e', 'snow-in-june', 'yuan-drama-flourishes', 'red-turban-rebellion', 'zhu-yuanzhang-rises', 'ming-founded-yuan-ends']},
-    {'slug': 'ming', 'name': 'Ming Dynasty', 'chinese_name': '明朝', 'dates': '1368–1644', 'icon': '⛵', 'description': 'Maritime voyages, rebuilding, and a flourishing imperial culture.', 'story_slugs': ['zheng-he']},
+    {'slug': 'ming', 'name': 'Ming Dynasty', 'chinese_name': '明朝', 'dates': '1368–1644', 'icon': '⛵', 'description': 'Imperial politics, maritime voyages, defense, scholarship, reform, and the fall of Ming.', 'story_slugs': ['jingnan-campaign', 'yongle-moves-capital-beijing', 'forbidden-city-built', 'zheng-he', 'tumu-crisis', 'yu-qian-defends-beijing', 'duomen-coup', 'wang-yangming-longchang', 'qi-jiguang-fights-wokou', 'hai-rui-memorial', 'zhang-juzheng-reforms', 'li-shizhen-bencao', 'xu-xiake-travels', 'wei-zhongxian-power', 'yuan-chonghuan-ningyuan', 'li-zicheng-rebellion', 'li-zicheng-enters-beijing', 'chongzhen-meishan']},
     {'slug': 'qing', 'name': 'Qing Dynasty', 'chinese_name': '清朝', 'dates': '1644–1912', 'icon': '🏯', 'description': 'The last imperial dynasty and the transformation toward the modern era.', 'story_slugs': ['ming-qing-beijing']},
     {'slug': 'modern', 'name': 'Modern China & Taiwan', 'chinese_name': '近現代中國與臺灣', 'dates': '1912–Present', 'icon': '🌏', 'description': 'Modern change, society, identity, and the Chinese-speaking world today.', 'story_slugs': ['modern-and-taiwan']},
 ]
