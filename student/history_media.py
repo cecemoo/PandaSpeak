@@ -642,6 +642,86 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Five_Dynasties/five-dynasties-yellow-robe-discovery-narration.m4a',
         'video': 'student/history/Five_Dynasties/five-dynasties-yellow-robe-1min.mp4',
     },
+    'genghis-unifies-mongols': {
+        'audio': 'student/history/Yuan/genghis-unifies-mongols-discovery-narration.m4a',
+        'video': 'student/history/Yuan/genghis-unifies-mongols-1min.mp4',
+    },
+    'genghis-western-campaigns': {
+        'audio': 'student/history/Yuan/genghis-western-campaigns-discovery-narration.m4a',
+        'video': 'student/history/Yuan/genghis-western-campaigns-1min.mp4',
+    },
+    'qiu-chuji-meets-genghis': {
+        'audio': 'student/history/Yuan/qiu-chuji-meets-genghis-discovery-narration.m4a',
+        'video': 'student/history/Yuan/qiu-chuji-meets-genghis-1min.mp4',
+    },
+    'kublai-founds-yuan': {
+        'audio': 'student/history/Yuan/kublai-founds-yuan-discovery-narration.m4a',
+        'video': 'student/history/Yuan/kublai-founds-yuan-1min.mp4',
+    },
+    'kublai-capital-dadu': {
+        'audio': 'student/history/Yuan/kublai-capital-dadu-discovery-narration.m4a',
+        'video': 'student/history/Yuan/kublai-capital-dadu-1min.mp4',
+    },
+    'battle-xiangyang': {
+        'audio': 'student/history/Yuan/battle-xiangyang-discovery-narration.m4a',
+        'video': 'student/history/Yuan/battle-xiangyang-1min.mp4',
+    },
+    'battle-yamen-yuan': {
+        'audio': 'student/history/Yuan/battle-yamen-yuan-discovery-narration.m4a',
+        'video': 'student/history/Yuan/battle-yamen-yuan-1min.mp4',
+    },
+    'wen-tianxiang-unyielding': {
+        'audio': 'student/history/Yuan/wen-tianxiang-unyielding-discovery-narration.m4a',
+        'video': 'student/history/Yuan/wen-tianxiang-unyielding-1min.mp4',
+    },
+    'who-can-escape-death': {
+        'audio': 'student/history/Yuan/who-can-escape-death-discovery-narration.m4a',
+        'video': 'student/history/Yuan/who-can-escape-death-1min.mp4',
+    },
+    'marco-polo-china': {
+        'audio': 'student/history/Yuan/marco-polo-china-discovery-narration.m4a',
+        'video': 'student/history/Yuan/marco-polo-china-1min.mp4',
+    },
+    'guo-shoujing-calendar': {
+        'audio': 'student/history/Yuan/guo-shoujing-calendar-discovery-narration.m4a',
+        'video': 'student/history/Yuan/guo-shoujing-calendar-1min.mp4',
+    },
+    'huang-daopo-textiles': {
+        'audio': 'student/history/Yuan/huang-daopo-textiles-discovery-narration.m4a',
+        'video': 'student/history/Yuan/huang-daopo-textiles-1min.mp4',
+    },
+    'zhao-mengfu-art': {
+        'audio': 'student/history/Yuan/zhao-mengfu-art-discovery-narration.m4a',
+        'video': 'student/history/Yuan/zhao-mengfu-art-1min.mp4',
+    },
+    'guan-hanqing-dou-e': {
+        'audio': 'student/history/Yuan/guan-hanqing-dou-e-discovery-narration.m4a',
+        'video': 'student/history/Yuan/guan-hanqing-dou-e-1min.mp4',
+    },
+    'injustice-dou-e': {
+        'audio': 'student/history/Yuan/injustice-dou-e-discovery-narration.m4a',
+        'video': 'student/history/Yuan/injustice-dou-e-1min.mp4',
+    },
+    'snow-in-june': {
+        'audio': 'student/history/Yuan/snow-in-june-discovery-narration.m4a',
+        'video': 'student/history/Yuan/snow-in-june-1min.mp4',
+    },
+    'yuan-drama-flourishes': {
+        'audio': 'student/history/Yuan/yuan-drama-flourishes-discovery-narration.m4a',
+        'video': 'student/history/Yuan/yuan-drama-flourishes-1min.mp4',
+    },
+    'red-turban-rebellion': {
+        'audio': 'student/history/Yuan/red-turban-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Yuan/red-turban-rebellion-1min.mp4',
+    },
+    'zhu-yuanzhang-rises': {
+        'audio': 'student/history/Yuan/zhu-yuanzhang-rises-discovery-narration.m4a',
+        'video': 'student/history/Yuan/zhu-yuanzhang-rises-1min.mp4',
+    },
+    'ming-founded-yuan-ends': {
+        'audio': 'student/history/Yuan/ming-founded-yuan-ends-discovery-narration.m4a',
+        'video': 'student/history/Yuan/ming-founded-yuan-ends-1min.mp4',
+    },
 }
 
 
