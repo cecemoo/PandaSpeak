@@ -173,6 +173,86 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Han/dong-zhuo-chaos-discovery-narration.m4a',
         'video': 'student/history/Han/dong-zhuo-chaos-1min.mp4',
     },
+    'peach-garden-oath': {
+        'audio': 'student/history/Three_Kingdom/peach-garden-oath-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/peach-garden-oath-1min.mp4',
+    },
+    'three-heroes-lu-bu': {
+        'audio': 'student/history/Three_Kingdom/three-heroes-lu-bu-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/three-heroes-lu-bu-1min.mp4',
+    },
+    'cao-cao-heroes': {
+        'audio': 'student/history/Three_Kingdom/cao-cao-heroes-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/cao-cao-heroes-1min.mp4',
+    },
+    'guan-yu-five-passes': {
+        'audio': 'student/history/Three_Kingdom/guan-yu-five-passes-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/guan-yu-five-passes-1min.mp4',
+    },
+    'three-visits': {
+        'audio': 'student/history/Three_Kingdom/three-visits-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/three-visits-1min.mp4',
+    },
+    'changban-zhao-yun': {
+        'audio': 'student/history/Three_Kingdom/changban-zhao-yun-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/changban-zhao-yun-1min.mp4',
+    },
+    'straw-boats-arrows': {
+        'audio': 'student/history/Three_Kingdom/straw-boats-arrows-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/straw-boats-arrows-1min.mp4',
+    },
+    'red-cliffs': {
+        'audio': 'student/history/Three_Kingdom/red-cliffs-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/red-cliffs-1min.mp4',
+    },
+    'huarong-pass': {
+        'audio': 'student/history/Three_Kingdom/huarong-pass-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/huarong-pass-1min.mp4',
+    },
+    'guan-yu-jingzhou': {
+        'audio': 'student/history/Three_Kingdom/guan-yu-jingzhou-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/guan-yu-jingzhou-1min.mp4',
+    },
+    'guan-yu-maicheng': {
+        'audio': 'student/history/Three_Kingdom/guan-yu-maicheng-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/guan-yu-maicheng-1min.mp4',
+    },
+    'yiling-battle': {
+        'audio': 'student/history/Three_Kingdom/yiling-battle-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/yiling-battle-1min.mp4',
+    },
+    'baidicheng-trust': {
+        'audio': 'student/history/Three_Kingdom/baidicheng-trust-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/baidicheng-trust-1min.mp4',
+    },
+    'seven-captures-meng-huo': {
+        'audio': 'student/history/Three_Kingdom/seven-captures-meng-huo-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/seven-captures-meng-huo-1min.mp4',
+    },
+    'empty-fort': {
+        'audio': 'student/history/Three_Kingdom/empty-fort-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/empty-fort-1min.mp4',
+    },
+    'tears-ma-su': {
+        'audio': 'student/history/Three_Kingdom/tears-ma-su-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/tears-ma-su-1min.mp4',
+    },
+    'wuzhang-plains': {
+        'audio': 'student/history/Three_Kingdom/wuzhang-plains-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/wuzhang-plains-1min.mp4',
+    },
+    'sima-clan-rise': {
+        'audio': 'student/history/Three_Kingdom/sima-clan-rise-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/sima-clan-rise-1min.mp4',
+    },
+    'shu-falls': {
+        'audio': 'student/history/Three_Kingdom/shu-falls-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/shu-falls-1min.mp4',
+    },
+    'jin-reunifies': {
+        'audio': 'student/history/Three_Kingdom/jin-reunifies-discovery-narration.m4a',
+        'video': 'student/history/Three_Kingdom/jin-reunifies-1min.mp4',
+    },
     'tang-changan': {
         'audio': 'student/history/Tang.m4a',
         'video': 'student/history/Tang.mp4',
