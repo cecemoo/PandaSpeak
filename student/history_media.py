@@ -578,6 +578,70 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Song/battle-yamen-discovery-narration.m4a',
         'video': 'student/history/Song/battle-yamen-1min.mp4',
     },
+    'zhu-wen-founds-later-liang': {
+        'audio': 'student/history/Five_Dynasties/zhu-wen-founds-later-liang-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/zhu-wen-founds-later-liang-1min.mp4',
+    },
+    'li-cunxu-destroys-later-liang': {
+        'audio': 'student/history/Five_Dynasties/li-cunxu-destroys-later-liang-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/li-cunxu-destroys-later-liang-1min.mp4',
+    },
+    'actors-disaster': {
+        'audio': 'student/history/Five_Dynasties/actors-disaster-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/actors-disaster-1min.mp4',
+    },
+    'shi-jingtang-khitan-aid': {
+        'audio': 'student/history/Five_Dynasties/shi-jingtang-khitan-aid-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/shi-jingtang-khitan-aid-1min.mp4',
+    },
+    'sixteen-prefectures': {
+        'audio': 'student/history/Five_Dynasties/sixteen-prefectures-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/sixteen-prefectures-1min.mp4',
+    },
+    'child-emperor-shi-jingtang': {
+        'audio': 'student/history/Five_Dynasties/child-emperor-shi-jingtang-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/child-emperor-shi-jingtang-1min.mp4',
+    },
+    'feng-dao-four-dynasties': {
+        'audio': 'student/history/Five_Dynasties/feng-dao-four-dynasties-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/feng-dao-four-dynasties-1min.mp4',
+    },
+    'guo-wei-overthrows-later-han': {
+        'audio': 'student/history/Five_Dynasties/guo-wei-overthrows-later-han-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/guo-wei-overthrows-later-han-1min.mp4',
+    },
+    'guo-wei-yellow-banner': {
+        'audio': 'student/history/Five_Dynasties/guo-wei-yellow-banner-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/guo-wei-yellow-banner-1min.mp4',
+    },
+    'chai-rong-gaoping': {
+        'audio': 'student/history/Five_Dynasties/chai-rong-gaoping-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/chai-rong-gaoping-1min.mp4',
+    },
+    'qian-liu-wuyue': {
+        'audio': 'student/history/Five_Dynasties/qian-liu-wuyue-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/qian-liu-wuyue-1min.mp4',
+    },
+    'wang-shenzhi-min': {
+        'audio': 'student/history/Five_Dynasties/wang-shenzhi-min-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/wang-shenzhi-min-1min.mp4',
+    },
+    'li-yu-loses-southern-tang': {
+        'audio': 'student/history/Five_Dynasties/li-yu-loses-southern-tang-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/li-yu-loses-southern-tang-1min.mp4',
+    },
+    'li-yu-yumeiren': {
+        'audio': 'student/history/Five_Dynasties/li-yu-yumeiren-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/li-yu-yumeiren-1min.mp4',
+    },
+    'chenqiao-mutiny': {
+        'audio': 'student/history/Five_Dynasties/chenqiao-mutiny-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/chenqiao-mutiny-1min.mp4',
+    },
+    'five-dynasties-yellow-robe': {
+        'audio': 'student/history/Five_Dynasties/five-dynasties-yellow-robe-discovery-narration.m4a',
+        'video': 'student/history/Five_Dynasties/five-dynasties-yellow-robe-1min.mp4',
+    },
 }
 
 
