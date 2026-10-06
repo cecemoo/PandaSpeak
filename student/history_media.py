@@ -334,4 +334,61 @@ HISTORY_MEDIA = {
 
 def media_for_lesson(slug):
     """Return a copy so views/templates cannot mutate the shared mapping."""
-    return HISTORY_MEDIA.get(slug, {}).copy()
+    return HISTORY_MEDIA.get(slug, {,
+    'tan-daoji-sand': {
+        'audio': 'student/history/Northern_Southern/tan-daoji-sand-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/tan-daoji-sand-1min.mp4',
+    },
+    'destroy-great-wall': {
+        'audio': 'student/history/Northern_Southern/destroy-great-wall-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/destroy-great-wall-1min.mp4',
+    },
+    'yuanjia-northern-expedition': {
+        'audio': 'student/history/Northern_Southern/yuanjia-northern-expedition-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/yuanjia-northern-expedition-1min.mp4',
+    },
+    'taiwu-buddhism': {
+        'audio': 'student/history/Northern_Southern/taiwu-buddhism-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/taiwu-buddhism-1min.mp4',
+    },
+    'mulan-army': {
+        'audio': 'student/history/Northern_Southern/mulan-army-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/mulan-army-1min.mp4',
+    },
+    'xiaowen-luoyang': {
+        'audio': 'student/history/Northern_Southern/xiaowen-luoyang-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/xiaowen-luoyang-1min.mp4',
+    },
+    'xiaowen-reforms': {
+        'audio': 'student/history/Northern_Southern/xiaowen-reforms-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/xiaowen-reforms-1min.mp4',
+    },
+    'jianglang-talent': {
+        'audio': 'student/history/Northern_Southern/jianglang-talent-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/jianglang-talent-1min.mp4',
+    },
+    'draw-dragon-eyes': {
+        'audio': 'student/history/Northern_Southern/draw-dragon-eyes-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/draw-dragon-eyes-1min.mp4',
+    },
+    'emperor-wu-monk': {
+        'audio': 'student/history/Northern_Southern/emperor-wu-monk-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/emperor-wu-monk-1min.mp4',
+    },
+    'houjing-rebellion': {
+        'audio': 'student/history/Northern_Southern/houjing-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/houjing-rebellion-1min.mp4',
+    },
+    'emperor-wu-taicheng': {
+        'audio': 'student/history/Northern_Southern/emperor-wu-taicheng-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/emperor-wu-taicheng-1min.mp4',
+    },
+    'jade-trees-flowers': {
+        'audio': 'student/history/Northern_Southern/jade-trees-flowers-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/jade-trees-flowers-1min.mp4',
+    },
+    'broken-mirror-reunion': {
+        'audio': 'student/history/Northern_Southern/broken-mirror-reunion-discovery-narration.m4a',
+        'video': 'student/history/Northern_Southern/broken-mirror-reunion-1min.mp4',
+    },
+}
