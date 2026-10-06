@@ -329,12 +329,6 @@ HISTORY_MEDIA = {
         'audio': 'student/history/modern-world-discovery-narration.m4a',
         'video': 'student/history/modern-world-1min.mp4',
     },
-}
-
-
-def media_for_lesson(slug):
-    """Return a copy so views/templates cannot mutate the shared mapping."""
-    return HISTORY_MEDIA.get(slug, {,
     'tan-daoji-sand': {
         'audio': 'student/history/Northern_Southern/tan-daoji-sand-discovery-narration.m4a',
         'video': 'student/history/Northern_Southern/tan-daoji-sand-1min.mp4',
@@ -391,4 +385,10 @@ def media_for_lesson(slug):
         'audio': 'student/history/Northern_Southern/broken-mirror-reunion-discovery-narration.m4a',
         'video': 'student/history/Northern_Southern/broken-mirror-reunion-1min.mp4',
     },
+
 }
+
+
+def media_for_lesson(slug):
+    """Return a copy so views/templates cannot mutate the shared mapping."""
+    return HISTORY_MEDIA.get(slug, {})
