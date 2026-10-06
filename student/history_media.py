@@ -253,6 +253,62 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Three_Kingdom/jin-reunifies-discovery-narration.m4a',
         'video': 'student/history/Three_Kingdom/jin-reunifies-1min.mp4',
     },
+    'sima-zhao-intent': {
+        'audio': 'student/history/Jin/sima-zhao-intent-discovery-narration.m4a',
+        'video': 'student/history/Jin/sima-zhao-intent-1min.mp4',
+    },
+    'happy-not-miss-shu': {
+        'audio': 'student/history/Jin/happy-not-miss-shu-discovery-narration.m4a',
+        'video': 'student/history/Jin/happy-not-miss-shu-1min.mp4',
+    },
+    'three-kingdoms-unite-jin': {
+        'audio': 'student/history/Jin/three-kingdoms-unite-jin-discovery-narration.m4a',
+        'video': 'student/history/Jin/three-kingdoms-unite-jin-1min.mp4',
+    },
+    'shi-chong-wealth': {
+        'audio': 'student/history/Jin/shi-chong-wealth-discovery-narration.m4a',
+        'video': 'student/history/Jin/shi-chong-wealth-1min.mp4',
+    },
+    'war-eight-princes': {
+        'audio': 'student/history/Jin/war-eight-princes-discovery-narration.m4a',
+        'video': 'student/history/Jin/war-eight-princes-1min.mp4',
+    },
+    'dance-rooster': {
+        'audio': 'student/history/Jin/dance-rooster-discovery-narration.m4a',
+        'video': 'student/history/Jin/dance-rooster-1min.mp4',
+    },
+    'strike-oar-midstream': {
+        'audio': 'student/history/Jin/strike-oar-midstream-discovery-narration.m4a',
+        'video': 'student/history/Jin/strike-oar-midstream-1min.mp4',
+    },
+    'comeback-east-mountain': {
+        'audio': 'student/history/Jin/comeback-east-mountain-discovery-narration.m4a',
+        'video': 'student/history/Jin/comeback-east-mountain-1min.mp4',
+    },
+    'whips-stop-river': {
+        'audio': 'student/history/Jin/whips-stop-river-discovery-narration.m4a',
+        'video': 'student/history/Jin/whips-stop-river-1min.mp4',
+    },
+    'battle-fei-river': {
+        'audio': 'student/history/Jin/battle-fei-river-discovery-narration.m4a',
+        'video': 'student/history/Jin/battle-fei-river-1min.mp4',
+    },
+    'grass-trees-soldiers': {
+        'audio': 'student/history/Jin/grass-trees-soldiers-discovery-narration.m4a',
+        'video': 'student/history/Jin/grass-trees-soldiers-1min.mp4',
+    },
+    'wind-cranes': {
+        'audio': 'student/history/Jin/wind-cranes-discovery-narration.m4a',
+        'video': 'student/history/Jin/wind-cranes-1min.mp4',
+    },
+    'lanting-preface': {
+        'audio': 'student/history/Jin/lanting-preface-discovery-narration.m4a',
+        'video': 'student/history/Jin/lanting-preface-1min.mp4',
+    },
+    'five-pecks-rice': {
+        'audio': 'student/history/Jin/five-pecks-rice-discovery-narration.m4a',
+        'video': 'student/history/Jin/five-pecks-rice-1min.mp4',
+    },
     'tang-changan': {
         'audio': 'student/history/Tang.m4a',
         'video': 'student/history/Tang.mp4',
