@@ -94,3 +94,23 @@ class StudentConfig(AppConfig):
                     'dong-zhuo-chaos',
                 ]
                 break
+
+        # Add the Three Kingdoms story collection in chronological narrative order.
+        # These are prepared as lesson cards now; audio/video can be attached later.
+        from .three_kingdoms_history_lessons import THREE_KINGDOMS_HISTORY_LESSONS, THREE_KINGDOMS_CARDS
+
+        history_views.HISTORY_LESSONS.update(THREE_KINGDOMS_HISTORY_LESSONS)
+        tk_slugs = {card['slug'] for card in THREE_KINGDOMS_CARDS}
+        history_views.HISTORY_CARDS[:] = [
+            card for card in history_views.HISTORY_CARDS if card['slug'] not in tk_slugs
+        ]
+        history_views.HISTORY_CARDS.extend(THREE_KINGDOMS_CARDS)
+
+        for dynasty in history_views.DYNASTIES:
+            if dynasty['slug'] == 'three-kingdoms':
+                dynasty['description'] = (
+                    'From the late Han warlord era and Red Cliffs to Shu, Wei, Wu, '
+                    'Zhuge Liang’s campaigns, and reunification under Jin.'
+                )
+                dynasty['story_slugs'] = [card['slug'] for card in THREE_KINGDOMS_CARDS]
+                break
