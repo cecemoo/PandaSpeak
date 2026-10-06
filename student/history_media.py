@@ -386,6 +386,54 @@ HISTORY_MEDIA = {
         'video': 'student/history/Northern_Southern/broken-mirror-reunion-1min.mp4',
     },
 
+    'yang-jian-founds-sui': {
+        'audio': 'student/history/Sui/yang-jian-founds-sui-discovery-narration.m4a',
+        'video': 'student/history/Sui/yang-jian-founds-sui-1min.mp4',
+    },
+    'sui-conquers-chen': {
+        'audio': 'student/history/Sui/sui-conquers-chen-discovery-narration.m4a',
+        'video': 'student/history/Sui/sui-conquers-chen-1min.mp4',
+    },
+    'kaihuang-reign': {
+        'audio': 'student/history/Sui/kaihuang-reign-discovery-narration.m4a',
+        'video': 'student/history/Sui/kaihuang-reign-1min.mp4',
+    },
+    'empress-dugu': {
+        'audio': 'student/history/Sui/empress-dugu-discovery-narration.m4a',
+        'video': 'student/history/Sui/empress-dugu-1min.mp4',
+    },
+    'yang-guang-crown-prince': {
+        'audio': 'student/history/Sui/yang-guang-crown-prince-discovery-narration.m4a',
+        'video': 'student/history/Sui/yang-guang-crown-prince-1min.mp4',
+    },
+    'grand-canal': {
+        'audio': 'student/history/Sui/grand-canal-discovery-narration.m4a',
+        'video': 'student/history/Sui/grand-canal-1min.mp4',
+    },
+    'goguryeo-campaigns': {
+        'audio': 'student/history/Sui/goguryeo-campaigns-discovery-narration.m4a',
+        'video': 'student/history/Sui/goguryeo-campaigns-1min.mp4',
+    },
+    'wagang-rebellion': {
+        'audio': 'student/history/Sui/wagang-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Sui/wagang-rebellion-1min.mp4',
+    },
+    'li-mi-wagang': {
+        'audio': 'student/history/Sui/li-mi-wagang-discovery-narration.m4a',
+        'video': 'student/history/Sui/li-mi-wagang-1min.mp4',
+    },
+    'jiangdu-mutiny': {
+        'audio': 'student/history/Sui/jiangdu-mutiny-discovery-narration.m4a',
+        'video': 'student/history/Sui/jiangdu-mutiny-1min.mp4',
+    },
+    'li-yuan-taiyuan': {
+        'audio': 'student/history/Sui/li-yuan-taiyuan-discovery-narration.m4a',
+        'video': 'student/history/Sui/li-yuan-taiyuan-1min.mp4',
+    },
+    'fall-sui-rise-tang': {
+        'audio': 'student/history/Sui/fall-sui-rise-tang-discovery-narration.m4a',
+        'video': 'student/history/Sui/fall-sui-rise-tang-1min.mp4',
+    },
 }
 
 
