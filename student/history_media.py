@@ -122,6 +122,7 @@ HISTORY_MEDIA = {
         'video': 'student/history/Han/wei-qing-huo-qubing-1min.mp4',
     },
     'fenglangjuxu': {
+        'audio': 'student/history/Han/fenglangjuxu.m4a',
         'video': 'student/history/Han/fenglangjuxu-1min.mp4',
     },
     'su-wu-shepherd': {
