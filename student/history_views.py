@@ -9,12 +9,13 @@ from .qin_history_lessons import QIN_AFTER_UNIFICATION, QIN_BEFORE_UNIFICATION, 
 from .jin_history_lessons import JIN_CARDS, JIN_HISTORY_LESSONS
 from .northern_southern_history_lessons import NORTHERN_SOUTHERN_CARDS, NORTHERN_SOUTHERN_HISTORY_LESSONS
 from .sui_history_lessons import SUI_CARDS, SUI_HISTORY_LESSONS
+from .tang_history_lessons import TANG_CARDS, TANG_HISTORY_LESSONS
 from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
 # Build one chronological History Journey while keeping the existing lessons intact.
-HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS}
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS}
 _oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
 _qin_card = EXISTING_HISTORY_LESSONS['qin-unification']
 _other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug'] not in ('oracle-bones', 'qin-unification')]
@@ -31,6 +32,7 @@ HISTORY_CARDS = (
     + JIN_CARDS
     + NORTHERN_SOUTHERN_CARDS
     + SUI_CARDS
+    + TANG_CARDS
 )
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
@@ -46,7 +48,7 @@ DYNASTIES = [
     {'slug': 'jin', 'name': 'Jin Dynasty', 'chinese_name': '晉朝', 'dates': '266–420', 'icon': '📜', 'description': 'Reunification, political upheaval, migration, famous idioms, and Eastern Jin culture.', 'story_slugs': ['sima-zhao-intent', 'happy-not-miss-shu', 'three-kingdoms-unite-jin', 'shi-chong-wealth', 'war-eight-princes', 'dance-rooster', 'strike-oar-midstream', 'comeback-east-mountain', 'whips-stop-river', 'battle-fei-river', 'grass-trees-soldiers', 'wind-cranes', 'lanting-preface', 'five-pecks-rice']},
     {'slug': 'northern-southern', 'name': 'Northern & Southern Dynasties', 'chinese_name': '南北朝', 'dates': '420–589', 'icon': '⛰️', 'description': 'A divided era of cultural exchange, reform, conflict, famous idioms, and the reunification of China.', 'story_slugs': ['tan-daoji-sand', 'destroy-great-wall', 'yuanjia-northern-expedition', 'taiwu-buddhism', 'mulan-army', 'xiaowen-luoyang', 'xiaowen-reforms', 'jianglang-talent', 'draw-dragon-eyes', 'emperor-wu-monk', 'houjing-rebellion', 'emperor-wu-taicheng', 'jade-trees-flowers', 'broken-mirror-reunion']},
     {'slug': 'sui', 'name': 'Sui Dynasty', 'chinese_name': '隋朝', 'dates': '581–618', 'icon': '🌉', 'description': 'Reunification, reform, major public works, rebellion, and the transition to Tang.', 'story_slugs': ['yang-jian-founds-sui', 'sui-conquers-chen', 'kaihuang-reign', 'empress-dugu', 'yang-guang-crown-prince', 'grand-canal', 'goguryeo-campaigns', 'wagang-rebellion', 'li-mi-wagang', 'jiangdu-mutiny', 'li-yuan-taiyuan', 'fall-sui-rise-tang']},
-    {'slug': 'tang', 'name': 'Tang Dynasty', 'chinese_name': '唐朝', 'dates': '618–907', 'icon': '🏮', 'description': 'Cosmopolitan Chang’an, poetry, trade, and cultural exchange.', 'story_slugs': ['tang-changan']},
+    {'slug': 'tang', 'name': 'Tang Dynasty', 'chinese_name': '唐朝', 'dates': '618–907', 'icon': '🏮', 'description': 'A celebrated age of emperors, poetry, cultural exchange, prosperity, rebellion, and famous stories.', 'story_slugs': ['xuanwu-gate', 'zhenguan-reign', 'wei-zheng-remonstrates', 'xuanzang-journey', 'princess-wencheng-tibet', 'wu-zetian-emperor', 'invite-into-urn', 'di-renjie-cases', 'kaiyuan-prosperity', 'li-bai-xuanzong', 'xuanzong-yang-guifei', 'lychee-yang-guifei', 'an-lushan-rebellion', 'mawei-slope', 'du-fu-an-lushan', 'huang-chao-rebellion', 'zhu-wen-ends-tang', 'tang-changan']},
     {'slug': 'five-dynasties', 'name': 'Five Dynasties & Ten Kingdoms', 'chinese_name': '五代十國', 'dates': '907–960', 'icon': '🗺️', 'description': 'A short but important period of political division.', 'story_slugs': []},
     {'slug': 'song', 'name': 'Song Dynasty', 'chinese_name': '宋朝', 'dates': '960–1279', 'icon': '🧭', 'description': 'Innovation, commerce, cities, printing, and new technologies.', 'story_slugs': ['song-innovation']},
     {'slug': 'yuan', 'name': 'Yuan Dynasty', 'chinese_name': '元朝', 'dates': '1271–1368', 'icon': '🐎', 'description': 'Mongol rule and connections across Eurasia.', 'story_slugs': []},
