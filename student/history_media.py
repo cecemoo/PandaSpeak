@@ -502,6 +502,82 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Tang/zhu-wen-ends-tang-discovery-narration.m4a',
         'video': 'student/history/Tang/zhu-wen-ends-tang-1min.mp4',
     },
+    'yellow-robe': {
+        'audio': 'student/history/Song/yellow-robe-discovery-narration.m4a',
+        'video': 'student/history/Song/yellow-robe-1min.mp4',
+    },
+    'wine-cup-military-power': {
+        'audio': 'student/history/Song/wine-cup-military-power-discovery-narration.m4a',
+        'video': 'student/history/Song/wine-cup-military-power-1min.mp4',
+    },
+    'candle-shadow-axe-sound': {
+        'audio': 'student/history/Song/candle-shadow-axe-sound-discovery-narration.m4a',
+        'video': 'student/history/Song/candle-shadow-axe-sound-1min.mp4',
+    },
+    'yang-family-generals': {
+        'audio': 'student/history/Song/yang-family-generals-discovery-narration.m4a',
+        'video': 'student/history/Song/yang-family-generals-1min.mp4',
+    },
+    'chanyuan-treaty': {
+        'audio': 'student/history/Song/chanyuan-treaty-discovery-narration.m4a',
+        'video': 'student/history/Song/chanyuan-treaty-1min.mp4',
+    },
+    'bao-zheng-cases': {
+        'audio': 'student/history/Song/bao-zheng-cases-discovery-narration.m4a',
+        'video': 'student/history/Song/bao-zheng-cases-1min.mp4',
+    },
+    'fan-zhongyan': {
+        'audio': 'student/history/Song/fan-zhongyan-discovery-narration.m4a',
+        'video': 'student/history/Song/fan-zhongyan-1min.mp4',
+    },
+    'wang-anshi-reforms': {
+        'audio': 'student/history/Song/wang-anshi-reforms-discovery-narration.m4a',
+        'video': 'student/history/Song/wang-anshi-reforms-1min.mp4',
+    },
+    'sima-guang-vat': {
+        'audio': 'student/history/Song/sima-guang-vat-discovery-narration.m4a',
+        'video': 'student/history/Song/sima-guang-vat-1min.mp4',
+    },
+    'su-dongpo-pork': {
+        'audio': 'student/history/Song/su-dongpo-pork-discovery-narration.m4a',
+        'video': 'student/history/Song/su-dongpo-pork-1min.mp4',
+    },
+    'crow-terrace-poetry-case': {
+        'audio': 'student/history/Song/crow-terrace-poetry-case-discovery-narration.m4a',
+        'video': 'student/history/Song/crow-terrace-poetry-case-1min.mp4',
+    },
+    'jingkang-incident': {
+        'audio': 'student/history/Song/jingkang-incident-discovery-narration.m4a',
+        'video': 'student/history/Song/jingkang-incident-1min.mp4',
+    },
+    'yue-fei-loyalty': {
+        'audio': 'student/history/Song/yue-fei-loyalty-discovery-narration.m4a',
+        'video': 'student/history/Song/yue-fei-loyalty-1min.mp4',
+    },
+    'yue-mother-tattoo': {
+        'audio': 'student/history/Song/yue-mother-tattoo-discovery-narration.m4a',
+        'video': 'student/history/Song/yue-mother-tattoo-1min.mp4',
+    },
+    'twelve-gold-plaques': {
+        'audio': 'student/history/Song/twelve-gold-plaques-discovery-narration.m4a',
+        'video': 'student/history/Song/twelve-gold-plaques-1min.mp4',
+    },
+    'groundless-charge': {
+        'audio': 'student/history/Song/groundless-charge-discovery-narration.m4a',
+        'video': 'student/history/Song/groundless-charge-1min.mp4',
+    },
+    'xin-qiji-resistance': {
+        'audio': 'student/history/Song/xin-qiji-resistance-discovery-narration.m4a',
+        'video': 'student/history/Song/xin-qiji-resistance-1min.mp4',
+    },
+    'wen-tianxiang': {
+        'audio': 'student/history/Song/wen-tianxiang-discovery-narration.m4a',
+        'video': 'student/history/Song/wen-tianxiang-1min.mp4',
+    },
+    'battle-yamen': {
+        'audio': 'student/history/Song/battle-yamen-discovery-narration.m4a',
+        'video': 'student/history/Song/battle-yamen-1min.mp4',
+    },
 }
 
 
