@@ -10,12 +10,13 @@ from .jin_history_lessons import JIN_CARDS, JIN_HISTORY_LESSONS
 from .northern_southern_history_lessons import NORTHERN_SOUTHERN_CARDS, NORTHERN_SOUTHERN_HISTORY_LESSONS
 from .sui_history_lessons import SUI_CARDS, SUI_HISTORY_LESSONS
 from .tang_history_lessons import TANG_CARDS, TANG_HISTORY_LESSONS
+from .song_history_lessons import SONG_CARDS, SONG_HISTORY_LESSONS
 from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
 # Build one chronological History Journey while keeping the existing lessons intact.
-HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS}
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS, **SONG_HISTORY_LESSONS}
 _oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
 _qin_card = EXISTING_HISTORY_LESSONS['qin-unification']
 _other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug'] not in ('oracle-bones', 'qin-unification')]
@@ -33,6 +34,7 @@ HISTORY_CARDS = (
     + NORTHERN_SOUTHERN_CARDS
     + SUI_CARDS
     + TANG_CARDS
+    + SONG_CARDS
 )
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
@@ -50,7 +52,7 @@ DYNASTIES = [
     {'slug': 'sui', 'name': 'Sui Dynasty', 'chinese_name': '隋朝', 'dates': '581–618', 'icon': '🌉', 'description': 'Reunification, reform, major public works, rebellion, and the transition to Tang.', 'story_slugs': ['yang-jian-founds-sui', 'sui-conquers-chen', 'kaihuang-reign', 'empress-dugu', 'yang-guang-crown-prince', 'grand-canal', 'goguryeo-campaigns', 'wagang-rebellion', 'li-mi-wagang', 'jiangdu-mutiny', 'li-yuan-taiyuan', 'fall-sui-rise-tang']},
     {'slug': 'tang', 'name': 'Tang Dynasty', 'chinese_name': '唐朝', 'dates': '618–907', 'icon': '🏮', 'description': 'A celebrated age of emperors, poetry, cultural exchange, prosperity, rebellion, and famous stories.', 'story_slugs': ['xuanwu-gate', 'zhenguan-reign', 'wei-zheng-remonstrates', 'xuanzang-journey', 'princess-wencheng-tibet', 'wu-zetian-emperor', 'invite-into-urn', 'di-renjie-cases', 'kaiyuan-prosperity', 'li-bai-xuanzong', 'xuanzong-yang-guifei', 'lychee-yang-guifei', 'an-lushan-rebellion', 'mawei-slope', 'du-fu-an-lushan', 'huang-chao-rebellion', 'zhu-wen-ends-tang', 'tang-changan']},
     {'slug': 'five-dynasties', 'name': 'Five Dynasties & Ten Kingdoms', 'chinese_name': '五代十國', 'dates': '907–960', 'icon': '🗺️', 'description': 'A short but important period of political division.', 'story_slugs': []},
-    {'slug': 'song', 'name': 'Song Dynasty', 'chinese_name': '宋朝', 'dates': '960–1279', 'icon': '🧭', 'description': 'Innovation, commerce, cities, printing, and new technologies.', 'story_slugs': ['song-innovation']},
+    {'slug': 'song', 'name': 'Song Dynasty', 'chinese_name': '宋朝', 'dates': '960–1279', 'icon': '🧭', 'description': 'Innovation, commerce, cities, printing, and new technologies.', 'story_slugs': ['yellow-robe', 'wine-cup-military-power', 'candle-shadow-axe-sound', 'yang-family-generals', 'chanyuan-treaty', 'bao-zheng-cases', 'fan-zhongyan', 'wang-anshi-reforms', 'sima-guang-vat', 'su-dongpo-pork', 'crow-terrace-poetry-case', 'jingkang-incident', 'yue-fei-loyalty', 'yue-mother-tattoo', 'twelve-gold-plaques', 'groundless-charge', 'xin-qiji-resistance', 'wen-tianxiang', 'battle-yamen', 'song-innovation']},
     {'slug': 'yuan', 'name': 'Yuan Dynasty', 'chinese_name': '元朝', 'dates': '1271–1368', 'icon': '🐎', 'description': 'Mongol rule and connections across Eurasia.', 'story_slugs': []},
     {'slug': 'ming', 'name': 'Ming Dynasty', 'chinese_name': '明朝', 'dates': '1368–1644', 'icon': '⛵', 'description': 'Maritime voyages, rebuilding, and a flourishing imperial culture.', 'story_slugs': ['zheng-he']},
     {'slug': 'qing', 'name': 'Qing Dynasty', 'chinese_name': '清朝', 'dates': '1644–1912', 'icon': '🏯', 'description': 'The last imperial dynasty and the transformation toward the modern era.', 'story_slugs': ['ming-qing-beijing']},
