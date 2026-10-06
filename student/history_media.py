@@ -434,6 +434,74 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Sui/fall-sui-rise-tang-discovery-narration.m4a',
         'video': 'student/history/Sui/fall-sui-rise-tang-1min.mp4',
     },
+    'xuanwu-gate': {
+        'audio': 'student/history/Tang/xuanwu-gate-discovery-narration.m4a',
+        'video': 'student/history/Tang/xuanwu-gate-1min.mp4',
+    },
+    'zhenguan-reign': {
+        'audio': 'student/history/Tang/zhenguan-reign-discovery-narration.m4a',
+        'video': 'student/history/Tang/zhenguan-reign-1min.mp4',
+    },
+    'wei-zheng-remonstrates': {
+        'audio': 'student/history/Tang/wei-zheng-remonstrates-discovery-narration.m4a',
+        'video': 'student/history/Tang/wei-zheng-remonstrates-1min.mp4',
+    },
+    'xuanzang-journey': {
+        'audio': 'student/history/Tang/xuanzang-journey-discovery-narration.m4a',
+        'video': 'student/history/Tang/xuanzang-journey-1min.mp4',
+    },
+    'princess-wencheng-tibet': {
+        'audio': 'student/history/Tang/princess-wencheng-tibet-discovery-narration.m4a',
+        'video': 'student/history/Tang/princess-wencheng-tibet-1min.mp4',
+    },
+    'wu-zetian-emperor': {
+        'audio': 'student/history/Tang/wu-zetian-emperor-discovery-narration.m4a',
+        'video': 'student/history/Tang/wu-zetian-emperor-1min.mp4',
+    },
+    'invite-into-urn': {
+        'audio': 'student/history/Tang/invite-into-urn-discovery-narration.m4a',
+        'video': 'student/history/Tang/invite-into-urn-1min.mp4',
+    },
+    'di-renjie-cases': {
+        'audio': 'student/history/Tang/di-renjie-cases-discovery-narration.m4a',
+        'video': 'student/history/Tang/di-renjie-cases-1min.mp4',
+    },
+    'kaiyuan-prosperity': {
+        'audio': 'student/history/Tang/kaiyuan-prosperity-discovery-narration.m4a',
+        'video': 'student/history/Tang/kaiyuan-prosperity-1min.mp4',
+    },
+    'li-bai-xuanzong': {
+        'audio': 'student/history/Tang/li-bai-xuanzong-discovery-narration.m4a',
+        'video': 'student/history/Tang/li-bai-xuanzong-1min.mp4',
+    },
+    'xuanzong-yang-guifei': {
+        'audio': 'student/history/Tang/xuanzong-yang-guifei-discovery-narration.m4a',
+        'video': 'student/history/Tang/xuanzong-yang-guifei-1min.mp4',
+    },
+    'lychee-yang-guifei': {
+        'audio': 'student/history/Tang/lychee-yang-guifei-discovery-narration.m4a',
+        'video': 'student/history/Tang/lychee-yang-guifei-1min.mp4',
+    },
+    'an-lushan-rebellion': {
+        'audio': 'student/history/Tang/an-lushan-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Tang/an-lushan-rebellion-1min.mp4',
+    },
+    'mawei-slope': {
+        'audio': 'student/history/Tang/mawei-slope-discovery-narration.m4a',
+        'video': 'student/history/Tang/mawei-slope-1min.mp4',
+    },
+    'du-fu-an-lushan': {
+        'audio': 'student/history/Tang/du-fu-an-lushan-discovery-narration.m4a',
+        'video': 'student/history/Tang/du-fu-an-lushan-1min.mp4',
+    },
+    'huang-chao-rebellion': {
+        'audio': 'student/history/Tang/huang-chao-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Tang/huang-chao-rebellion-1min.mp4',
+    },
+    'zhu-wen-ends-tang': {
+        'audio': 'student/history/Tang/zhu-wen-ends-tang-discovery-narration.m4a',
+        'video': 'student/history/Tang/zhu-wen-ends-tang-1min.mp4',
+    },
 }
 
 
