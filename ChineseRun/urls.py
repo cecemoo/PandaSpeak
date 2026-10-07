@@ -18,6 +18,9 @@ urlpatterns = [
         lambda request: HttpResponse(
             "User-agent: *\n"
             "Allow: /\n"
+            "Disallow: /admin/\n"
+            "Disallow: /student/\n"
+            "Disallow: /teacher/\n"
             "Sitemap: https://pandaspeak.org/sitemap.xml\n",
             content_type="text/plain"
             )
