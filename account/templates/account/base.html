@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>PandaSpeak | Traditional Chinese Learning for Adults Worldwide</title>
-  <meta name="description" content="PandaSpeak is an independent online Traditional Chinese learning platform for adults worldwide. Based in Houston, Texas and owned by Orange Jump Jump, PandaSpeak offers 24/7 learning materials plus online tutoring with teacher and student time-zone support.">
+  <title>{% block title %}PandaSpeak | Traditional Chinese Learning for Adults Worldwide{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}PandaSpeak is an independent online Traditional Chinese learning platform for adults worldwide. Based in Houston, Texas and owned by Orange Jump Jump, PandaSpeak offers 24/7 learning materials plus online tutoring with teacher and student time-zone support.{% endblock %}">
   <meta name="keywords" content="Traditional Chinese learning, learn Chinese online, adult Chinese learning, Chinese vocabulary, Chinese pronunciation, BoPoMoFo, Pinyin, Chinese sentences, Chinese expressions, online Chinese tutoring, PandaSpeak">
   <link rel="canonical" href="https://pandaspeak.org{{ request.path }}">
   {% block robots_meta %}{% endblock %}
@@ -66,8 +66,8 @@
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="PandaSpeak">
-  <meta property="og:title" content="PandaSpeak | Traditional Chinese Learning for Adults Worldwide">
-  <meta property="og:description" content="Independent online Traditional Chinese learning for adults worldwide. Access learning materials 24/7 and book online tutoring with local time-zone support.">
+  <meta property="og:title" content="{% block og_title %}PandaSpeak | Traditional Chinese Learning for Adults Worldwide{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Independent online Traditional Chinese learning for adults worldwide. Access learning materials 24/7 and book online tutoring with local time-zone support.{% endblock %}">
   <meta property="og:url" content="https://pandaspeak.org/">
   <meta property="og:image" content="https://pandaspeak.org/static/assets/img/logo.jpeg">
   <meta property="og:image:alt" content="PandaSpeak logo">
