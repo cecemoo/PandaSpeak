@@ -177,3 +177,16 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - Push Subscription"
+
+
+class LeadMagnetSignup(models.Model):
+    """Email captured via a free lead magnet (e.g. the BoPoMoFo chart)."""
+    email = models.EmailField(unique=True)
+    source = models.CharField(max_length=64, default='bopomofo-chart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    unsubscribed = models.BooleanField(default=False)
+    followup_day2_sent = models.BooleanField(default=False)
+    followup_day5_sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.email} ({self.source})"

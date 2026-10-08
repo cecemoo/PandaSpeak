@@ -1076,3 +1076,60 @@ def service_worker(request):
         )
     return response
 
+
+
+# ---- Lead magnet: free BoPoMoFo chart ----
+from django.core import signing as _signing
+
+LEAD_MAGNET_PDF_URL = 'https://pandaspeak.org/static/student/lead_magnet/bopomofo-chart.pdf'
+
+def _lead_unsub_link(signup_id):
+    token = _signing.dumps({'lead_id': signup_id}, salt='lead-unsub')
+    return 'https://pandaspeak.org' + reverse('lead_unsubscribe', args=[token])
+
+def _send_lead_email(signup, subject, body):
+    send_mail(
+        subject,
+        body + '\n\n---\nYou received this because you downloaded a free resource from PandaSpeak.\nUnsubscribe: ' + _lead_unsub_link(signup.id),
+        settings.DEFAULT_FROM_EMAIL,
+        [signup.email],
+        fail_silently=False,
+    )
+
+def bopomofo_chart_lead(request):
+    from .models import LeadMagnetSignup
+    error = None
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip().lower()
+        consent = request.POST.get('consent')
+        if '@' not in email or '.' not in email.split('@')[-1]:
+            error = 'Please enter a valid email address.'
+        elif not consent:
+            error = 'Please tick the consent box so we can email you the chart.'
+        else:
+            signup, created = LeadMagnetSignup.objects.get_or_create(
+                email=email, defaults={'source': 'bopomofo-chart'})
+            if created and not signup.unsubscribed:
+                _send_lead_email(
+                    signup,
+                    'Your free BoPoMoFo chart is here',
+                    'Hi there,\n\nThanks for grabbing the free PandaSpeak BoPoMoFo chart! '
+                    'Download it here:\n' + LEAD_MAGNET_PDF_URL + '\n\n'
+                    'Quick start tip: learn the 21 initials first (top section), saying each one out loud. '
+                    'Most adults memorize all 37 symbols within two weeks.\n\n'
+                    'When you are ready for the next step, take our free placement test and we will match you '
+                    'to the right level:\nhttps://pandaspeak.org/placement-test/\n\n'
+                    'Happy learning!\nThe PandaSpeak Team')
+            return redirect('free_bopomofo_chart_sent')
+    return render(request, 'account/free-bopomofo-chart.html', {'error': error})
+
+def lead_unsubscribe(request, token):
+    from .models import LeadMagnetSignup
+    done = False
+    try:
+        data = _signing.loads(token, salt='lead-unsub', max_age=60 * 60 * 24 * 365 * 2)
+        updated = LeadMagnetSignup.objects.filter(id=data.get('lead_id')).update(unsubscribed=True)
+        done = bool(updated)
+    except Exception:
+        done = False
+    return render(request, 'account/lead_unsubscribe.html', {'done': done})

@@ -1,0 +1,18 @@
+{% extends 'account/base.html' %}
+{% block title %}Unsubscribed | PandaSpeak{% endblock %}
+{% block meta_description %}Unsubscribe from PandaSpeak learning tips emails.{% endblock %}
+{% block content %}
+<main class="main">
+  <section class="section">
+    <div class="container text-center" style="max-width:640px;padding:4rem 1rem;">
+      {% if done %}
+      <h1>You're unsubscribed</h1>
+      <p class="lead">You won't receive learning-tips emails from us anymore. Happy studying!</p>
+      {% else %}
+      <h1>Link not recognized</h1>
+      <p class="lead">This unsubscribe link isn't valid. If you keep getting our emails, please contact us.</p>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}

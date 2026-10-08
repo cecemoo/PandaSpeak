@@ -13,6 +13,7 @@ class StaticViewSitemap(Sitemap):
             "about",
             "learn_traditional_chinese_online",
             "bopomofo_for_adults",
+            "free_bopomofo_chart",
             "placement_test",
             "faq",
             "terms",
