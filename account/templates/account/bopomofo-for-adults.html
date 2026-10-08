@@ -1,0 +1,67 @@
+{% extends 'account/base.html' %}
+{% block title %}BoPoMoFo for Adults | Learn Zhuyin Pronunciation | PandaSpeak{% endblock %}
+{% block meta_description %}Learn BoPoMoFo (Zhuyin) as an adult with PandaSpeak: the Traditional Chinese phonetic system taught alongside Pinyin, with pronunciation tables, listen-along audio, and structured lessons.{% endblock %}
+{% block og_title %}BoPoMoFo for Adults | Learn Zhuyin Pronunciation | PandaSpeak{% endblock %}
+{% block og_description %}Learn BoPoMoFo (Zhuyin) as an adult: the Traditional Chinese phonetic system, taught alongside Pinyin with audio and structured lessons.{% endblock %}
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>BoPoMoFo for Adults</h1>
+      <p>Master ㄅㄆㄇㄈ — the phonetic system behind Traditional Chinese — even if you've never seen it before.</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container" style="max-width:900px">
+      <h2>What Is BoPoMoFo?</h2>
+      <p>BoPoMoFo (注音, Zhùyīn — literally "phonetic symbols") is the phonetic system used in Taiwan to teach the pronunciation of Chinese characters. Its 37 symbols — ㄅ, ㄆ, ㄇ, ㄈ, and friends — represent every initial, final, and tone in Mandarin. If you can read BoPoMoFo, you can pronounce any Chinese character you encounter.</p>
+      <p>While Pinyin uses the Latin alphabet, BoPoMoFo is purpose-built for Chinese sounds. Many learners find it gives them cleaner tones and more precise pronunciation, because each symbol maps to exactly one sound — no English-letter habits getting in the way.</p>
+
+      <h2 class="mt-5">BoPoMoFo vs. Pinyin: Do You Need Both?</h2>
+      <p>You don't have to choose. Pinyin dominates mainland China and most textbooks; BoPoMoFo dominates Taiwan and pairs naturally with Traditional characters. Learning both means you can use any dictionary, textbook, or input method you encounter. PandaSpeak teaches them side by side from the very first lesson, so you build both systems together instead of relearning pronunciation later.</p>
+
+      <h2 class="mt-5">Why Adults Learn BoPoMoFo Faster Than They Expect</h2>
+      <ul>
+        <li><strong>Only 37 symbols.</strong> Fewer than the hiragana you may have seen in Japanese — most adults memorize them in a week or two.</li>
+        <li><strong>Perfectly regular.</strong> Each symbol always sounds the same. No silent letters, no exceptions to memorize.</li>
+        <li><strong>Tone clarity.</strong> Tone marks sit right on the final, training your eye and ear together.</li>
+        <li><strong>Real-world payoff.</strong> Taiwanese dictionaries, children's books, and street signs with phonetic guides all use BoPoMoFo.</li>
+      </ul>
+
+      <h2 class="mt-5">How PandaSpeak Teaches BoPoMoFo</h2>
+      <ul>
+        <li><strong>BoPoMoFo and Pinyin tables</strong> — complete reference charts with audio for every symbol</li>
+        <li><strong>Pronunciation pages</strong> — structured lessons that build from single sounds to full syllables</li>
+        <li><strong>Listen-along audio</strong> — every lesson's text read aloud in standard Mandarin, so you hear exactly what the symbols describe</li>
+        <li><strong>Always paired with characters</strong> — you never learn symbols in isolation; every sound connects to real Traditional Chinese vocabulary from day one</li>
+      </ul>
+
+      <h2 class="mt-5">Frequently Asked Questions</h2>
+      <h3>Is BoPoMoFo hard for adults?</h3>
+      <p>No — it's one of the quickest wins in Chinese learning. The 37 symbols are simple shapes, and because the system is perfectly regular, adults typically read basic BoPoMoFo within two weeks of consistent practice.</p>
+      <h3>Will learning BoPoMoFo confuse my Pinyin?</h3>
+      <p>The opposite: seeing the same sounds through two systems deepens your understanding of both. PandaSpeak presents them together so they reinforce each other.</p>
+      <h3>Do I need BoPoMoFo to learn Traditional Chinese?</h3>
+      <p>Not strictly — but if your goal involves Taiwan, it is the single most useful pronunciation tool you can learn, and it pairs beautifully with Traditional characters.</p>
+
+      <div class="mt-5 p-4 p-md-5 rounded-4 text-center" style="background:linear-gradient(135deg,#ff5a1f,#ff8a00);color:#fff;box-shadow:0 12px 30px rgba(255,90,31,.18);">
+        <h2 class="mb-3" style="color:#fff;">Start Pronouncing Chinese Correctly</h2>
+        <p class="mb-4" style="font-size:1.05rem;">BoPoMoFo + Pinyin, Traditional characters, and lessons that respect adult learners.</p>
+        <a href="{% url 'placement_test' %}" class="btn btn-light btn-lg me-2 mb-2">Take the Free Placement Test</a>
+        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg mb-2">Create Free Account</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Is BoPoMoFo hard for adults?", "acceptedAnswer": {"@type": "Answer", "text": "No. The 37 symbols are simple shapes and the system is perfectly regular; adults typically read basic BoPoMoFo within two weeks of consistent practice."}},
+    {"@type": "Question", "name": "Will learning BoPoMoFo confuse my Pinyin?", "acceptedAnswer": {"@type": "Answer", "text": "The opposite: seeing the same sounds through two systems deepens understanding of both."}},
+    {"@type": "Question", "name": "Do I need BoPoMoFo to learn Traditional Chinese?", "acceptedAnswer": {"@type": "Answer", "text": "Not strictly, but for Taiwan-focused goals it is the most useful pronunciation tool you can learn."}}
+  ]
+}
+</script>
+{% endblock %}

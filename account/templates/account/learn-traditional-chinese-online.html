@@ -1,0 +1,70 @@
+{% extends 'account/base.html' %}
+{% block title %}Learn Traditional Chinese Online | PandaSpeak for Adults{% endblock %}
+{% block meta_description %}Learn Traditional Chinese online with PandaSpeak — the adult-focused platform with Traditional characters, BoPoMoFo + Pinyin pronunciation, three levels, 24/7 materials, and live online tutoring.{% endblock %}
+{% block og_title %}Learn Traditional Chinese Online | PandaSpeak for Adults{% endblock %}
+{% block og_description %}Traditional Chinese for adult learners: Traditional characters, BoPoMoFo + Pinyin, three levels, 24/7 materials, and live tutoring.{% endblock %}
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>Learn Traditional Chinese Online</h1>
+      <p>A complete Traditional Chinese learning platform built for adult learners — not repurposed kids' lessons.</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container" style="max-width:900px">
+      <h2>Why Learn Traditional Chinese?</h2>
+      <p>Traditional Chinese is the writing system used in Taiwan, Hong Kong, and Macau, and by millions of overseas Chinese communities. Its characters preserve the shapes, radicals, and stories that make Chinese memorable — many learners find Traditional characters <em>easier</em> to learn precisely because each character carries more meaning in its form.</p>
+      <p>Yet almost every major language app teaches Simplified Chinese only. If your goal is Taiwan, Hong Kong, classical texts, or connecting with family who write Traditional characters, you need a platform that teaches Traditional from day one. That is what PandaSpeak does.</p>
+
+      <h2 class="mt-5">Built for Adults, Not Children</h2>
+      <p>PandaSpeak is designed for adult learners: busy schedules, real goals, no cartoon mascots talking down to you. Learning materials are available 24/7 so you can study on your own time, and everything is organized in three levels:</p>
+      <ul>
+        <li><strong>Level I (Beginner)</strong> — vocabulary and pronunciation foundations</li>
+        <li><strong>Level II (Intermediate)</strong> — builds on Level I with sentences, expressions, and Chinese culture</li>
+        <li><strong>Level III (Advanced)</strong> — deeper language and cultural mastery</li>
+      </ul>
+      <p>Not sure where you fit? Take the <a href="{% url 'placement_test' %}">free placement test</a> and start at the right level.</p>
+
+      <h2 class="mt-5">Pronunciation the Way It Should Be Taught</h2>
+      <p>Every lesson supports both <strong>BoPoMoFo (注音)</strong> and <strong>Pinyin (拼音)</strong> — the two phonetic systems used across the Chinese-speaking world. Dedicated pronunciation pages, BoPoMoFo and Pinyin tables, and listen-along audio help you hear and produce every sound correctly from the start.</p>
+
+      <h2 class="mt-5">More Than Vocabulary Lists</h2>
+      <ul>
+        <li><strong>Chinese history journeys</strong> — learn through animated stories from Chinese history, from Yu the Great to the Ming dynasty</li>
+        <li><strong>Games and challenges</strong> — Chinese bingo, flashcards, and challenge games on your dashboard</li>
+        <li><strong>AI conversation practice</strong> — practice speaking with an AI partner anytime</li>
+        <li><strong>Live online tutoring</strong> — book one-on-one sessions with real teachers, scheduled across time zones</li>
+      </ul>
+
+      <h2 class="mt-5">Frequently Asked Questions</h2>
+      <h3>Should I learn Traditional or Simplified Chinese?</h3>
+      <p>Learn the system you will actually use. Choose Traditional if you plan to spend time in Taiwan, Hong Kong, or Macau, read classical Chinese texts, or communicate with people who write Traditional characters. Learners who start with Traditional can usually read Simplified later with little extra effort — the reverse is harder.</p>
+      <h3>Do I need to know BoPoMoFo before starting?</h3>
+      <p>No. PandaSpeak teaches pronunciation from zero, with both BoPoMoFo and Pinyin side by side. Many adult learners pick up BoPoMoFo quickly and find it sharpens their tones.</p>
+      <h3>How much time does it take?</h3>
+      <p>Materials are self-paced and available around the clock. Most adult learners make steady progress with 20–30 minutes a day, plus optional tutoring sessions.</p>
+      <h3>Can I get live help from a teacher?</h3>
+      <p>Yes. PandaSpeak offers online tutoring with vetted teachers, booked through the platform with automatic time-zone support for you and your teacher.</p>
+
+      <div class="mt-5 p-4 p-md-5 rounded-4 text-center" style="background:linear-gradient(135deg,#ff5a1f,#ff8a00);color:#fff;box-shadow:0 12px 30px rgba(255,90,31,.18);">
+        <h2 class="mb-3" style="color:#fff;">Start Learning Traditional Chinese Today</h2>
+        <p class="mb-4" style="font-size:1.05rem;">Find your level in minutes, then learn on your schedule — anytime, anywhere.</p>
+        <a href="{% url 'placement_test' %}" class="btn btn-light btn-lg me-2 mb-2">Take the Free Placement Test</a>
+        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg mb-2">Create Free Account</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Should I learn Traditional or Simplified Chinese?", "acceptedAnswer": {"@type": "Answer", "text": "Learn the system you will actually use. Choose Traditional if you plan to spend time in Taiwan, Hong Kong, or Macau, read classical Chinese texts, or communicate with people who write Traditional characters."}},
+    {"@type": "Question", "name": "Do I need to know BoPoMoFo before starting?", "acceptedAnswer": {"@type": "Answer", "text": "No. PandaSpeak teaches pronunciation from zero, with both BoPoMoFo and Pinyin side by side."}},
+    {"@type": "Question", "name": "Can I get live help from a teacher?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. PandaSpeak offers online tutoring with vetted teachers, booked through the platform with automatic time-zone support."}}
+  ]
+}
+</script>
+{% endblock %}

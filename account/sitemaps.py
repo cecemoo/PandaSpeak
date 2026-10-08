@@ -11,6 +11,8 @@ class StaticViewSitemap(Sitemap):
         return [
             "home",
             "about",
+            "learn_traditional_chinese_online",
+            "bopomofo_for_adults",
             "placement_test",
             "faq",
             "terms",
