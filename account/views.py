@@ -467,7 +467,8 @@ def edit_sentence(request, sentence_id):
         if form.is_valid():
             form.save()
             return redirect('sentences')
-    form = SentenceForm(instance=sentence)
+    else:
+        form = SentenceForm(instance=sentence)
     context = {'form': form, 'sentence': sentence}
     return render(request, 'account/edit_sentence.html', context)
 
