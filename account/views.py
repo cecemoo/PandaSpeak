@@ -497,7 +497,8 @@ def edit_idiom(request, idiom_id):
         if form.is_valid():
             form.save()
             return redirect('idioms')
-    form = IdiomForm(instance=idiom)
+    else:
+        form = IdiomForm(instance=idiom)
     context = {'form': form, 'idiom': idiom}
     return render(request, 'account/edit_idiom.html', context)
 
