@@ -4,8 +4,14 @@
 <h2>Subscription &amp; Stripe Connect Acknowledgments</h2>
 <p>Read-only records of student subscription checkout and teacher Stripe Connect acknowledgments. A missing date means no acknowledgment is recorded.</p>
 <form method="get" class="mb-4 d-flex gap-2"><input type="search" class="form-control" name="q" value="{{ query }}" placeholder="Search name or email"><button class="btn btn-primary">Search</button></form>
-<h3>Student subscription acknowledgments</h3>
-<div class="table-responsive mb-5"><table class="table table-striped"><thead><tr><th>Student</th><th>Account status</th><th>Acknowledgment</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
+<details class="mb-4" style="border:1px solid #d1d5db;border-radius:8px;overflow:hidden;">
+<summary style="padding:14px 16px;cursor:pointer;background:#f3f4f6;color:#172033;">
+<strong>Student subscription acknowledgments</strong>
+<span class="badge bg-secondary" style="float:right;">{{ student_records|length }} student{{ student_records|length|pluralize }}</span>
+</summary>
+<div style="padding:12px 12px 0;">
+
+<div class="table-responsive mb-3"><table class="table table-striped"><thead><tr><th>Student</th><th>Account status</th><th>Acknowledgment</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
 {% for sub in student_records %}
 <tr><td>{{ sub.user.get_full_name|default:sub.user.email }}<br><small>{{ sub.user.email }}</small></td>
 <td>{% if sub.is_disputed %}<span class="badge bg-danger">Blocked ({{ sub.dispute_status|default:"disputed" }})</span>{% elif sub.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
@@ -13,6 +19,7 @@
 <td>{{ sub.checkout_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ sub.checkout_terms_version|default:"—" }}</td></tr>
 {% empty %}<tr><td colspan="5">No matching subscription records.</td></tr>{% endfor %}
 </tbody></table></div>
+</div></details>
 <h3>Student checkout acknowledgment history</h3>
 <p>Each row is a separate confirmed checkout attempt. “Initiated” means checkout was requested, not that payment succeeded. Historical records are retained even when a newer attempt occurs.</p>
 {% regroup consent_events by user_id as student_history_groups %}
@@ -46,7 +53,13 @@
 <p>No recorded checkout attempts.</p>
 {% endfor %}
 </div>
-<h3>Teacher Stripe Connect acknowledgments</h3>
+<details class="mb-4" style="border:1px solid #d1d5db;border-radius:8px;overflow:hidden;">
+<summary style="padding:14px 16px;cursor:pointer;background:#f3f4f6;color:#172033;">
+<strong>Teacher Stripe Connect acknowledgments</strong>
+<span class="badge bg-secondary" style="float:right;">{{ teacher_records|length }} teacher{{ teacher_records|length|pluralize }}</span>
+</summary>
+<div style="padding:12px 12px 0;">
+
 <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Teacher</th><th>Stripe account</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
 {% for teacher in teacher_records %}
 <tr><td>{{ teacher.get_full_name|default:teacher.email }}<br><small>{{ teacher.email }}</small></td><td>{% if teacher.stripe_account_id %}Connected / initiated{% else %}Not connected{% endif %}</td>
@@ -54,6 +67,7 @@
 <td>{{ teacher.stripe_connect_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ teacher.stripe_connect_terms_version|default:"—" }}</td></tr>
 {% empty %}<tr><td colspan="5">No matching teachers.</td></tr>{% endfor %}
 </tbody></table></div>
+</div></details>
 <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to Manager Dashboard</a>
 </div></section></main>
 {% endblock %}
