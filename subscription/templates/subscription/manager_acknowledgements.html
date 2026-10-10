@@ -5,12 +5,13 @@
 <p>Read-only records of student subscription checkout and teacher Stripe Connect acknowledgments. A missing date means no acknowledgment is recorded.</p>
 <form method="get" class="mb-4 d-flex gap-2"><input type="search" class="form-control" name="q" value="{{ query }}" placeholder="Search name or email"><button class="btn btn-primary">Search</button></form>
 <h3>Student subscription acknowledgments</h3>
-<div class="table-responsive mb-5"><table class="table table-striped"><thead><tr><th>Student</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
+<div class="table-responsive mb-5"><table class="table table-striped"><thead><tr><th>Student</th><th>Account status</th><th>Acknowledgment</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
 {% for sub in student_records %}
 <tr><td>{{ sub.user.get_full_name|default:sub.user.email }}<br><small>{{ sub.user.email }}</small></td>
+<td>{% if sub.is_disputed %}<span class="badge bg-danger">Blocked ({{ sub.dispute_status|default:"disputed" }})</span>{% elif sub.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
 <td>{% if sub.checkout_terms_accepted_at %}<span class="badge bg-success">Recorded</span>{% else %}Not recorded{% endif %}</td>
 <td>{{ sub.checkout_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ sub.checkout_terms_version|default:"—" }}</td></tr>
-{% empty %}<tr><td colspan="4">No matching subscription records.</td></tr>{% endfor %}
+{% empty %}<tr><td colspan="5">No matching subscription records.</td></tr>{% endfor %}
 </tbody></table></div>
 <h3>Teacher Stripe Connect acknowledgments</h3>
 <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Teacher</th><th>Stripe account</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
