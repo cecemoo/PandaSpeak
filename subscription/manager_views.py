@@ -243,4 +243,4 @@ def acknowledgement_records(request):
     if query:
         students = students.filter(Q(user__email__icontains=query) | Q(user__first_name__icontains=query) | Q(user__last_name__icontains=query))
         teachers = teachers.filter(Q(email__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
-    return render(request, 'subscription/manager_acknowledgements.html', {'student_records': students.order_by('-checkout_terms_accepted_at')[:500], 'teacher_records': teachers.order_by('-stripe_connect_terms_accepted_at')[:500], 'query': query})
+    return render(request, 'subscription/manager_acknowledgements.html', {'student_records': students.order_by('-checkout_terms_accepted_at')[:500], 'teacher_records': teachers.order_by('-stripe_connect_terms_accepted_at')[:500], 'query': query, 'consent_events': SubscriptionConsentEvent.objects.select_related('user').filter(user__email__icontains=query).order_by('-accepted_at')[:500]})
