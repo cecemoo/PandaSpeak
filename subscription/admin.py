@@ -7,10 +7,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = (
         "user", "subscription_plan", "is_active", "is_cancelled",
         "is_disputed", "dispute_status", "dispute_provider", "disputed_at",
+        "checkout_terms_accepted_at", "checkout_terms_version",
     )
     list_filter = ("is_active", "is_cancelled", "is_disputed", "dispute_provider", "dispute_status")
     search_fields = ("user__email", "user__first_name", "user__last_name", "stripe_subscription_id", "paypal_subscription_id", "dispute_external_id")
-    readonly_fields = ("disputed_at",)
+    readonly_fields = ("disputed_at", "checkout_terms_accepted_at", "checkout_terms_version")
 
 
 @admin.register(StudentActivity)

@@ -29,7 +29,13 @@ class AnnouncementDeliveryAdmin(admin.ModelAdmin):
     search_fields = ('announcement__subject', 'user__email')
 
 
-admin.site.register(CustomUser)
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ("email", "first_name", "last_name", "is_teacher", "is_staff", "stripe_connect_terms_accepted_at", "stripe_connect_terms_version")
+    list_filter = ("is_teacher", "is_staff")
+    search_fields = ("email", "first_name", "last_name", "stripe_account_id")
+    readonly_fields = ("stripe_connect_terms_accepted_at", "stripe_connect_terms_version")
+
 admin.site.register(TermsOfService)
 admin.site.register(PrivacyPolicy)
 admin.site.register(PlacementQuestion)

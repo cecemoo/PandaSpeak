@@ -55,6 +55,7 @@
             <div class="card-header fw-bold">Evidence summary — {{ selected_subscription.user.email }}</div>
             <div class="card-body">
               <div><strong>Subscription:</strong> {{ selected_subscription.subscription_plan }} · {% if selected_subscription.is_active %}Active{% else %}Inactive{% endif %}</div>
+              <div><strong>Terms &amp; FAQ acknowledged:</strong> {% if selected_subscription.checkout_terms_accepted_at %}{{ selected_subscription.checkout_terms_accepted_at|date:"M j, Y g:i:s A T" }} (version {{ selected_subscription.checkout_terms_version }}){% else %}Not recorded{% endif %}</div>
               <div><strong>Provider:</strong> {% if selected_subscription.stripe_subscription_id %}Stripe{% elif selected_subscription.paypal_subscription_id %}PayPal{% else %}Unknown{% endif %}</div>
               {% if selected_subscription.is_disputed %}
               <div class="text-danger"><strong>Payment dispute:</strong> {{ selected_subscription.dispute_provider|title }} · {{ selected_subscription.dispute_status|default:"open" }} · {{ selected_subscription.disputed_at|date:"M j, Y g:i A" }}</div>
