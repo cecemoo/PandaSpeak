@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from account.models import Notification, CustomUser
-from .models import StudentActivity, Subscription
+from .models import StudentActivity, Subscription, SubscriptionConsentEvent
 from . import stripe_subscription_views
 
 
