@@ -874,6 +874,15 @@ def stripe_connect_onboard(request):
     if not getattr(teacher, "is_teacher", False):
         messages.error(request, "Only teachers can connect a Stripe account.")
         return redirect("course:course_list")
+    # Existing connected teachers may refresh onboarding without re-accepting.
+    if not teacher.stripe_account_id:
+        if request.method != "POST" or request.POST.get("accept_teacher_connect_terms") != "yes":
+            messages.error(request, "Please review and acknowledge the teacher payout terms before connecting Stripe.")
+            return redirect("teacher_dashboard")
+        from django.utils import timezone as django_timezone
+        teacher.stripe_connect_terms_accepted_at = django_timezone.now()
+        teacher.stripe_connect_terms_version = "2026-10-10"
+        teacher.save(update_fields=["stripe_connect_terms_accepted_at", "stripe_connect_terms_version"])
     try:
         # Create the connected account only once
         if not teacher.stripe_account_id:
