@@ -9,7 +9,7 @@
 {% for sub in student_records %}
 <tr><td>{{ sub.user.get_full_name|default:sub.user.email }}<br><small>{{ sub.user.email }}</small></td>
 <td>{% if sub.is_disputed %}<span class="badge bg-danger">Blocked ({{ sub.dispute_status|default:"disputed" }})</span>{% elif sub.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
-<td>{% if sub.checkout_terms_accepted_at %}<span class="badge bg-success">Recorded</span>{% else %}Not recorded{% endif %}</td>
+<td>{% if sub.checkout_terms_accepted_at %}<span class="badge bg-success">Recorded</span>{% elif sub.is_disputed %}N/A (legacy blocked account){% else %}Not recorded{% endif %}</td>
 <td>{{ sub.checkout_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ sub.checkout_terms_version|default:"—" }}</td></tr>
 {% empty %}<tr><td colspan="5">No matching subscription records.</td></tr>{% endfor %}
 </tbody></table></div>
