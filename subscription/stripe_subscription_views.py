@@ -117,12 +117,9 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
 def _stripe_subscription_from_dispute(dispute):
     """Return the PandaSpeak annual Stripe subscription related to a dispute."""
     charge_id = _stripe_value(dispute, "charge")
-    print("DISPUTE DEBUG: disput_id =", _stripe_value(dispute, "id"))
-    print("DISPUTE DEBUG: charge_id =", charge_id)
     if not charge_id:
         return None, None
     charge = stripe.Charge.retrieve(charge_id, api_key=_subscription_api_key())
-    print("DISPUTE DEBUG: charge invoice =", _stripe_value(charge, "invoice"), "payment_intent =", _stripe_value(charge, "payment_intent"))
     invoice_id = _stripe_value(charge, "invoice")
     if invoice_id:
         invoice = stripe.Invoice.retrieve(invoice_id, api_key=_subscription_api_key())
@@ -135,7 +132,6 @@ def _stripe_subscription_from_dispute(dispute):
         return None, charge_id
     sessions = stripe.checkout.Session.list(payment_intent=payment_intent_id, limit=10, api_key=_subscription_api_key())
     for session in sessions.auto_paging_iter():
-        print("DISPUTE DEBUG: checkout session =", _stripe_value(session, "id"), "subscription =", _stripe_value(session, "subscription"), "metadata =", _stripe_value(session, "metadata", {}))
         metadata = _stripe_value(session, "metadata", {}) or {}
         purpose = _stripe_value(metadata, "purpose")
         if purpose and purpose != "pandaspeak_annual_subscription":
@@ -143,9 +139,7 @@ def _stripe_subscription_from_dispute(dispute):
         sid = _stripe_value(session, "subscription")
         if not sid:
             continue
-        print("DISPUTE DEBUG: about to retrieve Stripe subscription side =", sid)
         remote = stripe.Subscription.retrieve(sid, api_key=_subscription_api_key())
-        print("DISPUTE DEBUG: Stripe subscription retrieved =", _stripe_value(remote, "id"))
         return remote, charge_id
     return None, charge_id
 
@@ -156,11 +150,11 @@ def _record_subscription_dispute(dispute):
     if remote is None:
         return
     sid = _stripe_value(remote, "id")
-    print("DISPUTE DEBUG: returned sid =", sid)
-    print("DISPUTE DEBUG: local subscription =", Subscription.objects.filter(stripe_subscription_id=sid).values("id", "stripe_subscription_id", "is_active", "is_disputed").first())
-    local = Subscription.objects.filter(stripe_subscription_id=sid, is_active=True, is_disputed=False).first()
-    if not local:
+    local = Subscription.objects.filter(stripe_subscription_id=sid).first()
+    if not local or (local.dispute_external_id and local.dispute_external_id != _stripe_value(dispute, "id")):
         return
+    if local.dispute_status == "lost":
+        return  # A late or repeated event must never undo a final loss.
     local.is_disputed = True
     local.dispute_status = _stripe_value(dispute, "status", "open") or "open"
     local.dispute_provider = "stripe"
@@ -217,6 +211,11 @@ def _update_subscription_dispute_status(dispute):
         return
     local = Subscription.objects.select_related("user").filter(dispute_provider="stripe", dispute_external_id=dispute_id).first()
     if not local:
+        _record_subscription_dispute(dispute)
+        local = Subscription.objects.select_related("user").filter(dispute_provider="stripe", dispute_external_id=dispute_id).first()
+        if not local:
+            return
+    if local.dispute_status == "lost" and status != "lost":
         return
     previous_status = local.dispute_status
     final_favorable = status in ("won", "warning_closed")
@@ -292,7 +291,7 @@ def stripe_subscription_checkout(request):
         messages.info(request, "You already have an active PandaSpeak annual subscription. No additional payment was created.")
         return redirect("student_dashboard")
     try:
-        session = stripe.checkout.Session.create(api_key=_subscription_api_key(), mode="subscription", payment_method_types=["card", "us_bank_account"], payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None, line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}", cancel_url=request.build_absolute_uri("/subscription/subscribe/"), metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}, subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}})
+        session = stripe.checkout.Session.create(api_key=_subscription_api_key(), idempotency_key=f"pandaspeak-annual-{request.user.pk}-{django_timezone.now().strftime('%Y%m%d%H%M')}", mode="subscription", payment_method_types=["card", "us_bank_account"], payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None, line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}", cancel_url=request.build_absolute_uri("/subscription/subscribe/"), metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}, subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}})
         return redirect(session.url)
     except stripe.error.StripeError:
         messages.error(request, "Unable to start Stripe checkout right now. Please try again.")
