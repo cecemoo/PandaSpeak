@@ -9,7 +9,8 @@ TERMS_VERSION = "2026-10-10"
 
 
 def require_checkout_consent(request):
-    if request.POST.get("accept_subscription_terms") != "yes":
+    if (request.POST.get("accept_subscription_terms") != "yes"
+            or request.POST.get("accept_subscription_faq") != "yes"):
         messages.error(request, "Please review and acknowledge the Terms of Service and FAQ before checkout.")
         return redirect("subscribe")
     # Record an audit timestamp before sending the student to the payment provider.
