@@ -13,7 +13,7 @@
 </div><dialog id="subscription-plans-consent" aria-labelledby="plans-consent-title" style="width:min(94vw,820px);max-height:90vh;border:1px solid #ddd;border-radius:16px;padding:22px;background:white;color:#172033;">
 <h3 id="plans-consent-title">Before subscribing to PandaSpeak</h3>
 <p>Standard access costs $15 per year and renews automatically until canceled. Please review the Terms of Service and FAQ, including cancellation, refund, and payment dispute policies.</p>
-<div style="display:flex;gap:10px;margin-bottom:12px;"><button type="button" class="btn btn-outline-primary" id="plans-show-terms">Terms of Service</button><button type="button" class="btn btn-outline-primary" id="plans-show-faq">FAQ</button></div>
+<div style="display:flex;gap:10px;margin-bottom:12px;"><button type="button" class="btn btn-primary" id="plans-show-terms" aria-pressed="true">Terms of Service</button><button type="button" class="btn btn-outline-primary" id="plans-show-faq" aria-pressed="false">FAQ</button></div>
 <iframe id="plans-policy-frame" src="{% url 'terms' %}" title="PandaSpeak Terms of Service" style="width:100%;height:min(45vh,420px);border:1px solid #ddd;border-radius:8px;"></iframe>
 <p><a href="{% url 'terms' %}" target="_blank" rel="noopener">Open full Terms</a> · <a href="{% url 'faq' %}" target="_blank" rel="noopener">Open full FAQ</a></p>
 <label style="display:flex;gap:10px;text-align:left;margin:15px 0;"><input type="checkbox" id="plans-consent-check"><span>I've read and understand the Terms of Service and FAQ, including subscription renewal, cancellation, refunds and disputes, and I want to proceed with the subscription.</span></label>
@@ -25,12 +25,25 @@ const dialog=document.getElementById('subscription-plans-consent');
 const check=document.getElementById('plans-consent-check');
 const proceed=document.getElementById('plans-consent-continue');
 const frame=document.getElementById('plans-policy-frame');
+const termsButton=document.getElementById('plans-show-terms');
+const faqButton=document.getElementById('plans-show-faq');
+function selectPolicy(policy){
+const showTerms=policy==='terms';
+termsButton.classList.toggle('btn-primary',showTerms);
+termsButton.classList.toggle('btn-outline-primary',!showTerms);
+faqButton.classList.toggle('btn-primary',!showTerms);
+faqButton.classList.toggle('btn-outline-primary',showTerms);
+termsButton.setAttribute('aria-pressed',String(showTerms));
+faqButton.setAttribute('aria-pressed',String(!showTerms));
+frame.src=showTerms?"{% url 'terms' %}":"{% url 'faq' %}";
+frame.title=showTerms?'PandaSpeak Terms of Service':'PandaSpeak FAQ';
+}
 let form=null;
 document.querySelectorAll('.subscription-consent-form').forEach(f=>f.addEventListener('submit',e=>{
 e.preventDefault();form=f;check.checked=false;proceed.disabled=true;dialog.showModal();
 }));
-document.getElementById('plans-show-terms').addEventListener('click',()=>{frame.src="{% url 'terms' %}";frame.title="PandaSpeak Terms of Service";});
-document.getElementById('plans-show-faq').addEventListener('click',()=>{frame.src="{% url 'faq' %}";frame.title="PandaSpeak FAQ";});
+termsButton.addEventListener('click',()=>selectPolicy('terms'));
+faqButton.addEventListener('click',()=>selectPolicy('faq'));
 check.addEventListener('change',()=>{proceed.disabled=!check.checked;});
 document.getElementById('plans-consent-cancel').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('close',()=>{form=null;});
