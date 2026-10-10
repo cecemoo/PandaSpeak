@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -61,3 +63,43 @@ class StripeDisputeAccessTests(TestCase):
             reverse("dispute_restricted"),
             fetch_redirect_response=False,
         )
+
+
+class PersistentStripeCheckoutTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="checkout-test@example.com", password="test-password"
+        )
+        self.client.force_login(self.user)
+
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    def test_first_checkout_persists_session(self, create):
+        create.return_value = Mock(id="cs_test_first", url="https://checkout.stripe.com/test")
+        response = self.client.post(reverse("stripe_subscription_checkout"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "https://checkout.stripe.com/test")
+        self.assertEqual(Subscription.objects.get(user=self.user).pending_stripe_checkout_id, "cs_test_first")
+
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
+    def test_retry_reuses_open_checkout(self, retrieve, create):
+        Subscription.objects.create(
+            user=self.user, subscription_plan="standard", subscription_cost=15,
+            pending_stripe_checkout_id="cs_test_existing"
+        )
+        retrieve.return_value = Mock(status="open", url="https://checkout.stripe.com/existing")
+        response = self.client.post(reverse("stripe_subscription_checkout"))
+        self.assertEqual(response.url, "https://checkout.stripe.com/existing")
+        create.assert_not_called()
+
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
+    def test_completed_checkout_never_creates_second_charge(self, retrieve, create):
+        Subscription.objects.create(
+            user=self.user, subscription_plan="standard", subscription_cost=15,
+            pending_stripe_checkout_id="cs_test_completed"
+        )
+        retrieve.return_value = Mock(status="complete")
+        response = self.client.post(reverse("stripe_subscription_checkout"))
+        self.assertEqual(response.status_code, 302)
+        create.assert_not_called()

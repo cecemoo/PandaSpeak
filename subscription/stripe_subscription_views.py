@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone as django_timezone
@@ -283,18 +284,53 @@ def _consume_reward_from_paid_invoice(invoice):
 def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
-    existing = Subscription.objects.filter(user=request.user).first()
-    if existing and existing.is_disputed:
-        messages.error(request, "This account cannot purchase PandaSpeak learning access while a payment dispute is recorded.")
-        return redirect("dispute_restricted")
-    if existing and existing.is_active and not existing.is_cancelled:
-        messages.info(request, "You already have an active PandaSpeak annual subscription. No additional payment was created.")
-        return redirect("student_dashboard")
+    # Serialize checkout creation per user in PostgreSQL, including first-time users.
+    # A database row persists across workers and application restarts.
     try:
-        session = stripe.checkout.Session.create(api_key=_subscription_api_key(), idempotency_key=f"pandaspeak-annual-{request.user.pk}-{django_timezone.now().strftime('%Y%m%d%H%M')}", mode="subscription", payment_method_types=["card", "us_bank_account"], payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None, line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}", cancel_url=request.build_absolute_uri("/subscription/subscribe/"), metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}, subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}})
-        return redirect(session.url)
+        with transaction.atomic():
+            User.objects.select_for_update().get(pk=request.user.pk)
+            existing, _ = Subscription.objects.get_or_create(
+                user=request.user,
+                defaults={"subscription_plan": "standard", "subscription_cost": 15.00},
+            )
+            if existing.is_disputed:
+                messages.error(request, "This account cannot purchase learning access while a payment dispute is recorded.")
+                return redirect("dispute_restricted")
+            if existing.is_active:
+                messages.info(request, "You already have an active PandaSpeak subscription. No additional payment was created.")
+                return redirect("student_dashboard")
+            if existing.pending_stripe_checkout_id:
+                pending = stripe.checkout.Session.retrieve(
+                    existing.pending_stripe_checkout_id, api_key=_subscription_api_key()
+                )
+                if _stripe_value(pending, "status") == "open":
+                    url = _stripe_value(pending, "url")
+                    if url:
+                        return redirect(url)
+                if _stripe_value(pending, "status") == "complete":
+                    messages.info(request, "Your previous checkout is being processed. Please check your account before trying again.")
+                    return redirect("student_dashboard")
+                # Only expired sessions permit a new checkout.
+                existing.pending_stripe_checkout_id = ""
+                existing.save(update_fields=["pending_stripe_checkout_id"])
+            session = stripe.checkout.Session.create(
+                api_key=_subscription_api_key(),
+                mode="subscription",
+                payment_method_types=["card", "us_bank_account"],
+                payment_method_options={"us_bank_account": {"verification_method": "automatic"}},
+                customer_email=request.user.email or None,
+                line_items=_annual_line_items(),
+                success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=request.build_absolute_uri("/subscription/subscribe/"),
+                metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)},
+                subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}},
+                idempotency_key=f"pandaspeak-annual-{request.user.pk}-{django_timezone.now().strftime('%Y%m%d%H%M')}",
+            )
+            existing.pending_stripe_checkout_id = session.id
+            existing.save(update_fields=["pending_stripe_checkout_id"])
+            return redirect(session.url)
     except stripe.error.StripeError:
-        messages.error(request, "Unable to start Stripe checkout right now. Please try again.")
+        messages.error(request, "Unable to verify or start Stripe checkout right now. Please try again later.")
         return redirect("subscribe")
 
 
