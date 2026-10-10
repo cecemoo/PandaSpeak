@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -70,19 +72,17 @@ class PersistentStripeCheckoutTests(TestCase):
         )
         self.client.force_login(self.user)
 
-    @__import__("unittest.mock", fromlist=["patch"]).patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
     def test_first_checkout_persists_session(self, create):
-        from unittest.mock import Mock
         create.return_value = Mock(id="cs_test_first", url="https://checkout.stripe.com/test")
         response = self.client.post(reverse("stripe_subscription_checkout"))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "https://checkout.stripe.com/test")
         self.assertEqual(Subscription.objects.get(user=self.user).pending_stripe_checkout_id, "cs_test_first")
 
-    @__import__("unittest.mock", fromlist=["patch"]).patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
-    @__import__("unittest.mock", fromlist=["patch"]).patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
     def test_retry_reuses_open_checkout(self, retrieve, create):
-        from unittest.mock import Mock
         Subscription.objects.create(
             user=self.user, subscription_plan="standard", subscription_cost=15,
             pending_stripe_checkout_id="cs_test_existing"
@@ -92,10 +92,9 @@ class PersistentStripeCheckoutTests(TestCase):
         self.assertEqual(response.url, "https://checkout.stripe.com/existing")
         create.assert_not_called()
 
-    @__import__("unittest.mock", fromlist=["patch"]).patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
-    @__import__("unittest.mock", fromlist=["patch"]).patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
     def test_completed_checkout_never_creates_second_charge(self, retrieve, create):
-        from unittest.mock import Mock
         Subscription.objects.create(
             user=self.user, subscription_plan="standard", subscription_cost=15,
             pending_stripe_checkout_id="cs_test_completed"
