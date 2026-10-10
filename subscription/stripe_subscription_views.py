@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from django.core.cache import cache
 
 import stripe
 from django.conf import settings
@@ -290,8 +291,15 @@ def stripe_subscription_checkout(request):
     if existing and existing.is_active and not existing.is_cancelled:
         messages.info(request, "You already have an active PandaSpeak annual subscription. No additional payment was created.")
         return redirect("student_dashboard")
+    # Cache the Checkout URL so a redirect retry does not create a second subscription.
+    # Use a shared cache (Redis/database), not per-process local memory, in production.
+    cache_key = f"pandaspeak:annual-checkout:{request.user.pk}"
+    pending = cache.get(cache_key)
+    if pending:
+        return redirect(pending)
     try:
-        session = stripe.checkout.Session.create(api_key=_subscription_api_key(), idempotency_key=f"pandaspeak-annual-{request.user.pk}-{django_timezone.now().strftime('%Y%m%d%H%M')}", mode="subscription", payment_method_types=["card", "us_bank_account"], payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None, line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}", cancel_url=request.build_absolute_uri("/subscription/subscribe/"), metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}, subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}})
+        session = stripe.checkout.Session.create(api_key=_subscription_api_key(), idempotency_key=f"pandaspeak-annual-{request.user.pk}-{django_timezone.now().strftime('%Y%m%d%H')}", mode="subscription", payment_method_types=["card", "us_bank_account"], payment_method_options={"us_bank_account": {"verification_method": "automatic"}}, customer_email=request.user.email or None, line_items=_annual_line_items(), success_url=request.build_absolute_uri("/subscription/stripe/success/") + "?session_id={CHECKOUT_SESSION_ID}", cancel_url=request.build_absolute_uri("/subscription/subscribe/"), metadata={"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}, subscription_data={"metadata": {"purpose": "pandaspeak_annual_subscription", "user_id": str(request.user.id)}})
+        cache.set(cache_key, session.url, timeout=3600)
         return redirect(session.url)
     except stripe.error.StripeError:
         messages.error(request, "Unable to start Stripe checkout right now. Please try again.")
