@@ -13,6 +13,7 @@ from django.utils import timezone as django_timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from account.models import Notification
+from .checkout_consent import require_checkout_consent
 from .models import Subscription
 from .referrals import available_reward_count, consume_paid_plus_reward
 
@@ -284,6 +285,9 @@ def _consume_reward_from_paid_invoice(invoice):
 def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
+    consent_response = require_checkout_consent(request)
+    if consent_response is not None:
+        return consent_response
     # Serialize checkout creation per user in PostgreSQL, including first-time users.
     # A database row persists across workers and application restarts.
     try:
