@@ -1,7 +1,4 @@
 from datetime import datetime, timezone
-from uuid import uuid4
-
-from django.core.cache import cache
 
 import stripe
 from django.conf import settings
