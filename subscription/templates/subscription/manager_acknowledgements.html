@@ -1,0 +1,25 @@
+{% extends "account/base.html" %}
+{% block content %}
+<main class="main"><section class="section"><div class="container py-4">
+<h2>Subscription &amp; Stripe Connect Acknowledgments</h2>
+<p>Read-only records of student subscription checkout and teacher Stripe Connect acknowledgments. A missing date means no acknowledgment is recorded.</p>
+<form method="get" class="mb-4 d-flex gap-2"><input type="search" class="form-control" name="q" value="{{ query }}" placeholder="Search name or email"><button class="btn btn-primary">Search</button></form>
+<h3>Student subscription acknowledgments</h3>
+<div class="table-responsive mb-5"><table class="table table-striped"><thead><tr><th>Student</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
+{% for sub in student_records %}
+<tr><td>{{ sub.user.get_full_name|default:sub.user.email }}<br><small>{{ sub.user.email }}</small></td>
+<td>{% if sub.checkout_terms_accepted_at %}<span class="badge bg-success">Recorded</span>{% else %}Not recorded{% endif %}</td>
+<td>{{ sub.checkout_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ sub.checkout_terms_version|default:"—" }}</td></tr>
+{% empty %}<tr><td colspan="4">No matching subscription records.</td></tr>{% endfor %}
+</tbody></table></div>
+<h3>Teacher Stripe Connect acknowledgments</h3>
+<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Teacher</th><th>Stripe account</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
+{% for teacher in teacher_records %}
+<tr><td>{{ teacher.get_full_name|default:teacher.email }}<br><small>{{ teacher.email }}</small></td><td>{% if teacher.stripe_account_id %}Connected / initiated{% else %}Not connected{% endif %}</td>
+<td>{% if teacher.stripe_connect_terms_accepted_at %}<span class="badge bg-success">Recorded</span>{% else %}Not recorded{% endif %}</td>
+<td>{{ teacher.stripe_connect_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ teacher.stripe_connect_terms_version|default:"—" }}</td></tr>
+{% empty %}<tr><td colspan="5">No matching teachers.</td></tr>{% endfor %}
+</tbody></table></div>
+<a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to Manager Dashboard</a>
+</div></section></main>
+{% endblock %}
