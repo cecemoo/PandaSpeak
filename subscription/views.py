@@ -160,6 +160,10 @@ def _start_stripe_subscription_checkout(request):
 @login_required
 def subscribe(request):
     if request.method == "POST":
+        from .checkout_consent import require_checkout_consent
+        consent_response = require_checkout_consent(request)
+        if consent_response is not None:
+            return consent_response
         if request.POST.get("subscription_type") != "yearly":
             messages.error(request, "Please choose a valid subscription plan.")
             return redirect("subscribe")
