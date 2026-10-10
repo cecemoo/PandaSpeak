@@ -29,6 +29,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_connect_terms_accepted_at = models.DateTimeField(blank=True, null=True)
+    stripe_connect_terms_version = models.CharField(max_length=40, blank=True, default="")
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
