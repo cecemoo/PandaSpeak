@@ -39,6 +39,7 @@
         <form class="subscription-checkout-form" method="post" action="{% url 'stripe_subscription_checkout' %}">
           {% csrf_token %}
           <input type="hidden" name="accept_subscription_terms" value="">
+          <input type="hidden" name="accept_subscription_faq" value="">
           <button type="submit" class="btn btn-primary rounded-pill px-4 py-3 w-100" style="font-weight:700;">
             💳 &nbsp; Pay with Card - $15/year
           </button>
@@ -50,6 +51,7 @@
         <form class="subscription-checkout-form" method="post" action="{% url 'stripe_subscription_checkout' %}">
           {% csrf_token %}
           <input type="hidden" name="accept_subscription_terms" value="">
+          <input type="hidden" name="accept_subscription_faq" value="">
           <button type="submit" class="btn ach-btn rounded-pill px-4 py-3 w-100">
             🏦 &nbsp; Pay with US Bank Account (ACH) - $15/year
           </button>
@@ -61,6 +63,7 @@
         <form class="subscription-checkout-form" method="post" action="{% url 'subscribe' %}">
           {% csrf_token %}
           <input type="hidden" name="accept_subscription_terms" value="">
+          <input type="hidden" name="accept_subscription_faq" value="">
           <input type="hidden" name="subscription_type" value="yearly">
           <input type="hidden" name="payment_method" value="paypal">
           <button type="submit" class="btn rounded-pill px-4 py-3 w-100" style="background:#ffc439; color:#111; font-weight:700; border:0;">
@@ -83,7 +86,11 @@
           <p class="small mt-2">You can also <a href="{% url 'terms' %}" target="_blank" rel="noopener">open the full Terms</a> or <a href="{% url 'faq' %}" target="_blank" rel="noopener">open the FAQ</a> in another tab.</p>
           <label for="confirm-subscription-terms">
             <input type="checkbox" id="confirm-subscription-terms">
-            <span>I've read and understand the <a href="{% url 'terms' %}" target="_blank" rel="noopener">Terms of Service</a> and <a href="{% url 'faq' %}" target="_blank" rel="noopener">FAQ</a>, including annual renewal, cancellation, refund, and payment dispute policies, and I want to proceed with the subscription.</span>
+            <span>I've read and understand the <a href="{% url 'terms' %}" target="_blank" rel="noopener">Terms of Service</a>, including annual renewal, cancellation, refunds, and disputes.</span>
+          </label>
+          <label for="confirm-subscription-faq">
+            <input type="checkbox" id="confirm-subscription-faq">
+            <span>I've read and understand the <a href="{% url 'faq' %}" target="_blank" rel="noopener">FAQ</a>, and I want to proceed with the subscription.</span>
           </label>
           <div class="terms-actions">
             <button type="button" class="btn btn-outline-secondary" id="cancel-subscription-checkout">Cancel</button>
@@ -96,6 +103,8 @@
           const dialog = document.getElementById('subscription-terms-dialog');
           const documentFrame = document.getElementById('subscription-document');
           const checkbox = document.getElementById('confirm-subscription-terms');
+          const faqCheckbox = document.getElementById('confirm-subscription-faq');
+          const bothAccepted = () => checkbox.checked && faqCheckbox.checked;
           const confirm = document.getElementById('confirm-subscription-checkout');
           let pendingForm = null;
           document.querySelectorAll('.subscription-checkout-form').forEach(form => {
@@ -103,6 +112,7 @@
               event.preventDefault();
               pendingForm = form;
               checkbox.checked = false;
+              faqCheckbox.checked = false;
               confirm.disabled = true;
               dialog.showModal();
             });
@@ -115,12 +125,13 @@
             documentFrame.src = "{% url 'faq' %}";
             documentFrame.title = "PandaSpeak FAQ";
           });
-          checkbox.addEventListener('change', () => { confirm.disabled = !checkbox.checked; });
+          [checkbox, faqCheckbox].forEach(input => input.addEventListener('change', () => { confirm.disabled = !bothAccepted(); }));
           document.getElementById('cancel-subscription-checkout').addEventListener('click', () => dialog.close());
           dialog.addEventListener('close', () => { pendingForm = null; });
           confirm.addEventListener('click', () => {
-            if (!checkbox.checked || !pendingForm) return;
+            if (!bothAccepted() || !pendingForm) return;
             pendingForm.querySelector('[name="accept_subscription_terms"]').value = 'yes';
+            pendingForm.querySelector('[name="accept_subscription_faq"]').value = 'yes';
             const form = pendingForm;
             pendingForm = null;
             confirm.disabled = true;
