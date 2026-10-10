@@ -13,6 +13,13 @@
 <td>{{ sub.checkout_terms_accepted_at|date:"M j, Y g:i:s A T"|default:"—" }}</td><td>{{ sub.checkout_terms_version|default:"—" }}</td></tr>
 {% empty %}<tr><td colspan="5">No matching subscription records.</td></tr>{% endfor %}
 </tbody></table></div>
+<h3>Student checkout acknowledgment history</h3>
+<p>Each row is a separate confirmed checkout attempt. “Initiated” means checkout was requested, not that payment succeeded. Historical records are retained even when a newer attempt occurs.</p>
+<div class="table-responsive mb-5"><table class="table table-striped"><thead><tr><th>Student</th><th>Accepted at</th><th>Terms</th><th>FAQ</th><th>Policy version</th><th>Provider</th><th>Checkout</th></tr></thead><tbody>
+{% for event in consent_events %}
+<tr><td>{{ event.user.email }}</td><td>{{ event.accepted_at|date:"M j, Y g:i:s A T" }}</td><td>{% if event.terms_accepted %}Yes{% else %}No{% endif %}</td><td>{% if event.faq_accepted %}Yes{% else %}No{% endif %}</td><td>{{ event.terms_version }}</td><td>{{ event.payment_provider }}</td><td>{{ event.checkout_status }}</td></tr>
+{% empty %}<tr><td colspan="7">No recorded checkout attempts.</td></tr>{% endfor %}
+</tbody></table></div>
 <h3>Teacher Stripe Connect acknowledgments</h3>
 <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Teacher</th><th>Stripe account</th><th>Status</th><th>Accepted at</th><th>Terms version</th></tr></thead><tbody>
 {% for teacher in teacher_records %}

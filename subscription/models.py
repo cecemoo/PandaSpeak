@@ -38,6 +38,23 @@ class Subscription(models.Model):
         return f"{self.user} - {self.subscription_plan} subscription"
 
 
+class SubscriptionConsentEvent(models.Model):
+    """Append-only evidence of a student's explicit checkout confirmation."""
+    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="subscription_consent_events")
+    accepted_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    terms_version = models.CharField(max_length=40)
+    terms_accepted = models.BooleanField(default=True)
+    faq_accepted = models.BooleanField(default=True)
+    payment_provider = models.CharField(max_length=20, blank=True)
+    checkout_status = models.CharField(max_length=30, default="initiated")
+    provider_session_id = models.CharField(max_length=300, blank=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-accepted_at"]
+
+
 class StudentActivity(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="student_activities")
     activity_type = models.CharField(max_length=80, default="page_access")

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Subscription
+from .models import Subscription, SubscriptionConsentEvent
 from .stripe_subscription_views import _update_subscription_dispute_status
 
 
@@ -153,3 +153,26 @@ class SubscriptionTermsAcknowledgementTests(TestCase):
         self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
         create.assert_not_called()
         self.assertFalse(Subscription.objects.filter(user=self.user, checkout_terms_accepted_at__isnull=False).exists())
+
+
+class CheckoutConsentHistoryTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="history-test@example.com", password="password")
+        self.client.force_login(self.user)
+
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.retrieve")
+    def test_repeat_checkout_retains_each_consent(self, retrieve, create):
+        create.return_value = Mock(id="cs_history", url="https://checkout.stripe.com/history")
+        retrieve.return_value = Mock(status="open", url="https://checkout.stripe.com/history")
+        payload = {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"}
+        self.client.post(reverse("stripe_subscription_checkout"), payload)
+        self.client.post(reverse("stripe_subscription_checkout"), payload)
+        self.assertEqual(SubscriptionConsentEvent.objects.filter(user=self.user).count(), 2)
+        self.assertTrue(all(e.checkout_status == "initiated" for e in SubscriptionConsentEvent.objects.filter(user=self.user)))
+
+    @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
+    def test_no_event_without_both_policies(self, create):
+        self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes"})
+        self.assertFalse(SubscriptionConsentEvent.objects.filter(user=self.user).exists())
+        create.assert_not_called()
