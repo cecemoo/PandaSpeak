@@ -9,6 +9,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 import requests
 
+from .checkout_consent import require_checkout_consent
 from .models import Subscription
 from .views import _paypal_access_token, _paypal_headers, _get_or_create_paypal_product, _get_or_create_paypal_plan
 
@@ -77,6 +78,9 @@ def _sync_verified_paypal_subscription(data, expected_user=None):
 def paypal_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
+    consent_response = require_checkout_consent(request)
+    if consent_response is not None:
+        return consent_response
     if request.POST.get("subscription_type") != "yearly":
         messages.error(request, "Please choose a valid subscription plan.")
         return redirect("subscribe")
