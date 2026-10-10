@@ -75,7 +75,7 @@ class PersistentStripeCheckoutTests(TestCase):
     @patch("subscription.stripe_subscription_views.stripe.checkout.Session.create")
     def test_first_checkout_persists_session(self, create):
         create.return_value = Mock(id="cs_test_first", url="https://checkout.stripe.com/test")
-        response = self.client.post(reverse("stripe_subscription_checkout"))
+        response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "https://checkout.stripe.com/test")
         self.assertEqual(Subscription.objects.get(user=self.user).pending_stripe_checkout_id, "cs_test_first")
@@ -88,7 +88,7 @@ class PersistentStripeCheckoutTests(TestCase):
             pending_stripe_checkout_id="cs_test_existing"
         )
         retrieve.return_value = Mock(status="open", url="https://checkout.stripe.com/existing")
-        response = self.client.post(reverse("stripe_subscription_checkout"))
+        response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"})
         self.assertEqual(response.url, "https://checkout.stripe.com/existing")
         create.assert_not_called()
 
@@ -100,7 +100,7 @@ class PersistentStripeCheckoutTests(TestCase):
             pending_stripe_checkout_id="cs_test_completed"
         )
         retrieve.return_value = Mock(status="complete")
-        response = self.client.post(reverse("stripe_subscription_checkout"))
+        response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"})
         self.assertEqual(response.status_code, 302)
         create.assert_not_called()
 
@@ -115,7 +115,7 @@ class SubscriptionTermsAcknowledgementTests(TestCase):
     def test_stripe_checkout_requires_terms_acknowledgement(self):
         from unittest.mock import patch
         with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
-            response = self.client.post(reverse("stripe_subscription_checkout"))
+            response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"})
             self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
             create.assert_not_called()
 
@@ -133,9 +133,23 @@ class SubscriptionTermsAcknowledgementTests(TestCase):
         with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
             create.return_value = Mock(id="cs_terms", url="https://checkout.stripe.com/terms")
             response = self.client.post(reverse("stripe_subscription_checkout"), {
-                "accept_subscription_terms": "yes"
+                "accept_subscription_terms": "yes", "accept_subscription_faq": "yes"
             })
         self.assertEqual(response.status_code, 302)
         subscription = Subscription.objects.get(user=self.user)
         self.assertIsNotNone(subscription.checkout_terms_accepted_at)
         self.assertEqual(subscription.checkout_terms_version, "2026-10-10")
+
+    def test_terms_without_faq_does_not_record_consent(self):
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes"})
+        self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
+        create.assert_not_called()
+        self.assertFalse(Subscription.objects.filter(user=self.user, checkout_terms_accepted_at__isnull=False).exists())
+
+    def test_faq_without_terms_does_not_record_consent(self):
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_faq": "yes"})
+        self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
+        create.assert_not_called()
+        self.assertFalse(Subscription.objects.filter(user=self.user, checkout_terms_accepted_at__isnull=False).exists())
