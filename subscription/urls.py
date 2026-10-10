@@ -9,6 +9,7 @@ from . import manager_views
 urlpatterns = [
     path('subscribe/', subscription_guard_views.guarded_subscribe, name='subscribe'),
     path('dispute-restricted/', subscription_guard_views.dispute_restricted, name='dispute_restricted'),
+    path('manager/acknowledgements/', manager_views.acknowledgement_records, name='manager_acknowledgement_records'),
     path('manager/student-activity/', manager_views.student_activity, name='manager_student_activity'),
     path('manager/student-activity/<int:user_id>/sync-stripe-dispute/', manager_views.sync_existing_stripe_dispute, name='manager_sync_stripe_dispute'),
     path('stripe/checkout/', subscription_guard_views.guarded_stripe_subscription_checkout, name='stripe_subscription_checkout'),
