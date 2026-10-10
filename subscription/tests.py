@@ -103,3 +103,39 @@ class PersistentStripeCheckoutTests(TestCase):
         response = self.client.post(reverse("stripe_subscription_checkout"))
         self.assertEqual(response.status_code, 302)
         create.assert_not_called()
+
+
+class SubscriptionTermsAcknowledgementTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="terms-test@example.com", password="test-password"
+        )
+        self.client.force_login(self.user)
+
+    def test_stripe_checkout_requires_terms_acknowledgement(self):
+        from unittest.mock import patch
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            response = self.client.post(reverse("stripe_subscription_checkout"))
+            self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
+            create.assert_not_called()
+
+    def test_paypal_checkout_requires_terms_acknowledgement(self):
+        from unittest.mock import patch
+        with patch("subscription.paypal_subscription_views._paypal_access_token") as token:
+            response = self.client.post(reverse("subscribe"), {
+                "payment_method": "paypal", "subscription_type": "yearly"
+            })
+            self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
+            token.assert_not_called()
+
+    def test_acknowledgement_is_persisted_before_stripe_checkout(self):
+        from unittest.mock import patch, Mock
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            create.return_value = Mock(id="cs_terms", url="https://checkout.stripe.com/terms")
+            response = self.client.post(reverse("stripe_subscription_checkout"), {
+                "accept_subscription_terms": "yes"
+            })
+        self.assertEqual(response.status_code, 302)
+        subscription = Subscription.objects.get(user=self.user)
+        self.assertIsNotNone(subscription.checkout_terms_accepted_at)
+        self.assertEqual(subscription.checkout_terms_version, "2026-10-10")
