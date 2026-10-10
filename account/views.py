@@ -1,3 +1,4 @@
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.shortcuts import redirect, render, get_object_or_404
 from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm, PlacementResultEmailForm
 from django.contrib.auth.forms import AuthenticationForm
@@ -166,11 +167,13 @@ def user_logout(request):
 
 
 
+@xframe_options_sameorigin
 def faq(request):
     return render(request, 'account/faq.html')
 
 
 
+@xframe_options_sameorigin
 def terms(request):
     content = TermsOfService.objects.first()
     context = {'content': content}
