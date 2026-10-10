@@ -26,5 +26,41 @@
 <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card survey-create-card"><div class="card-body"><i class="bi bi-ui-checks dashboard-card-icon"></i><h5>Create Learning Surveys</h5><p>Create new learning surveys for your students.</p><a href="{% url 'create_learning_survey' %}" class="btn btn-outline-primary rounded-pill dashboard-action">Create Survey</a></div></div></div>
 <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card survey-list-card"><div class="card-body"><i class="bi bi-list-check dashboard-card-icon"></i><h5>Learning Surveys</h5><p>View and manage your learning surveys.</p><a href="{% url 'teacher_survey_list' %}" class="btn btn-outline-success rounded-pill dashboard-action">View Surveys</a></div></div></div>
 <div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card bingo-card"><div class="card-body"><i class="bi bi-grid-3x3-gap-fill dashboard-card-icon"></i><h5>Chinese Bingo</h5><p>Create and manage Bingo practice games for student groups.</p><a href="{% url 'teacher_bingo_list' %}" class="btn btn-outline-warning rounded-pill dashboard-action">Manage Bingo</a></div></div></div>
-{% if user.is_authenticated and user.is_teacher %}<div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card stripe-card"><div class="card-body"><i class="bi bi-credit-card-fill dashboard-card-icon"></i><h5>Stripe Account</h5><p>Connect or manage your Stripe account to receive tutoring payments.</p><a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-outline-primary rounded-pill dashboard-action">{% if user.stripe_account_id %}Manage Stripe{% else %}Connect Stripe{% endif %}</a></div></div></div>{% endif %}
-</div></div></section></main>{% endblock %}
+{% if user.is_authenticated and user.is_teacher %}<div class="col-md-6 col-xl-3"><div class="card text-center dashboard-card stripe-card"><div class="card-body"><i class="bi bi-credit-card-fill dashboard-card-icon"></i><h5>Stripe Account</h5><p>Connect or manage your Stripe account to receive tutoring payments.</p>{% if user.stripe_account_id %}<a href="{% url 'course:stripe_connect_onboard' %}" class="btn btn-outline-primary rounded-pill dashboard-action">Manage Stripe</a>{% else %}<button type="button" class="btn btn-outline-primary rounded-pill dashboard-action" id="open-teacher-stripe-terms">Connect Stripe</button>{% endif %}</div></div></div>{% endif %}
+</div></div></section></main>
+{% if user.is_authenticated and user.is_teacher and not user.stripe_account_id %}
+<dialog id="teacher-stripe-terms" aria-labelledby="teacher-stripe-title" style="width:min(94vw,680px);max-height:90vh;border-radius:16px;border:1px solid #ddd;padding:24px;color:#172033;background:#fff;">
+  <h3 id="teacher-stripe-title">Before connecting your Stripe account</h3>
+  <p>Please review these PandaSpeak teacher payout terms and our full Terms of Service and FAQ.</p>
+  <div style="max-height:42vh;overflow-y:auto;text-align:left;border:1px solid #ddd;padding:16px;border-radius:8px;">
+    <p><strong>Platform fee:</strong> PandaSpeak retains 20% of eligible tutoring payments.</p>
+    <p><strong>Verification:</strong> Stripe may require identity, tax and bank account details before payouts can be enabled.</p>
+    <p><strong>Payout timing:</strong> Tutoring earnings are released according to PandaSpeak's tutoring payout policies. Bank arrival depends on Stripe and your financial institution.</p>
+    <p><strong>Disputes and refunds:</strong> Cancellations, refunds, chargebacks and payment disputes may affect amounts available for payout.</p>
+    <p><strong>Teacher responsibilities:</strong> Provide accurate onboarding information, fulfill teaching commitments, and comply with applicable tax obligations.</p>
+    <p><a href="{% url 'terms' %}" target="_blank" rel="noopener">Read full Terms of Service</a> · <a href="{% url 'faq' %}" target="_blank" rel="noopener">Read FAQ</a></p>
+  </div>
+  <form method="post" action="{% url 'course:stripe_connect_onboard' %}" id="teacher-stripe-consent-form">
+    {% csrf_token %}
+    <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 0;">
+      <input type="checkbox" name="accept_teacher_connect_terms" value="yes" id="teacher-stripe-checkbox" required>
+      <span>I've read and understand the teacher Stripe Connect terms, Terms of Service and FAQ, and I want to proceed with Stripe Connect.</span>
+    </label>
+    <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+      <button type="button" class="btn btn-outline-secondary" id="close-teacher-stripe-terms">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="teacher-stripe-continue" disabled>Agree &amp; Continue to Stripe</button>
+    </div>
+  </form>
+</dialog>
+<script>
+(() => {
+  const dialog = document.getElementById('teacher-stripe-terms');
+  const check = document.getElementById('teacher-stripe-checkbox');
+  const proceed = document.getElementById('teacher-stripe-continue');
+  document.getElementById('open-teacher-stripe-terms').addEventListener('click', () => dialog.showModal());
+  document.getElementById('close-teacher-stripe-terms').addEventListener('click', () => dialog.close());
+  check.addEventListener('change', () => { proceed.disabled = !check.checked; });
+})();
+</script>
+{% endif %}
+{% endblock %}
