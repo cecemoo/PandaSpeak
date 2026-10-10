@@ -40,6 +40,12 @@
     <p><strong>Teacher responsibilities:</strong> Provide accurate onboarding information, fulfill teaching commitments, and comply with applicable tax obligations.</p>
     <p><a href="{% url 'terms' %}" target="_blank" rel="noopener">Read full Terms of Service</a> · <a href="{% url 'faq' %}" target="_blank" rel="noopener">Read FAQ</a></p>
   </div>
+  <p style="margin:12px 0 8px;">Review PandaSpeak's full policies:</p>
+  <div style="display:flex;gap:10px;margin-bottom:10px;">
+    <button type="button" class="btn btn-primary" id="teacher-show-terms" aria-pressed="true">Terms of Service</button>
+    <button type="button" class="btn btn-outline-primary" id="teacher-show-faq" aria-pressed="false">FAQ</button>
+  </div>
+  <iframe id="teacher-policy-frame" src="{% url 'terms' %}" title="PandaSpeak Terms of Service" style="width:100%;height:min(28vh,260px);border:1px solid #ddd;border-radius:8px;"></iframe>
   <form method="post" action="{% url 'course:stripe_connect_onboard' %}" id="teacher-stripe-consent-form">
     {% csrf_token %}
     <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 0;">
@@ -57,6 +63,22 @@
   const dialog = document.getElementById('teacher-stripe-terms');
   const check = document.getElementById('teacher-stripe-checkbox');
   const proceed = document.getElementById('teacher-stripe-continue');
+  const termsButton = document.getElementById('teacher-show-terms');
+  const faqButton = document.getElementById('teacher-show-faq');
+  const frame = document.getElementById('teacher-policy-frame');
+  function showPolicy(which) {
+    const isTerms = which === 'terms';
+    termsButton.classList.toggle('btn-primary', isTerms);
+    termsButton.classList.toggle('btn-outline-primary', !isTerms);
+    faqButton.classList.toggle('btn-primary', !isTerms);
+    faqButton.classList.toggle('btn-outline-primary', isTerms);
+    termsButton.setAttribute('aria-pressed', String(isTerms));
+    faqButton.setAttribute('aria-pressed', String(!isTerms));
+    frame.src = isTerms ? "{% url 'terms' %}" : "{% url 'faq' %}";
+    frame.title = isTerms ? 'PandaSpeak Terms of Service' : 'PandaSpeak FAQ';
+  }
+  termsButton.addEventListener('click', () => showPolicy('terms'));
+  faqButton.addEventListener('click', () => showPolicy('faq'));
   document.getElementById('open-teacher-stripe-terms').addEventListener('click', () => dialog.showModal());
   document.getElementById('close-teacher-stripe-terms').addEventListener('click', () => dialog.close());
   check.addEventListener('change', () => { proceed.disabled = !check.checked; });
