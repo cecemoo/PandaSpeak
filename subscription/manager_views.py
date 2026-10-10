@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from account.models import Notification
+from account.models import Notification, CustomUser
 from .models import StudentActivity, Subscription
 from . import stripe_subscription_views
 
@@ -232,3 +232,15 @@ def sync_existing_stripe_dispute(request, user_id):
         f"Stripe dispute {dispute_id} was verified. {local.user.email} is now blocked from paid learning materials and activities while the dispute remains unresolved.",
     )
     return redirect(f"/subscription/manager/student-activity/?student={user_id}")
+
+
+@login_required
+@user_passes_test(_manager)
+def acknowledgement_records(request):
+    query = (request.GET.get('q') or '').strip()
+    students = Subscription.objects.select_related('user').filter(user__is_teacher=False, user__is_staff=False)
+    teachers = CustomUser.objects.filter(is_teacher=True)
+    if query:
+        students = students.filter(Q(user__email__icontains=query) | Q(user__first_name__icontains=query) | Q(user__last_name__icontains=query))
+        teachers = teachers.filter(Q(email__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
+    return render(request, 'subscription/manager_acknowledgements.html', {'student_records': students.order_by('-checkout_terms_accepted_at')[:500], 'teacher_records': teachers.order_by('-stripe_connect_terms_accepted_at')[:500], 'query': query})
