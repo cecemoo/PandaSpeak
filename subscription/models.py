@@ -10,6 +10,8 @@ class Subscription(models.Model):
     paypal_subscription_id = models.CharField(max_length=300, blank=True, null=True)
     stripe_subscription_id = models.CharField(max_length=300, blank=True, null=True)
     pending_stripe_checkout_id = models.CharField(max_length=300, blank=True, default="")
+    checkout_terms_accepted_at = models.DateTimeField(blank=True, null=True)
+    checkout_terms_version = models.CharField(max_length=40, blank=True, default="")
     is_active = models.BooleanField(default=False)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, unique=True)
     is_cancelled = models.BooleanField(default=False)
