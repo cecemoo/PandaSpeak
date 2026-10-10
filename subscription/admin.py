@@ -24,3 +24,17 @@ class StudentActivityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TutoringPayment)
+
+
+@admin.register(SubscriptionConsentEvent)
+class SubscriptionConsentEventAdmin(admin.ModelAdmin):
+    list_display = ("user", "accepted_at", "terms_version", "terms_accepted", "faq_accepted", "payment_provider", "checkout_status")
+    list_filter = ("payment_provider", "checkout_status", "terms_version")
+    search_fields = ("user__email",)
+    readonly_fields = ("user", "accepted_at", "terms_version", "terms_accepted", "faq_accepted", "payment_provider", "checkout_status", "provider_session_id", "ip_address", "user_agent")
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
