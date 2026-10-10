@@ -9,7 +9,13 @@
   .checkout-divider::before, .checkout-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.48); }
   .ach-btn { background: #fff; color: #122a55; border: 1px solid rgba(255,255,255,.65); font-weight: 700; }
   .ach-btn:hover { background: #f5f7fb; color: #122a55; }
-  .terms-dialog { border: 1px solid #d1d5db; border-radius: 16px; width: min(94vw, 850px); max-height: 90vh; padding: 0; color: #172033; background: #fff; }\n  .terms-dialog::backdrop { background: rgba(0,0,0,.72); }\n  .terms-dialog-inner { padding: 20px; }\n  .terms-dialog iframe { width: 100%; height: min(47vh, 460px); border: 1px solid #ddd; border-radius: 8px; }\n  .terms-dialog .terms-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }\n  .terms-dialog label { display: flex; gap: 10px; text-align: left; align-items: flex-start; margin-top: 14px; }\n  .renewal-note { color: rgba(255,255,255,.82) !important; }
+  .terms-dialog { border: 1px solid #d1d5db; border-radius: 16px; width: min(94vw, 850px); max-height: 90vh; padding: 0; color: #172033; background: #fff; }
+  .terms-dialog::backdrop { background: rgba(0,0,0,.72); }
+  .terms-dialog-inner { padding: 20px; }
+  .terms-dialog iframe { width: 100%; height: min(47vh, 460px); border: 1px solid #ddd; border-radius: 8px; }
+  .terms-dialog .terms-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }
+  .terms-dialog label { display: flex; gap: 10px; text-align: left; align-items: flex-start; margin-top: 14px; }
+  .renewal-note { color: rgba(255,255,255,.82) !important; }
 </style>
 
 <main class="main">
@@ -31,7 +37,8 @@
 
       <div class="checkout-options">
         <form class="subscription-checkout-form" method="post" action="{% url 'stripe_subscription_checkout' %}">
-          {% csrf_token %}\n          <input type="hidden" name="accept_subscription_terms" value="">
+          {% csrf_token %}
+          <input type="hidden" name="accept_subscription_terms" value="">
           <button type="submit" class="btn btn-primary rounded-pill px-4 py-3 w-100" style="font-weight:700;">
             💳 &nbsp; Pay with Card - $15/year
           </button>
@@ -41,7 +48,8 @@
         <div class="checkout-divider"><span>or</span></div>
 
         <form class="subscription-checkout-form" method="post" action="{% url 'stripe_subscription_checkout' %}">
-          {% csrf_token %}\n          <input type="hidden" name="accept_subscription_terms" value="">
+          {% csrf_token %}
+          <input type="hidden" name="accept_subscription_terms" value="">
           <button type="submit" class="btn ach-btn rounded-pill px-4 py-3 w-100">
             🏦 &nbsp; Pay with US Bank Account (ACH) - $15/year
           </button>
@@ -51,7 +59,8 @@
         <div class="checkout-divider"><span>or</span></div>
 
         <form class="subscription-checkout-form" method="post" action="{% url 'subscribe' %}">
-          {% csrf_token %}\n          <input type="hidden" name="accept_subscription_terms" value="">
+          {% csrf_token %}
+          <input type="hidden" name="accept_subscription_terms" value="">
           <input type="hidden" name="subscription_type" value="yearly">
           <input type="hidden" name="payment_method" value="paypal">
           <button type="submit" class="btn rounded-pill px-4 py-3 w-100" style="background:#ffc439; color:#111; font-weight:700; border:0;">
@@ -119,7 +128,8 @@
           });
         })();
       </script>
-\n      <p class="mt-4 small renewal-note">Your subscription renews annually until canceled. You can cancel future renewals from your PandaSpeak account.</p>
+
+      <p class="mt-4 small renewal-note">Your subscription renews annually until canceled. You can cancel future renewals from your PandaSpeak account.</p>
       <a href="{% url 'subscription_plans' %}" class="btn btn-link mt-2">Back to Subscription Plans</a>
     </div>
   </section>
