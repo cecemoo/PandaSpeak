@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StudentActivity, Subscription, TutoringPayment
+from .models import StudentActivity, Subscription, TutoringPayment, SubscriptionConsentEvent
 
 
 @admin.register(Subscription)
