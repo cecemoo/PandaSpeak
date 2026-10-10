@@ -115,7 +115,7 @@ class SubscriptionTermsAcknowledgementTests(TestCase):
     def test_stripe_checkout_requires_terms_acknowledgement(self):
         from unittest.mock import patch
         with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
-            response = self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes", "accept_subscription_faq": "yes"})
+            response = self.client.post(reverse("stripe_subscription_checkout"))
             self.assertRedirects(response, reverse("subscribe"), fetch_redirect_response=False)
             create.assert_not_called()
 
