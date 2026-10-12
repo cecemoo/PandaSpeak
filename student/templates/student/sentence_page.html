@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -221,7 +221,16 @@
       { title: 'Love, Care & Family Feelings 家庭情感與關懷', patterns: ['愛我的', '愛你', '我愛', '想念家人', '想家', '關心', '照顧', '孝順', '幸福', '和睦', '相處', '陪伴', '支持', '感謝父母', '家人很', '家裡很', '擔心家人'] },
       { title: 'Marriage & Family Milestones 婚姻與家庭重要時刻', patterns: ['結婚', '婚禮', '訂婚', '離婚', '生孩子', '生小孩', '出生', '懷孕', '寶寶', '嬰兒', '長大', '生日', '過生日', '週年', '紀念日', '成家', '搬家', '新家'] }
     ];
-    const definitions = sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const timeDateDefinitions = [
+      { title: 'Telling the Time 幾點與時間表達', patterns: ['幾點', '幾點鐘', '現在是', '現在幾', '點半', '點一刻', '點三刻', '點十分', '點二十', '點三十', '點四十', '點五十', '分鐘', '小時', '半個小時', '一個小時', '差五分', '差十分', '時鐘'] },
+      { title: 'Days of the Week 星期與週末', patterns: ['星期', '禮拜', '週一', '週二', '週三', '週四', '週五', '週六', '週日', '週末', '這個週', '下個週', '上個週', '每週', '每個禮拜'] },
+      { title: 'Calendar Dates 日期與月份', patterns: ['幾月', '幾號', '幾日', '日期', '今天是', '明天是', '昨天是', '月一日', '月二日', '月三日', '月四日', '月五日', '月六日', '月七日', '月八日', '月九日', '月十日', '月一號', '月二號', '月三號', '月四號', '月五號', '月六號', '月七號', '月八號', '月九號', '月十號', '今年', '明年', '去年', '西元', '農曆', '國曆'] },
+      { title: 'Daily Schedule & Appointments 日常作息與約定', patterns: ['起床', '睡覺', '上班', '下班', '上課', '下課', '吃早餐', '吃午餐', '吃晚餐', '約好', '約在', '約定', '預約', '安排時間', '有空', '沒空', '時間表', '行程', '日程', '開會', '準時', '遲到', '早退'] },
+      { title: 'Past, Present & Future 過去現在與未來', patterns: ['以前', '過去', '從前', '當時', '現在', '目前', '以後', '將來', '未來', '剛才', '剛剛', '等一下', '待會', '稍後', '馬上', '立刻', '昨天', '今天', '明天', '前天', '後天', '上個月', '下個月'] },
+      { title: 'Duration & Frequency 時間長短與頻率', patterns: ['多久', '多長時間', '幾分鐘', '幾小時', '幾天', '幾個月', '幾年', '每天', '天天', '每週', '每個月', '每年', '常常', '經常', '有時候', '偶爾', '很少', '從不', '一直', '總是', '一次', '兩次', '三次', '花了', '持續', '已經', '還沒'] },
+      { title: 'Seasons & Special Dates 季節與特別日子', patterns: ['春天', '夏天', '秋天', '冬天', '春季', '夏季', '秋季', '冬季', '生日', '節日', '假日', '放假', '新年', '過年', '紀念日', '國定假日', '寒假', '暑假', '聖誕節', '中秋節', '端午節'] }
+    ];
+    const definitions = sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
