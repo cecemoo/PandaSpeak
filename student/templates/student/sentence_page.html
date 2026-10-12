@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -201,17 +201,27 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    if ('{{ category.category_name|lower|escapejs }}' !== 'greetings') return;
+    const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
+    if (!['greetings', 'family'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
-    const definitions = [
+    const greetingDefinitions = [
       { title: 'Everyday Greetings 日常問候', patterns: ['你好', '您好', '嗨', '哈囉', '你們好', '大家好', '最近好嗎', '你好嗎', '還好嗎', '好久不見', '很高興見到你', '見到你很高興'] },
       { title: 'Morning & Evening Greetings 早晚問候', patterns: ['早安', '早上好', '早', '午安', '中午好', '下午好', '晚安', '晚上好', '睡得好嗎', '早起', '晚上見'] },
       { title: 'Polite Expressions 禮貌用語', patterns: ['謝謝', '感謝', '不客氣', '不用客氣', '請', '請問', '麻煩', '不好意思', '對不起', '抱歉', '沒關係', '不會', '打擾', '失禮'] },
       { title: 'Introductions 初次見面與介紹', patterns: ['我叫', '我的名字', '你叫什麼', '您貴姓', '我姓', '你姓', '請問你是', '我是', '自我介紹', '介紹一下', '初次見面', '幸會', '認識你', '來自哪裡', '你是哪裡人'] },
       { title: 'Farewells & Well Wishes 道別與祝福', patterns: ['再見', '拜拜', '下次見', '明天見', '回頭見', '待會見', '一路順風', '保重', '慢走', '祝你', '祝您', '祝福', '有空再聊', '改天見', '再聯絡', '晚點見'] }
     ];
+    const familyDefinitions = [
+      { title: 'Introducing Family Members 介紹家庭成員', patterns: ['這是我', '他是我', '她是我', '我的爸爸', '我的媽媽', '我爸爸', '我媽媽', '我的家人', '家裡有', '家裡的人', '我有一個', '我有兩個', '兄弟姐妹', '兄弟姊妹', '介紹我的家人'] },
+      { title: 'Family Relationships 家庭關係', patterns: ['爸爸', '媽媽', '父親', '母親', '父母', '哥哥', '姐姐', '姊姊', '弟弟', '妹妹', '兄弟', '姐妹', '姊妹', '兒子', '女兒', '孩子', '小孩', '丈夫', '太太', '妻子', '先生', '老公', '老婆', '家人', '家族'] },
+      { title: 'Extended Family 大家庭與親戚', patterns: ['爺爺', '奶奶', '祖父', '祖母', '外公', '外婆', '外祖父', '外祖母', '叔叔', '伯伯', '舅舅', '姑姑', '阿姨', '嬸嬸', '舅媽', '表哥', '表姐', '表姊', '表弟', '表妹', '堂哥', '堂姐', '堂姊', '堂弟', '堂妹', '親戚'] },
+      { title: 'Family Activities & Daily Life 家庭活動與日常生活', patterns: ['全家', '一家人', '一起吃飯', '一起做飯', '一起煮飯', '一起出去', '一起旅行', '家庭聚會', '家庭活動', '回家', '在家', '做家事', '打掃家裡', '照顧孩子', '接小孩', '送小孩', '陪家人', '吃晚餐', '吃早餐'] },
+      { title: 'Love, Care & Family Feelings 家庭情感與關懷', patterns: ['愛我的', '愛你', '我愛', '想念家人', '想家', '關心', '照顧', '孝順', '幸福', '和睦', '相處', '陪伴', '支持', '感謝父母', '家人很', '家裡很', '擔心家人'] },
+      { title: 'Marriage & Family Milestones 婚姻與家庭重要時刻', patterns: ['結婚', '婚禮', '訂婚', '離婚', '生孩子', '生小孩', '出生', '懷孕', '寶寶', '嬰兒', '長大', '生日', '過生日', '週年', '紀念日', '成家', '搬家', '新家'] }
+    ];
+    const definitions = sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
