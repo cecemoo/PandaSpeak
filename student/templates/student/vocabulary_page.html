@@ -96,7 +96,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' %}
+      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' or category.category_name|lower == 'learning & communication' %}
       <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
         <div class="accordion" id="topicVocabularyAccordion"></div>
@@ -222,7 +222,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' %}
+{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' or category.category_name|lower == 'learning & communication' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
@@ -244,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isDemonstratives = '{{ category.category_name|lower|escapejs }}' === 'demonstratives';
   const isAdjectives = '{{ category.category_name|lower|escapejs }}' === 'adjectives';
   const isVerbs = '{{ category.category_name|lower|escapejs }}' === 'verbs';
+  const isLearningCommunication = '{{ category.category_name|lower|escapejs }}' === 'learning & communication';
   const foodDefinitions = [
     { title: 'Fruits 水果', words: ['水果','蘋果','香蕉','橘子','柳丁','葡萄','草莓','西瓜','哈密瓜','芒果','鳳梨','桃子','梨子','櫻桃','檸檬','柚子','木瓜','奇異果','荔枝','龍眼','百香果','藍莓'] },
     { title: 'Vegetables 蔬菜', words: ['蔬菜','青菜','白菜','高麗菜','菠菜','花椰菜','胡蘿蔔','紅蘿蔔','馬鈴薯','地瓜','番茄','西紅柿','黃瓜','小黃瓜','洋蔥','大蒜','蒜頭','蔥','薑','蘑菇','香菇','茄子','玉米','南瓜','豆芽菜','青椒'] },
@@ -347,7 +348,16 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Feelings & Relationships 情感與人際互動', words: ['愛','喜歡','討厭','恨','怕','害怕','擔心','希望','期待','關心','照顧','幫助','支持','鼓勵','安慰','相信','信任','尊重','感謝','原諒','生氣','哭','笑','微笑','擁抱','結婚','交朋友'] },
     { title: 'Change & Results 變化與結果', words: ['變','改變','變成','成為','增加','減少','提高','降低','改善','進步','成功','失敗','發生','出現','消失','成長','發展','修理','修好','壞掉','解決','停止','繼續','保持','留下','丟掉'] }
   ];
-  const definitions = isVerbs ? verbDefinitions : isAdjectives ? adjectiveDefinitions : isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
+  const learningCommunicationDefinitions = [
+    { title: 'Learning & Studying 學習與讀書', words: ['學習','學','讀書','念書','上課','下課','預習','複習','練習','自學','研究','閱讀','讀','看書','寫','寫字','寫作','背','背書','記','記住','記得','忘記','考試','測驗','作業','功課','筆記','課本','教材','課程','學生','老師'] },
+    { title: 'Understanding & Thinking 理解與思考', words: ['知道','不知道','懂','不懂','了解','理解','明白','清楚','不清楚','思考','想','認為','覺得','相信','猜','猜測','發現','分析','比較','判斷','決定','選擇','問題','答案','意思','意義','原因','方法'] },
+    { title: 'Speaking & Conversation 說話與對話', words: ['說','講','說話','聊天','對話','交談','討論','問','詢問','回答','答覆','回覆','解釋','說明','介紹','表達','發言','演講','分享','告訴','提問','請問','請教','溝通','交流','意見','建議','聲音','發音'] },
+    { title: 'Listening & Pronunciation 聽力與發音', words: ['聽','聽見','聽到','聽懂','聽不懂','聽力','發音','拼音','注音','聲調','語調','音節','聲音','朗讀','跟讀','重複','再說一次','說慢一點','大聲','小聲','口音','錄音'] },
+    { title: 'Reading & Writing 閱讀與寫作', words: ['閱讀','讀','看','看懂','看不懂','寫','寫字','寫作','文字','文章','句子','單字','詞彙','生字','漢字','中文字','中文','英文','語言','文法','語法','標點符號','翻譯','字典','書','書本','筆記'] },
+    { title: 'Messages & Digital Communication 訊息與數位溝通', words: ['訊息','消息','簡訊','傳訊息','發訊息','傳送','發送','收到','接收','通知','聯絡','聯繫','打電話','接電話','電話','手機','電子郵件','郵件','寄信','寫信','回信','回覆','網路','視訊','會議','線上','留言','群組'] },
+    { title: 'Classroom & Feedback 課堂與回饋', words: ['教室','課堂','上課','下課','老師','學生','同學','教','教學','指導','幫忙','幫助','請教','舉手','發問','問題','答案','回答','正確','錯誤','對','錯','改正','修改','訂正','回饋','評語','分數','成績','進步','加油','謝謝','不好意思'] }
+  ];
+  const definitions = isLearningCommunication ? learningCommunicationDefinitions : isVerbs ? verbDefinitions : isAdjectives ? adjectiveDefinitions : isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
     { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
     { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
     { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
