@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -230,7 +230,15 @@
       { title: 'Duration & Frequency 時間長短與頻率', patterns: ['多久', '多長時間', '幾分鐘', '幾小時', '幾天', '幾個月', '幾年', '每天', '天天', '每週', '每個月', '每年', '常常', '經常', '有時候', '偶爾', '很少', '從不', '一直', '總是', '一次', '兩次', '三次', '花了', '持續', '已經', '還沒'] },
       { title: 'Seasons & Special Dates 季節與特別日子', patterns: ['春天', '夏天', '秋天', '冬天', '春季', '夏季', '秋季', '冬季', '生日', '節日', '假日', '放假', '新年', '過年', '紀念日', '國定假日', '寒假', '暑假', '聖誕節', '中秋節', '端午節'] }
     ];
-    const definitions = sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const weatherDefinitions = [
+      { title: 'Asking About the Weather 詢問天氣', patterns: ['天氣怎麼樣', '天氣如何', '天氣好嗎', '今天天氣', '明天天氣', '昨天的天氣', '外面天氣', '會下雨嗎', '會下雪嗎', '氣溫多少', '幾度', '天氣預報', '天氣如何呢'] },
+      { title: 'Sunny, Cloudy & Rainy Days 晴天陰天與雨天', patterns: ['晴天', '晴朗', '出太陽', '太陽很大', '陽光', '多雲', '陰天', '陰陰的', '烏雲', '下雨', '下大雨', '下小雨', '毛毛雨', '陣雨', '雷雨', '打雷', '閃電', '雨停', '雨傘', '帶傘'] },
+      { title: 'Temperature & Comfort 氣溫與冷熱感受', patterns: ['很熱', '好熱', '太熱', '炎熱', '悶熱', '很冷', '好冷', '太冷', '寒冷', '涼快', '涼爽', '溫暖', '暖和', '舒服', '氣溫', '溫度', '度', '零下', '攝氏', '華氏', '濕度', '潮濕', '乾燥'] },
+      { title: 'Wind, Snow & Severe Weather 風雪與惡劣天氣', patterns: ['刮風', '起風', '風很大', '大風', '強風', '颱風', '颶風', '暴風', '暴雨', '下雪', '雪花', '積雪', '結冰', '冰雹', '暴風雪', '濃霧', '霧很大', '洪水', '淹水', '雷電', '龍捲風'] },
+      { title: 'Seasons & Seasonal Weather 四季與季節天氣', patterns: ['春天', '夏天', '秋天', '冬天', '春季', '夏季', '秋季', '冬季', '雨季', '乾季', '梅雨', '季節', '四季', '換季', '秋高氣爽', '春暖花開'] },
+      { title: 'Weather Forecasts & Plans 天氣預報與活動安排', patterns: ['天氣預報說', '預報', '降雨機率', '可能下雨', '可能下雪', '會不會下雨', '帶雨傘', '帶外套', '穿外套', '穿雨衣', '注意保暖', '注意防曬', '出門', '戶外活動', '取消活動', '改天', '因為下雨', '如果下雨', '天氣不好', '天氣很好'] }
+    ];
+    const definitions = sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
