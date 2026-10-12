@@ -96,10 +96,16 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      <div class="word-container">
+      {% if category.category_name|lower == 'weather' %}
+      <div id="weather-vocab-groups" class="mb-4">
+        <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
+        <div class="accordion" id="weatherVocabularyAccordion"></div>
+      </div>
+      {% endif %}
+      <div class="word-container" id="vocabulary-word-container">
         {% for item in vocabularies %}
 
-        <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+        <button type="button" class="vocab-pill" data-word="{{ item.word }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.word }}
           {% if item.level != 'unclassified' %}
           <span class="fw-semibold">
@@ -209,5 +215,59 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
     }
   });
 </script>
+
+
+{% if category.category_name|lower == 'weather' %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const container = document.getElementById('vocabulary-word-container');
+  const accordion = document.getElementById('weatherVocabularyAccordion');
+  if (!container || !accordion) return;
+  const definitions = [
+    { title: 'Weather Conditions 天氣狀況', words: ['天氣','晴天','陰天','下雨','下雪','雨','雪','雲','風','梅雨'] },
+    { title: 'Temperature & Feelings 氣溫與感受', words: ['太陽','熱','冷','涼快','溫度','悶熱','寒流'] },
+    { title: 'Seasons 季節', words: ['春天','夏天','秋天','冬天'] }
+  ];
+  const buttons = Array.from(container.querySelectorAll(':scope > .vocab-pill'));
+  const remaining = new Set(buttons);
+  const groups = definitions.map(def => ({
+    title: def.title,
+    buttons: buttons.filter(button => def.words.includes(button.dataset.word.trim()))
+  }));
+  groups.forEach(group => group.buttons.forEach(button => remaining.delete(button)));
+  if (remaining.size) groups.push({ title: 'Other Vocabulary 其他詞彙', buttons: Array.from(remaining) });
+  groups.filter(group => group.buttons.length).forEach((group, index) => {
+    const headingId = 'weather-heading-' + index;
+    const collapseId = 'weather-collapse-' + index;
+    const section = document.createElement('div');
+    section.className = 'accordion-item bg-transparent border border-success rounded mb-2 overflow-hidden';
+    const heading = document.createElement('h3');
+    heading.className = 'accordion-header';
+    heading.id = headingId;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'accordion-button bg-dark text-white' + (index ? ' collapsed' : '');
+    toggle.setAttribute('data-bs-toggle', 'collapse');
+    toggle.setAttribute('data-bs-target', '#' + collapseId);
+    toggle.setAttribute('aria-expanded', index === 0 ? 'true' : 'false');
+    toggle.setAttribute('aria-controls', collapseId);
+    toggle.textContent = group.title + ' (' + group.buttons.length + ')';
+    heading.appendChild(toggle);
+    const collapse = document.createElement('div');
+    collapse.id = collapseId;
+    collapse.className = 'accordion-collapse collapse' + (index === 0 ? ' show' : '');
+    collapse.setAttribute('aria-labelledby', headingId);
+    const body = document.createElement('div');
+    body.className = 'accordion-body word-container';
+    group.buttons.forEach(button => body.appendChild(button));
+    collapse.appendChild(body);
+    section.appendChild(heading);
+    section.appendChild(collapse);
+    accordion.appendChild(section);
+  });
+  container.style.display = 'none';
+});
+</script>
+{% endif %}
 
 {% endblock %}
