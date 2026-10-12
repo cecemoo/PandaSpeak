@@ -275,4 +275,5 @@ def manager_purchase_blocklist(request):
                 messages.error(request, "Blocklist entry not found.")
         return redirect("manager_purchase_blocklist")
     entries = BlockedPurchaseEmail.objects.select_related("created_by").order_by("-created_at")
-    return render(request, "subscription/manager_purchase_blocklist.html", {"entries": entries})
+    system_blocks = Subscription.objects.filter(is_disputed=True).select_related("user").order_by("-disputed_at", "user__email")
+    return render(request, "subscription/manager_purchase_blocklist.html", {"entries": entries, "system_blocks": system_blocks})
