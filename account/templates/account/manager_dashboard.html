@@ -11,6 +11,7 @@
         <div class="container position-relative">
             <h1>Manager Dashboard</h1>
             <a class="btn btn-success" href="{% url 'announcements' %}">News &amp; Update Emails</a>
+            <a class="btn btn-outline-light" href="{% url 'manager_purchase_blocklist' %}">Blocked Purchase Emails</a>
             <p>Hello, {{ user.first_name }}!</p>
             <nav class="breadcrumbs">
                 <ol>
