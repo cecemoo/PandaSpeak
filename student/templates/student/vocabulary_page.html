@@ -96,10 +96,10 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' %}
-      <div id="weather-vocab-groups" class="mb-4">
+      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' %}
+      <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
-        <div class="accordion" id="weatherVocabularyAccordion"></div>
+        <div class="accordion" id="topicVocabularyAccordion"></div>
       </div>
       {% endif %}
       <div class="word-container" id="vocabulary-word-container">
@@ -217,13 +217,18 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' %}
+{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
-  const accordion = document.getElementById('weatherVocabularyAccordion');
+  const accordion = document.getElementById('topicVocabularyAccordion');
   if (!container || !accordion) return;
-  const definitions = [
+  const isFamily = '{{ category.category_name|lower|escapejs }}' === 'family';
+  const definitions = isFamily ? [
+    { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
+    { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
+    { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
+  ] : [
     { title: 'Weather Conditions 天氣狀況', words: ['天氣','晴天','陰天','下雨','下雪','雨','雪','雲','風','梅雨'] },
     { title: 'Temperature & Feelings 氣溫與感受', words: ['太陽','熱','冷','涼快','溫度','悶熱','寒流'] },
     { title: 'Seasons 季節', words: ['春天','夏天','秋天','冬天'] }
@@ -237,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function () {
   groups.forEach(group => group.buttons.forEach(button => remaining.delete(button)));
   if (remaining.size) groups.push({ title: 'Other Vocabulary 其他詞彙', buttons: Array.from(remaining) });
   groups.filter(group => group.buttons.length).forEach((group, index) => {
-    const headingId = 'weather-heading-' + index;
-    const collapseId = 'weather-collapse-' + index;
+    const headingId = 'topic-heading-' + index;
+    const collapseId = 'topic-collapse-' + index;
     const section = document.createElement('div');
     section.className = 'accordion-item bg-transparent border border-success rounded mb-2 overflow-hidden';
     const heading = document.createElement('h3');
