@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from account.models import Notification
 from .checkout_consent import require_checkout_consent
+from .purchase_blocklist import purchase_blocked_response
 from .models import Subscription
 from .referrals import available_reward_count, consume_paid_plus_reward
 
@@ -285,6 +286,9 @@ def _consume_reward_from_paid_invoice(invoice):
 def stripe_subscription_checkout(request):
     if request.method != "POST":
         return redirect("subscribe")
+    blocked = purchase_blocked_response(request)
+    if blocked is not None:
+        return blocked
     consent_response = require_checkout_consent(request)
     if consent_response is not None:
         return consent_response
@@ -342,6 +346,9 @@ def stripe_subscription_checkout(request):
 def stripe_plus_upgrade(request):
     if request.method != "POST":
         return redirect("plus_upgrade")
+    blocked = purchase_blocked_response(request)
+    if blocked is not None:
+        return blocked
     local = Subscription.objects.filter(user=request.user).first()
     if local and local.is_disputed:
         return redirect("dispute_restricted")
