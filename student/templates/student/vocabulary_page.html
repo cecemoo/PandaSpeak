@@ -397,12 +397,17 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Seasons 季節', words: ['春天','夏天','秋天','冬天'] }
   ];
   const buttons = Array.from(container.querySelectorAll(':scope > .vocab-pill'));
+  // Assign each word to exactly one group. Previously, a word matching
+  // multiple definitions was counted in each, but its DOM button was moved
+  // to the last group, leaving earlier groups visibly empty.
   const remaining = new Set(buttons);
-  const groups = definitions.map(def => ({
-    title: def.title,
-    buttons: buttons.filter(button => def.words.includes(button.dataset.word.trim()))
-  }));
-  groups.forEach(group => group.buttons.forEach(button => remaining.delete(button)));
+  const groups = definitions.map(def => {
+    const matched = buttons.filter(button =>
+      remaining.has(button) && def.words.includes(button.dataset.word.trim())
+    );
+    matched.forEach(button => remaining.delete(button));
+    return { title: def.title, buttons: matched };
+  });
   if (remaining.size) groups.push({ title: 'Other Vocabulary 其他詞彙', buttons: Array.from(remaining) });
   groups.filter(group => group.buttons.length).forEach((group, index) => {
     const headingId = 'topic-heading-' + index;
