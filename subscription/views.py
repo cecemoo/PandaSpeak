@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from .models import Subscription, TutoringPayment
+from .purchase_blocklist import purchase_blocked_response
 import stripe
 import requests
 from django.contrib import messages
@@ -160,6 +161,9 @@ def _start_stripe_subscription_checkout(request):
 @login_required
 def subscribe(request):
     if request.method == "POST":
+        blocked = purchase_blocked_response(request)
+        if blocked is not None:
+            return blocked
         from .checkout_consent import require_checkout_consent
         consent_response = require_checkout_consent(request)
         if consent_response is not None:
@@ -421,6 +425,9 @@ def cancel_subscription(request):
 
 @login_required
 def create_tutoring_checkout_session(request, payment_id):
+    blocked = purchase_blocked_response(request)
+    if blocked is not None:
+        return blocked
     payment = TutoringPayment.objects.get(id=payment_id, student_name=request.user)
     unit_amount = int(payment.amount * 100)
     checkout_data = {
