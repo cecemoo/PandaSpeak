@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -238,7 +238,16 @@
       { title: 'Seasons & Seasonal Weather 四季與季節天氣', patterns: ['春天', '夏天', '秋天', '冬天', '春季', '夏季', '秋季', '冬季', '雨季', '乾季', '梅雨', '季節', '四季', '換季', '秋高氣爽', '春暖花開'] },
       { title: 'Weather Forecasts & Plans 天氣預報與活動安排', patterns: ['天氣預報說', '預報', '降雨機率', '可能下雨', '可能下雪', '會不會下雨', '帶雨傘', '帶外套', '穿外套', '穿雨衣', '注意保暖', '注意防曬', '出門', '戶外活動', '取消活動', '改天', '因為下雨', '如果下雨', '天氣不好', '天氣很好'] }
     ];
-    const definitions = sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const foodDiningDefinitions = [
+      { title: 'Meals & Eating Habits 三餐與飲食習慣', patterns: ['早餐', '午餐', '晚餐', '早飯', '午飯', '晚飯', '吃飯', '吃過飯', '還沒吃', '吃飽', '餓了', '肚子餓', '吃宵夜', '點心', '三餐', '平常吃', '每天吃', '飲食習慣', '不吃早餐', '吃素'] },
+      { title: 'Food Preferences & Tastes 食物喜好與口味', patterns: ['喜歡吃', '不喜歡吃', '愛吃', '想吃', '好吃', '不好吃', '美味', '味道', '口味', '太甜', '太鹹', '太辣', '太酸', '太苦', '很甜', '很鹹', '很辣', '很酸', '清淡', '油膩', '香', '新鮮', '過敏', '忌口'] },
+      { title: 'Ordering at a Restaurant 餐廳點餐', patterns: ['點餐', '點菜', '菜單', '我要點', '我想點', '我想要一份', '來一份', '來一碗', '來一杯', '請給我', '推薦什麼', '有什麼推薦', '招牌菜', '服務生', '服務員', '幾位', '有位子', '訂位', '預約位子', '內用', '外帶', '打包', '不要辣', '少冰', '去冰'] },
+      { title: 'Cooking & Preparing Food 烹飪與備餐', patterns: ['煮飯', '做飯', '做菜', '下廚', '料理', '準備食物', '準備晚餐', '切菜', '洗菜', '炒菜', '炒飯', '煎', '炸', '烤', '蒸', '燉', '煮湯', '加鹽', '加糖', '食譜', '材料', '食材', '廚房', '開火', '關火'] },
+      { title: 'Drinks & Beverages 飲料與喝水', patterns: ['喝水', '喝茶', '喝咖啡', '喝牛奶', '喝果汁', '喝飲料', '口渴', '想喝', '一杯水', '一杯茶', '一杯咖啡', '一杯飲料', '熱茶', '冰茶', '珍珠奶茶', '奶茶', '果汁', '汽水', '可樂', '礦泉水', '冰塊', '加冰', '少糖', '無糖', '半糖'] },
+      { title: 'Paying & Restaurant Service 結帳與餐廳服務', patterns: ['結帳', '買單', '付錢', '付款', '刷卡', '信用卡', '現金', '找錢', '帳單', '收據', '發票', '小費', '服務費', '多少錢', '總共多少', '分開付', '各付各的', '一起付', '餐具', '筷子', '湯匙', '叉子', '餐巾紙', '加水', '續杯'] },
+      { title: 'Dining Together & Invitations 邀約與一起用餐', patterns: ['一起吃', '一起去吃', '請你吃', '請客', '約吃飯', '吃個飯', '出去吃', '去餐廳', '去吃飯', '聚餐', '一起用餐', '要不要吃', '要不要一起', '有空吃飯', '下次吃飯', '一起吃晚餐', '一起吃午餐', '我請你', '輪流請客'] }
+    ];
+    const definitions = sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
