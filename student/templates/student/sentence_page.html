@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -247,7 +247,16 @@
       { title: 'Paying & Restaurant Service 結帳與餐廳服務', patterns: ['結帳', '買單', '付錢', '付款', '刷卡', '信用卡', '現金', '找錢', '帳單', '收據', '發票', '小費', '服務費', '多少錢', '總共多少', '分開付', '各付各的', '一起付', '餐具', '筷子', '湯匙', '叉子', '餐巾紙', '加水', '續杯'] },
       { title: 'Dining Together & Invitations 邀約與一起用餐', patterns: ['一起吃', '一起去吃', '請你吃', '請客', '約吃飯', '吃個飯', '出去吃', '去餐廳', '去吃飯', '聚餐', '一起用餐', '要不要吃', '要不要一起', '有空吃飯', '下次吃飯', '一起吃晚餐', '一起吃午餐', '我請你', '輪流請客'] }
     ];
-    const definitions = sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const shoppingDefinitions = [
+      { title: 'Asking Prices & Discounts 詢問價格與折扣', patterns: ['多少錢', '價格', '價錢', '售價', '特價', '打折', '折扣', '優惠', '便宜一點', '太貴', '很貴', '比較便宜', '可以算便宜', '有沒有折扣', '幾折', '促銷', '原價', '降價', '漲價', '划算', '特賣'] },
+      { title: 'Finding Stores & Products 找商店與商品', patterns: ['在哪裡買', '哪裡有賣', '在哪一樓', '百貨公司', '購物中心', '商店', '店裡', '超市', '市場', '便利商店', '賣場', '專賣店', '網路購物', '網購', '有賣', '有沒有賣', '找不到', '我在找', '想找', '有貨', '缺貨', '庫存'] },
+      { title: 'Sizes, Colors & Trying Things On 尺寸顏色與試穿', patterns: ['尺寸', '大小', '幾號', '大一號', '小一號', '試穿', '試戴', '試試看', '合身', '太大', '太小', '太長', '太短', '顏色', '紅色', '藍色', '黑色', '白色', '綠色', '黃色', '換個顏色', '另一個顏色', '適合我', '穿起來'] },
+      { title: 'Choosing & Comparing Products 選擇與比較商品', patterns: ['比較', '哪一個', '哪個比較', '這個好', '那個好', '品質', '質量', '款式', '樣式', '材質', '品牌', '推薦', '喜歡這個', '喜歡那個', '選哪個', '決定買', '考慮一下', '看看別的', '還有別的', '有其他', '這一款', '那一款'] },
+      { title: 'Checkout & Payment 結帳與付款', patterns: ['結帳', '買單', '付錢', '付款', '刷卡', '信用卡', '金融卡', '現金', '找錢', '收據', '發票', '總共', '付多少', '行動支付', '電子支付', '分期付款', '購物袋', '袋子', '包起來', '掃碼付款', '收銀台'] },
+      { title: 'Returns, Exchanges & Customer Service 退換貨與售後服務', patterns: ['退貨', '換貨', '退款', '退錢', '退費', '保固', '保證', '故障', '壞掉', '瑕疵', '不合適', '不滿意', '客戶服務', '客服', '售後', '維修', '修理', '換一個', '退回去', '購買證明', '退換'] },
+      { title: 'Online Shopping & Delivery 網購與配送', patterns: ['下單', '訂單', '訂購', '網購', '線上購物', '網站買', '購物車', '配送', '運送', '運費', '免運', '寄送', '宅配', '快遞', '包裹', '物流', '到貨', '送貨', '收貨', '取貨', '追蹤', '出貨', '預購'] }
+    ];
+    const definitions = sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
