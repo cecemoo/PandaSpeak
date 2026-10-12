@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' or category.category_name|lower == 'expressing feelings' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' or category.category_name|lower == 'expressing feelings' or category.category_name|lower == 'daily conversation' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends', 'expressing feelings'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends', 'expressing feelings', 'daily conversation'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -275,7 +275,17 @@
       { title: 'Expressing Opinions & Personal Feelings 表達想法與個人感受', patterns: ['我覺得', '我認為', '我感覺', '我感到', '我的感受', '我的心情', '對我來說', '我希望', '我想要', '我願意', '我不想', '我不喜歡', '我比較喜歡', '我同意', '我不同意', '我相信', '我很在意', '我不在乎'] },
       { title: 'Comforting & Encouraging Others 安慰與鼓勵他人', patterns: ['別難過', '不要難過', '別擔心', '不用擔心', '不要怕', '加油', '你可以', '你做得到', '沒關係', '不要緊', '放輕鬆', '別緊張', '辛苦了', '我支持你', '我陪你', '一切都會好', '慢慢來', '相信自己'] }
     ];
-    const definitions = sentenceCategory === 'expressing feelings' ? expressingFeelingsDefinitions : sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const dailyConversationDefinitions = [
+      { title: 'Everyday Greetings & Small Talk 日常問候與閒聊', patterns: ['你好', '您好', '早安', '晚安', '早上好', '晚上好', '最近好嗎', '你好嗎', '好久不見', '最近怎麼樣', '今天過得', '還好嗎', '吃飽了嗎', '天氣真好', '今天很熱', '今天很冷', '你呢', '聊聊天'] },
+      { title: 'Daily Routines & Activities 日常作息與活動', patterns: ['起床', '刷牙', '洗臉', '洗澡', '睡覺', '吃早餐', '吃午餐', '吃晚餐', '上班', '下班', '上學', '放學', '上課', '下課', '做家事', '打掃', '洗衣服', '煮飯', '回家', '出門', '散步', '運動', '休息'] },
+      { title: 'Asking Questions & Clarifying 詢問與確認', patterns: ['請問', '什麼意思', '你說什麼', '再說一次', '再講一次', '聽不懂', '不明白', '怎麼說', '怎麼做', '為什麼', '在哪裡', '怎麼去', '多少', '哪一個', '哪個', '什麼時候', '幾點', '真的嗎', '確定嗎', '對不對', '是不是', '可以嗎', '好嗎'] },
+      { title: 'Requests, Help & Permission 請求幫忙與徵求同意', patterns: ['幫我', '幫忙', '可以幫', '麻煩你', '拜託', '請你', '請幫', '可不可以', '能不能', '方便嗎', '借我', '借一下', '讓我', '我可以', '可以借', '需要幫忙', '需要你的', '幫個忙', '請等一下', '等我一下'] },
+      { title: 'Making Plans & Appointments 安排行程與約定', patterns: ['有空嗎', '有時間嗎', '要不要一起', '一起去', '一起吃', '一起看', '約', '見面', '聚會', '計畫', '安排', '行程', '預約', '訂位', '明天見', '下次見', '改天', '週末', '幾點見', '在哪裡見', '什麼時候見'] },
+      { title: 'Opinions, Likes & Preferences 想法喜好與選擇', patterns: ['我覺得', '我認為', '我想', '我喜歡', '我不喜歡', '我比較', '我寧願', '我希望', '我同意', '我不同意', '你覺得', '你喜歡', '你認為', '比較好', '最好', '還是', '選擇', '決定', '不錯', '很好', '不太好'] },
+      { title: 'Polite Responses & Social Expressions 禮貌回應與社交用語', patterns: ['謝謝', '不客氣', '對不起', '不好意思', '沒關係', '不用客氣', '不用謝', '抱歉', '沒問題', '當然', '好的', '好啊', '可以', '不行', '不用了', '辛苦了', '請慢用', '請進', '再見', '拜拜', '保重'] },
+      { title: 'Problems & Everyday Situations 生活問題與應對', patterns: ['忘記', '找不到', '不見了', '壞掉', '遲到', '來不及', '趕時間', '迷路', '不舒服', '生病', '頭痛', '肚子痛', '有問題', '出問題', '怎麼辦', '沒辦法', '沒帶', '沒有時間', '很忙', '太累', '很累', '需要休息'] }
+    ];
+    const definitions = sentenceCategory === 'daily conversation' ? dailyConversationDefinitions : sentenceCategory === 'expressing feelings' ? expressingFeelingsDefinitions : sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
