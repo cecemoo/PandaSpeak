@@ -1,0 +1,53 @@
+{% extends 'account/base.html' %}
+{% block title %}Free Chinese Idioms PDF | Everyday Chengyu Chart | PandaSpeak{% endblock %}
+{% block meta_description %}Download a free printable Chinese idioms PDF: 36 everyday chengyu with Traditional characters, BoPoMoFo, Pinyin, English meanings, and example sentences. Free for Traditional Chinese learners, from PandaSpeak.{% endblock %}
+{% block og_title %}Free Chinese Idioms PDF | PandaSpeak{% endblock %}
+{% block og_description %}Free printable Chinese idioms chart: 36 everyday chengyu with BoPoMoFo, Pinyin, meanings, and example sentences.{% endblock %}
+{% block content %}
+<main class="main">
+  <div class="page-title dark-background">
+    <div class="container position-relative">
+      <h1>Free Everyday Chinese Idioms PDF</h1>
+      <p>36 chengyu （成語） you'll actually hear — printable PDF, free.</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container" style="max-width:900px">
+      <div class="row g-4 align-items-center">
+        <div class="col-md-6">
+          <h2>What's inside</h2>
+          <ul>
+            <li><strong>36 everyday idioms</strong> in three friendly groups: body parts （身體部位）, nature （大自然）, and friendship （友誼）</li>
+            <li><strong>Traditional characters</strong> for every idiom — no simplified shortcuts</li>
+            <li><strong>BoPoMoFo + Pinyin</strong> so you can pronounce each one with confidence</li>
+            <li><strong>Plain-English meaning</strong> plus a natural example sentence for every idiom</li>
+            <li>Print-friendly — stick it on your wall and learn one a day</li>
+          </ul>
+          <p class="text-muted">Free for personal learning use. No spam, ever — just the PDF plus a few genuinely useful follow-up tips. Unsubscribe anytime.</p>
+        </div>
+        <div class="col-md-6">
+          <div class="p-4 p-md-5 rounded-4" style="background:#fff;border:1px solid #eee;box-shadow:0 12px 30px rgba(0,0,0,.06);">
+            <h3 class="mb-3">Get the free idioms PDF</h3>
+            {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+            <form method="post" action="{% url 'free_chinese_idioms' %}">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="lead-email" class="form-label">Email address</label>
+                <input type="email" class="form-control form-control-lg" id="lead-email" name="email" placeholder="you@example.com" required>
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="lead-consent" name="consent" value="yes" required>
+                <label class="form-check-label" for="lead-consent" style="font-size:.9rem;">
+                  Yes, email me the idioms PDF and a few learning tips. I can unsubscribe anytime.
+                </label>
+              </div>
+              <button type="submit" class="btn btn-lg w-100" style="background:linear-gradient(135deg,#ff5a1f,#ff8a00);color:#fff;">Send me the PDF</button>
+            </form>
+            <p class="mt-3 mb-0 text-muted" style="font-size:.85rem;">We handle your email per our <a href="{% url 'privacy' %}">privacy policy</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

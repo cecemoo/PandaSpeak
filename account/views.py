@@ -1128,6 +1128,38 @@ def bopomofo_chart_lead(request):
             return redirect('free_bopomofo_chart_sent')
     return render(request, 'account/free-bopomofo-chart.html', {'error': error})
 
+IDIOMS_PDF_URL = 'https://pandaspeak.org/static/student/lead_magnet/everyday-chinese-idioms.pdf'
+
+def chinese_idioms_lead(request):
+    from .models import LeadMagnetSignup
+    error = None
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip().lower()
+        consent = request.POST.get('consent')
+        if '@' not in email or '.' not in email.split('@')[-1]:
+            error = 'Please enter a valid email address.'
+        elif not consent:
+            error = 'Please tick the consent box so we can email you the PDF.'
+        else:
+            signup, created = LeadMagnetSignup.objects.get_or_create(
+                email=email, defaults={'source': 'idioms'})
+            if created and not signup.unsubscribed:
+                _send_lead_email(
+                    signup,
+                    'Your free Everyday Chinese Idioms PDF is here',
+                    'Hi there,\n\nThanks for grabbing the free PandaSpeak Everyday Chinese Idioms PDF! '
+                    'Download it here:\n' + IDIOMS_PDF_URL + '\n\n'
+                    'It holds 36 everyday chengyu in three friendly groups — body parts, nature, and '
+                    'friendship — each with Traditional characters, BoPoMoFo, Pinyin, a plain-English '
+                    'meaning, and an example sentence.\n\n'
+                    'Quick start tip: pick one idiom a day and use it out loud in a sentence of your own. '
+                    'Start with 雪中送炭 (xuě zhōng sòng tàn), "sending charcoal in the snow" — the warmest '
+                    'way to say someone helped you exactly when you needed it.\n\n'
+                    'You can also browse all 36 idioms online:\nhttps://pandaspeak.org/learn-chinese-idioms/\n\n'
+                    'Happy learning!\nThe PandaSpeak Team')
+            return redirect('free_chinese_idioms_sent')
+    return render(request, 'account/free-chinese-idioms.html', {'error': error})
+
 def lead_unsubscribe(request, token):
     from .models import LeadMagnetSignup
     done = False
