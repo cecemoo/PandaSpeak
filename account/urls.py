@@ -1,5 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
+from subscription import manager_views as purchase_manager_views
 from . import views
 from . import managers
 from . import announcement_views
@@ -8,6 +9,7 @@ from . import email_verification_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
     path('email-preferences/', announcement_views.preferences, name='email_preferences'),
     path('news/unsubscribe/<str:token>/', announcement_views.unsubscribe, name='news_unsubscribe'),
     path('announcements/', announcement_views.compose, name='announcements'),
