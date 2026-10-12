@@ -288,14 +288,14 @@ def vocabulary_category_page(request, category_id):
     ).distinct()
     selected_level = request.GET.get('level') or request.user.learning_level
     if selected_level == 'level1':
-        vocabularies = vocabularies.filter(level='level1')
+        vocabularies = vocabularies.filter(level__in=['level1', 'all'])
     elif selected_level == 'level2':
         vocabularies = vocabularies.filter(
-            level__in=['level1', 'level2']
+            level__in=['level1', 'level2', 'all']
         )
     elif selected_level == 'level3':
         vocabularies = vocabularies.filter(
-            level__in=['level1', 'level2', 'level3']
+            level__in=['level1', 'level2', 'level3', 'all']
         )
     favorite_vocabulary_ids = set(
         Favorite.objects.filter(
