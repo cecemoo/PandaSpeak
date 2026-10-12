@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from account.models import Notification, CustomUser
-from .models import StudentActivity, Subscription, SubscriptionConsentEvent
+from .models import StudentActivity, Subscription, SubscriptionConsentEvent, BlockedPurchaseEmail
 from . import stripe_subscription_views
 
 
@@ -244,3 +244,35 @@ def acknowledgement_records(request):
         students = students.filter(Q(user__email__icontains=query) | Q(user__first_name__icontains=query) | Q(user__last_name__icontains=query))
         teachers = teachers.filter(Q(email__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
     return render(request, 'subscription/manager_acknowledgements.html', {'student_records': students.order_by('-checkout_terms_accepted_at')[:500], 'teacher_records': teachers.order_by('-stripe_connect_terms_accepted_at')[:500], 'query': query, 'consent_events': SubscriptionConsentEvent.objects.select_related('user').filter(user__email__icontains=query).order_by('user__email', '-accepted_at')[:500]})
+
+
+@login_required(login_url="my_login")
+@user_passes_test(_manager, login_url="my_login")
+def manager_purchase_blocklist(request):
+    """Manage known email addresses denied future PandaSpeak purchases."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "add":
+            email = (request.POST.get("email") or "").strip().lower()
+            reason = (request.POST.get("reason") or "").strip()[:300]
+            from django.core.validators import validate_email
+            from django.core.exceptions import ValidationError
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, "Enter a valid email address.")
+            else:
+                block, created = BlockedPurchaseEmail.objects.get_or_create(
+                    email=email, defaults={"reason": reason, "created_by": request.user}
+                )
+                messages.success(request, "Email added to the purchase blocklist." if created else "This email is already blocked.")
+        elif action == "remove":
+            pk = request.POST.get("block_id")
+            deleted, _ = BlockedPurchaseEmail.objects.filter(pk=pk).delete() if pk and pk.isdecimal() else (0, {})
+            if deleted:
+                messages.success(request, "Email removed from the purchase blocklist.")
+            else:
+                messages.error(request, "Blocklist entry not found.")
+        return redirect("manager_purchase_blocklist")
+    entries = BlockedPurchaseEmail.objects.select_related("created_by").order_by("-created_at")
+    return render(request, "subscription/manager_purchase_blocklist.html", {"entries": entries})
