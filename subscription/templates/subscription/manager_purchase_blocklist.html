@@ -20,7 +20,23 @@
           <button class="btn btn-danger" type="submit">Block email</button>
         </form>
       </div>
-      <h2 class="h5">Current blocks ({{ entries|length }})</h2>
+      <h2 class="h5">System Blocked Accounts ({{ system_blocks|length }})</h2>
+      <p class="text-muted">Automatically restricted due to a payment dispute. These restrictions cannot be removed from the email blocklist.</p>
+      <div class="table-responsive mb-4"><table class="table table-striped">
+        <thead><tr><th>Student</th><th>Email</th><th>Block type</th><th>Dispute status</th><th>Blocked since</th></tr></thead>
+        <tbody>
+          {% for subscription in system_blocks %}
+          <tr>
+            <td>{{ subscription.user.first_name }} {{ subscription.user.last_name }}</td>
+            <td>{{ subscription.user.email }}</td>
+            <td><span class="badge bg-danger">System Blocked</span></td>
+            <td>{{ subscription.dispute_status|default:"Disputed" }}</td>
+            <td>{{ subscription.disputed_at|date:"Y-m-d H:i"|default:"—" }}</td>
+          </tr>
+          {% empty %}<tr><td colspan="5">No system-blocked accounts.</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+      <h2 class="h5">Manually Blocked Emails ({{ entries|length }})</h2>
       <div class="table-responsive"><table class="table table-striped">
         <thead><tr><th>Email</th><th>Reason</th><th>Added</th><th>Action</th></tr></thead>
         <tbody>
