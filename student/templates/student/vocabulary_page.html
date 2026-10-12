@@ -96,7 +96,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' %}
+      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' %}
       <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
         <div class="accordion" id="topicVocabularyAccordion"></div>
@@ -222,7 +222,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' %}
+{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isGreetings = '{{ category.category_name|lower|escapejs }}' === 'greetings';
   const isTimeAndDates = '{{ category.category_name|lower|escapejs }}' === 'time and dates';
   const isShopping = '{{ category.category_name|lower|escapejs }}' === 'shopping';
+  const isDailyLife = '{{ category.category_name|lower|escapejs }}' === 'daily life';
   const foodDefinitions = [
     { title: 'Fruits 水果', words: ['水果','蘋果','香蕉','橘子','柳丁','葡萄','草莓','西瓜','哈密瓜','芒果','鳳梨','桃子','梨子','櫻桃','檸檬','柚子','木瓜','奇異果','荔枝','龍眼','百香果','藍莓'] },
     { title: 'Vegetables 蔬菜', words: ['蔬菜','青菜','白菜','高麗菜','菠菜','花椰菜','胡蘿蔔','紅蘿蔔','馬鈴薯','地瓜','番茄','西紅柿','黃瓜','小黃瓜','洋蔥','大蒜','蒜頭','蔥','薑','蘑菇','香菇','茄子','玉米','南瓜','豆芽菜','青椒'] },
@@ -279,7 +280,13 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Clothing & Sizes 衣服與尺寸', words: ['衣服','上衣','襯衫','T恤','褲子','裙子','洋裝','外套','毛衣','鞋子','襪子','帽子','包包','皮包','尺寸','大小','大號','小號','中號','試穿','試衣間','合身','太大','太小'] },
     { title: 'Shopping Actions 購物動作', words: ['買','賣','購買','選','選擇','挑','挑選','看','試','試用','比較','訂購','下單','付款','付費','退貨','換貨','退款','寄送','送貨','取貨','缺貨','有貨','售完','購物車','商品','產品','品質','顧客','客人','店員'] }
   ];
-  const definitions = isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
+  const dailyLifeDefinitions = [
+    { title: 'Morning & Evening Routines 早晚作息', words: ['起床','醒來','睡覺','睡','早起','晚睡','刷牙','洗臉','梳頭','洗澡','淋浴','穿衣服','換衣服','脫衣服','吃早餐','吃早飯','吃晚餐','吃晚飯','上床','休息','做夢','鬧鐘'] },
+    { title: 'Household Activities 家務活動', words: ['家務','做家事','打掃','掃地','拖地','擦桌子','洗碗','洗衣服','曬衣服','摺衣服','整理','收拾','倒垃圾','丟垃圾','煮飯','做飯','做菜','洗菜','洗手','清潔','洗衣機','吸塵器'] },
+    { title: 'Daily Activities 日常活動', words: ['生活','日常','每天','出門','回家','上班','下班','上學','放學','走路','散步','運動','跑步','看書','讀書','看電視','聽音樂','玩','聊天','吃飯','喝水','買菜','購物','逛街','休息','工作','學習'] },
+    { title: 'Home & Personal Items 居家與個人物品', words: ['家','房子','房間','客廳','臥室','廚房','浴室','廁所','門','窗戶','桌子','椅子','床','沙發','冰箱','電視','電腦','手機','鑰匙','錢包','背包','毛巾','牙刷','牙膏','肥皂','鏡子','衣櫃'] }
+  ];
+  const definitions = isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
     { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
     { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
     { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
