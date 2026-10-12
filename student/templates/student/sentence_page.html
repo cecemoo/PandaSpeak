@@ -27,6 +27,9 @@
     color: #111111;
   }
 
+  .sentence-topic-accordion .accordion-item { border: 1px solid #b9dfc4; border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .sentence-topic-accordion .accordion-button { background: #f2fbf5; color: #225c35; font-weight: 700; }
+  .sentence-topic-accordion .accordion-body { display: flex; flex-wrap: wrap; gap: 12px; }
   .word-container {
     display: flex;
     flex-wrap: wrap;
@@ -80,10 +83,13 @@
           Level III
         </a>
       </div>
-      <div class="word-container">
+      {% if category.category_name|lower == 'greetings' %}
+      <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
+      {% endif %}
+      <div class="word-container" id="sentence-word-container">
         {% for item in sentences %}
 
-        <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+        <button type="button" class="vocab-pill" data-sentence="{{ item.text }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.text }}
           {% if item.level != 'unclassified' %}
           <span class="fw-semibold">
@@ -193,4 +199,68 @@
   });
 </script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if ('{{ category.category_name|lower|escapejs }}' !== 'greetings') return;
+    const container = document.getElementById('sentence-word-container');
+    const accordion = document.getElementById('sentenceTopicAccordion');
+    if (!container || !accordion) return;
+    const definitions = [
+      { title: 'Everyday Greetings 日常問候', patterns: ['你好', '您好', '嗨', '哈囉', '你們好', '大家好', '最近好嗎', '你好嗎', '還好嗎', '好久不見', '很高興見到你', '見到你很高興'] },
+      { title: 'Morning & Evening Greetings 早晚問候', patterns: ['早安', '早上好', '早', '午安', '中午好', '下午好', '晚安', '晚上好', '睡得好嗎', '早起', '晚上見'] },
+      { title: 'Polite Expressions 禮貌用語', patterns: ['謝謝', '感謝', '不客氣', '不用客氣', '請', '請問', '麻煩', '不好意思', '對不起', '抱歉', '沒關係', '不會', '打擾', '失禮'] },
+      { title: 'Introductions 初次見面與介紹', patterns: ['我叫', '我的名字', '你叫什麼', '您貴姓', '我姓', '你姓', '請問你是', '我是', '自我介紹', '介紹一下', '初次見面', '幸會', '認識你', '來自哪裡', '你是哪裡人'] },
+      { title: 'Farewells & Well Wishes 道別與祝福', patterns: ['再見', '拜拜', '下次見', '明天見', '回頭見', '待會見', '一路順風', '保重', '慢走', '祝你', '祝您', '祝福', '有空再聊', '改天見', '再聯絡', '晚點見'] }
+    ];
+    const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
+    const remaining = new Set(buttons);
+    const groups = definitions.map(def => {
+      const matched = buttons.filter(button => remaining.has(button) && def.patterns.some(pattern => (button.dataset.sentence || '').includes(pattern)));
+      matched.forEach(button => remaining.delete(button));
+      return {title: def.title, buttons: matched};
+    }).filter(group => group.buttons.length);
+    if (remaining.size) groups.push({title: 'Other Sentences 其他句子', buttons: Array.from(remaining)});
+    // Keep the Bootstrap modals outside the hidden source container.
+    container.querySelectorAll(':scope > .modal').forEach(modal => document.body.appendChild(modal));
+    groups.forEach((group, index) => {
+      const item = document.createElement('div');
+      item.className = 'accordion-item';
+      const heading = document.createElement('h3');
+      heading.className = 'accordion-header';
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'accordion-button collapsed';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.textContent = group.title + ' (' + group.buttons.length + ')';
+      const panel = document.createElement('div');
+      panel.className = 'accordion-collapse collapse';
+      panel.id = 'sentence-topic-' + index;
+      toggle.setAttribute('aria-controls', panel.id);
+      const body = document.createElement('div');
+      body.className = 'accordion-body';
+      group.buttons.forEach(button => body.appendChild(button));
+      panel.appendChild(body);
+      toggle.addEventListener('click', () => {
+        const isOpen = panel.classList.toggle('show');
+        toggle.classList.toggle('collapsed', !isOpen);
+        toggle.setAttribute('aria-expanded', String(isOpen));
+      });
+      heading.appendChild(toggle);
+      item.appendChild(heading);
+      item.appendChild(panel);
+      accordion.appendChild(item);
+    });
+    container.style.display = 'none';
+    // Deep links from My Review and Learned Items must open the correct group.
+    const itemId = new URLSearchParams(window.location.search).get('item');
+    if (itemId) {
+      const target = document.getElementById('vocabModal' + itemId);
+      const button = target && accordion.querySelector('[data-bs-target="#vocabModal' + itemId + '"]');
+      if (button) {
+        const panel = button.closest('.accordion-collapse');
+        if (panel && !panel.classList.contains('show')) panel.previousElementSibling.querySelector('button').click();
+      }
+    }
+  });
+</script>
 {% endblock %}
