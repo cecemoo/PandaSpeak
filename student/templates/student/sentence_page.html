@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' or category.category_name|lower == 'expressing feelings' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends', 'expressing feelings'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -265,7 +265,17 @@
       { title: 'Exchanging Contact Information 交換聯絡方式', patterns: ['電話', '手機號碼', '號碼', '電子郵件', '信箱', '加好友', '加朋友', '聯絡方式', '聯繫方式', '微信', 'LINE', '臉書', '社群', '傳訊息', '發訊息', '傳給你', '加你', '保持聯絡', '再聯絡', '聯絡你'] },
       { title: 'Friendship & Staying in Touch 友誼與保持聯繫', patterns: ['朋友', '友誼', '友情', '好朋友', '熟悉', '信任', '互相幫忙', '互相支持', '保持聯繫', '保持聯絡', '常聯絡', '想念你', '好久沒見', '下次見', '改天見', '有空再聊', '再見', '保重', '祝你'] }
     ];
-    const definitions = sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const expressingFeelingsDefinitions = [
+      { title: 'Happiness & Excitement 快樂與興奮', patterns: ['開心', '高興', '快樂', '興奮', '太棒了', '真棒', '好棒', '好幸福', '幸福', '滿足', '驚喜', '期待', '好期待', '迫不及待', '心情很好', '很愉快', '真有趣'] },
+      { title: 'Sadness & Disappointment 難過與失望', patterns: ['難過', '傷心', '悲傷', '失望', '沮喪', '想哭', '哭了', '流淚', '孤單', '寂寞', '心情不好', '不開心', '遺憾', '可惜', '後悔', '很痛苦', '不捨', '委屈'] },
+      { title: 'Anger & Frustration 生氣與挫折', patterns: ['生氣', '憤怒', '火大', '惱火', '煩躁', '煩死了', '很煩', '討厭', '不耐煩', '受不了', '不公平', '不滿', '挫折', '抓狂', '氣死', '不爽', '失去耐心'] },
+      { title: 'Fear, Worry & Nervousness 害怕擔心與緊張', patterns: ['害怕', '恐怖', '恐懼', '擔心', '緊張', '焦慮', '不安', '壓力', '怕', '心跳很快', '很慌', '慌張', '放心不下', '很著急', '很擔憂', '害羞', '不好意思'] },
+      { title: 'Love, Gratitude & Care 愛與感謝和關懷', patterns: ['我愛', '愛你', '喜歡你', '想你', '想念', '感謝', '謝謝', '感激', '關心', '在乎', '心疼', '珍惜', '溫暖', '感動', '體貼', '支持你', '祝福', '祝你', '抱抱'] },
+      { title: 'Surprise, Confusion & Curiosity 驚訝疑惑與好奇', patterns: ['驚訝', '吃驚', '嚇一跳', '沒想到', '真的嗎', '怎麼可能', '不可思議', '奇怪', '困惑', '不明白', '不懂', '搞不懂', '好奇', '想知道', '為什麼', '怎麼會', '意外', '疑惑'] },
+      { title: 'Expressing Opinions & Personal Feelings 表達想法與個人感受', patterns: ['我覺得', '我認為', '我感覺', '我感到', '我的感受', '我的心情', '對我來說', '我希望', '我想要', '我願意', '我不想', '我不喜歡', '我比較喜歡', '我同意', '我不同意', '我相信', '我很在意', '我不在乎'] },
+      { title: 'Comforting & Encouraging Others 安慰與鼓勵他人', patterns: ['別難過', '不要難過', '別擔心', '不用擔心', '不要怕', '加油', '你可以', '你做得到', '沒關係', '不要緊', '放輕鬆', '別緊張', '辛苦了', '我支持你', '我陪你', '一切都會好', '慢慢來', '相信自己'] }
+    ];
+    const definitions = sentenceCategory === 'expressing feelings' ? expressingFeelingsDefinitions : sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
