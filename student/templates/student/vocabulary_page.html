@@ -415,8 +415,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'accordion-button bg-dark text-white' + (index ? ' collapsed' : '');
-    toggle.setAttribute('data-bs-toggle', 'collapse');
-    toggle.setAttribute('data-bs-target', '#' + collapseId);
+    // Handle these dynamically generated sections directly so they work
+    // even when Bootstrap's collapse JavaScript is not available.
+    toggle.addEventListener('click', () => {
+      const isOpen = collapse.classList.toggle('show');
+      toggle.classList.toggle('collapsed', !isOpen);
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    });
     toggle.setAttribute('aria-expanded', index === 0 ? 'true' : 'false');
     toggle.setAttribute('aria-controls', collapseId);
     toggle.textContent = group.title + ' (' + group.buttons.length + ')';
