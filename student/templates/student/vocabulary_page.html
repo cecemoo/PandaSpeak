@@ -137,11 +137,13 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
                 <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
                 <p><strong>Level: </strong>{{ item.get_level_display }}</p>
                 <p><strong>Meaning:</strong> {{ item.meaning }}</p>
+                {% if item.example_sentence or item.example_pinyin or item.example_translation %}
                 <p><strong>Example Sentence:</strong><br>
-                  {{ item.example_sentence }}<br>
-                  {{ item.example_pinyin }}<br>
-                  {{ item.example_translation }}
+                  {% if item.example_sentence %}{{ item.example_sentence }}<br>{% endif %}
+                  {% if item.example_pinyin %}{{ item.example_pinyin }}<br>{% endif %}
+                  {% if item.example_translation %}{{ item.example_translation }}{% endif %}
                 </p>
+                {% endif %}
                 <!-- Favorite form -->
                 <form method="post" action="{% url 'toggle_favorite' 'vocabulary' item.id %}" class="mb-3">
                   {% csrf_token %}
