@@ -443,6 +443,12 @@ document.addEventListener('DOMContentLoaded', function () {
     section.appendChild(collapse);
     accordion.appendChild(section);
   });
+  // Modal dialogs must not remain inside a display:none ancestor.
+  // Keep each vocabulary modal mounted directly under document.body so
+  // Bootstrap can display it and its backdrop correctly.
+  container.querySelectorAll(':scope > .modal').forEach(modal => {
+    document.body.appendChild(modal);
+  });
   container.style.display = 'none';
 });
 </script>
