@@ -318,8 +318,8 @@ HISTORY_MEDIA = {
         'video': 'student/history/Song.mp4',
     },
     'zheng-he': {
-        'audio': 'student/history/zhenghe.m4a',
-        'video': 'student/history/Zhenghe.MP4',
+        'audio': 'student/history/Ming/zheng-he-discovery-narration.m4a',
+        'video': 'student/history/Ming/zheng-he-1min.mp4',
     },
     'ming-qing-beijing': {
         'audio': 'student/history/forbidden-city-discovery-narration.m4a',
@@ -721,6 +721,74 @@ HISTORY_MEDIA = {
     'ming-founded-yuan-ends': {
         'audio': 'student/history/Yuan/ming-founded-yuan-ends-discovery-narration.m4a',
         'video': 'student/history/Yuan/ming-founded-yuan-ends-1min.mp4',
+    },
+    'jingnan-campaign': {
+        'audio': 'student/history/Ming/jingnan-campaign-discovery-narration.m4a',
+        'video': 'student/history/Ming/jingnan-campaign-1min.mp4',
+    },
+    'yongle-moves-capital-beijing': {
+        'audio': 'student/history/Ming/yongle-moves-capital-beijing-discovery-narration.m4a',
+        'video': 'student/history/Ming/yongle-moves-capital-beijing-1min.mp4',
+    },
+    'forbidden-city-built': {
+        'audio': 'student/history/Ming/forbidden-city-built-discovery-narration.m4a',
+        'video': 'student/history/Ming/forbidden-city-built-1min.mp4',
+    },
+    'tumu-crisis': {
+        'audio': 'student/history/Ming/tumu-crisis-discovery-narration.m4a',
+        'video': 'student/history/Ming/tumu-crisis-1min.mp4',
+    },
+    'yu-qian-defends-beijing': {
+        'audio': 'student/history/Ming/yu-qian-defends-beijing-discovery-narration.m4a',
+        'video': 'student/history/Ming/yu-qian-defends-beijing-1min.mp4',
+    },
+    'duomen-coup': {
+        'audio': 'student/history/Ming/duomen-coup-discovery-narration.m4a',
+        'video': 'student/history/Ming/duomen-coup-1min.mp4',
+    },
+    'wang-yangming-longchang': {
+        'audio': 'student/history/Ming/wang-yangming-longchang-discovery-narration.m4a',
+        'video': 'student/history/Ming/wang-yangming-longchang-1min.mp4',
+    },
+    'qi-jiguang-fights-wokou': {
+        'audio': 'student/history/Ming/qi-jiguang-fights-wokou-discovery-narration.m4a',
+        'video': 'student/history/Ming/qi-jiguang-fights-wokou-1min.mp4',
+    },
+    'hai-rui-memorial': {
+        'audio': 'student/history/Ming/hai-rui-memorial-discovery-narration.m4a',
+        'video': 'student/history/Ming/hai-rui-memorial-1min.mp4',
+    },
+    'zhang-juzheng-reforms': {
+        'audio': 'student/history/Ming/zhang-juzheng-reforms-discovery-narration.m4a',
+        'video': 'student/history/Ming/zhang-juzheng-reforms-1min.mp4',
+    },
+    'li-shizhen-bencao': {
+        'audio': 'student/history/Ming/li-shizhen-bencao-discovery-narration.m4a',
+        'video': 'student/history/Ming/li-shizhen-bencao-1min.mp4',
+    },
+    'xu-xiake-travels': {
+        'audio': 'student/history/Ming/xu-xiake-travels-discovery-narration.m4a',
+        'video': 'student/history/Ming/xu-xiake-travels-1min.mp4',
+    },
+    'wei-zhongxian-power': {
+        'audio': 'student/history/Ming/wei-zhongxian-power-discovery-narration.m4a',
+        'video': 'student/history/Ming/wei-zhongxian-power-1min.mp4',
+    },
+    'yuan-chonghuan-ningyuan': {
+        'audio': 'student/history/Ming/yuan-chonghuan-ningyuan-discovery-narration.m4a',
+        'video': 'student/history/Ming/yuan-chonghuan-ningyuan-1min.mp4',
+    },
+    'li-zicheng-rebellion': {
+        'audio': 'student/history/Ming/li-zicheng-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Ming/li-zicheng-rebellion-1min.mp4',
+    },
+    'li-zicheng-enters-beijing': {
+        'audio': 'student/history/Ming/li-zicheng-enters-beijing-discovery-narration.m4a',
+        'video': 'student/history/Ming/li-zicheng-enters-beijing-1min.mp4',
+    },
+    'chongzhen-meishan': {
+        'audio': 'student/history/Ming/chongzhen-meishan-discovery-narration.m4a',
+        'video': 'student/history/Ming/chongzhen-meishan-1min.mp4',
     },
 }
 
