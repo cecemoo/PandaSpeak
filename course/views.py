@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import stripe
+from subscription.purchase_blocklist import purchase_blocked_response
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -567,6 +568,9 @@ def remove_from_cart(request, pk):
 
 @login_required(login_url='my_login')
 def cart_checkout(request):
+    blocked = purchase_blocked_response(request)
+    if blocked is not None:
+        return blocked
     cart = request.session.get("cart", [])
     if request.method != "POST":
         return redirect("course:view_cart")
