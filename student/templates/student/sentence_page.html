@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' or category.category_name|lower == 'expressing feelings' or category.category_name|lower == 'daily conversation' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' or category.category_name|lower == 'expressing feelings' or category.category_name|lower == 'daily conversation' or category.category_name|lower == 'health' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends', 'expressing feelings', 'daily conversation'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends', 'expressing feelings', 'daily conversation', 'health'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -285,7 +285,16 @@
       { title: 'Polite Responses & Social Expressions 禮貌回應與社交用語', patterns: ['謝謝', '不客氣', '對不起', '不好意思', '沒關係', '不用客氣', '不用謝', '抱歉', '沒問題', '當然', '好的', '好啊', '可以', '不行', '不用了', '辛苦了', '請慢用', '請進', '再見', '拜拜', '保重'] },
       { title: 'Problems & Everyday Situations 生活問題與應對', patterns: ['忘記', '找不到', '不見了', '壞掉', '遲到', '來不及', '趕時間', '迷路', '不舒服', '生病', '頭痛', '肚子痛', '有問題', '出問題', '怎麼辦', '沒辦法', '沒帶', '沒有時間', '很忙', '太累', '很累', '需要休息'] }
     ];
-    const definitions = sentenceCategory === 'daily conversation' ? dailyConversationDefinitions : sentenceCategory === 'expressing feelings' ? expressingFeelingsDefinitions : sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const healthDefinitions = [
+      { title: 'Describing Symptoms 描述身體症狀', patterns: ['頭痛', '肚子痛', '胃痛', '牙痛', '喉嚨痛', '背痛', '腰痛', '胸痛', '發燒', '咳嗽', '流鼻水', '鼻塞', '打噴嚏', '頭暈', '噁心', '嘔吐', '拉肚子', '腹瀉', '便秘', '過敏', '起疹子', '皮膚癢', '不舒服', '疼痛', '痛得', '發冷', '疲倦', '疲勞'] },
+      { title: 'Seeing a Doctor & Making Appointments 看醫生與預約', patterns: ['看醫生', '醫生', '診所', '醫院', '掛號', '預約看診', '預約門診', '門診', '急診', '診斷', '檢查', '抽血', '驗血', '驗尿', '照X光', '照Ｘ光', '照超音波', '量血壓', '量體溫', '問診', '護士', '護理師', '醫療', '回診', '複診'] },
+      { title: 'Medicine & Treatment 藥物與治療', patterns: ['吃藥', '服藥', '藥', '藥局', '藥房', '處方', '打針', '注射', '疫苗', '治療', '手術', '住院', '復健', '物理治療', '副作用', '止痛', '消炎', '抗生素', '藥膏', '擦藥', '敷藥', '換藥', '退燒', '康復', '痊癒'] },
+      { title: 'Healthy Habits & Prevention 健康習慣與預防保健', patterns: ['健康', '養生', '預防', '保健', '洗手', '戴口罩', '勤洗手', '喝水', '多喝水', '睡眠', '早睡', '熬夜', '休息', '運動', '散步', '跑步', '健身', '飲食均衡', '均衡飲食', '營養', '蔬菜', '水果', '少吃', '戒菸', '戒煙', '戒酒', '體檢', '健康檢查'] },
+      { title: 'Body Parts & Physical Conditions 身體部位與身體狀況', patterns: ['身體', '頭', '眼睛', '耳朵', '鼻子', '嘴巴', '牙齒', '喉嚨', '脖子', '肩膀', '手臂', '手指', '肚子', '胃', '背部', '腰', '腿', '膝蓋', '腳', '皮膚', '心臟', '血壓', '血糖', '體重', '身高', '視力', '聽力'] },
+      { title: 'Mental Health & Emotional Well-being 心理健康與情緒照顧', patterns: ['壓力', '焦慮', '憂鬱', '沮喪', '心情不好', '心情', '情緒', '緊張', '放鬆', '擔心', '害怕', '心理', '心理健康', '心理諮商', '諮商', '失眠', '睡不著', '難過', '煩惱', '需要支持', '需要幫助', '感到孤單', '感到疲憊'] },
+      { title: 'Emergencies & Getting Help 緊急狀況與求助', patterns: ['救命', '救護車', '急救', '緊急', '意外', '受傷', '流血', '骨折', '昏倒', '昏迷', '呼吸困難', '喘不過氣', '過敏反應', '急性', '中毒', '叫救護車', '打急救電話', '需要急救', '快幫忙', '發生事故'] }
+    ];
+    const definitions = sentenceCategory === 'health' ? healthDefinitions : sentenceCategory === 'daily conversation' ? dailyConversationDefinitions : sentenceCategory === 'expressing feelings' ? expressingFeelingsDefinitions : sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
