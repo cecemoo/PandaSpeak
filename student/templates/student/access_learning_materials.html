@@ -7,33 +7,76 @@
 
 
 <style>
+  /* Category cards: consistent dimensions and distinct learning-area colors. */
   .category-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    max-width: 1200px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
+    gap: 18px;
+    max-width: 1140px;
     margin: 0 auto;
-    /* padding-left: 100px;
-    padding-right: 100px; */
   }
 
-  .category-pill {
-    display: inline-block;
-    padding: 12px 25px;
-    border-radius: 999px;
-    background-color: #fff7ed;
-    border: 2px solid #f4a261;
-    color: #333;
+  .category-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 112px;
+    padding: 22px 18px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    text-align: center;
     text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, .14);
+    transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
   }
 
-  .category-pill:hover {
-    background-color: #f4a261;
-    color: #fff;
-    transform: translateY(-2px);
+  .category-card:hover, .category-card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
+    text-decoration: none;
+  }
+
+  .category-card:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .vocabulary-section .category-card {
+    background: #e3f3ea;
+    border-color: #a9d8bc;
+    color: #205d3c;
+  }
+  .vocabulary-section .category-card:hover,
+  .vocabulary-section .category-card:focus-visible { background: #c8e8d6; color: #17472d; }
+
+  .sentences-section .category-card {
+    background: #e4edff;
+    border-color: #aec8f5;
+    color: #28558d;
+  }
+  .sentences-section .category-card:hover,
+  .sentences-section .category-card:focus-visible { background: #cbdcfb; color: #1e416f; }
+
+  .idioms-section .category-card {
+    background: #f2e5fa;
+    border-color: #d9b7ed;
+    color: #75418e;
+  }
+  .idioms-section .category-card:hover,
+  .idioms-section .category-card:focus-visible { background: #e6d0f3; color: #59316e; }
+
+  @media (max-width: 575px) {
+    .category-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .category-card { min-height: 96px; padding: 16px 10px; font-size: .95rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .category-card { transition: none; }
+    .category-card:hover, .category-card:focus-visible { transform: none; }
   }
 
   .pronunciation-links {
@@ -149,9 +192,9 @@
 
     </div><!-- End Section Title -->
 
-    <div class="container" data-aos="fade-up">
+    <div class="container category-container" data-aos="fade-up">
       {% for category in vocabulary_categories %}
-      <a class="category-pill" href="{% url 'vocabulary_category_page' category.id %}" class="learning-card">
+      <a class="category-card" href="{% url 'vocabulary_category_page' category.id %}">
         {{ category.category_name }}
       </a>
       {% endfor %}
@@ -169,9 +212,9 @@
 
     </div><!-- End Section Title -->
 
-    <div class="container" data-aos="fade-up">
+    <div class="container category-container" data-aos="fade-up">
       {% for category in sentence_categories %}
-      <a class="category-pill" href="{% url 'sentence_category_page' category.id %}" class="learning-card">
+      <a class="category-card" href="{% url 'sentence_category_page' category.id %}">
         {{ category.category_name }}
       </a>
       {% endfor %}
@@ -219,9 +262,9 @@
 
     </div><!-- End Section Title -->
 
-    <div class="container" data-aos="fade-up">
+    <div class="container category-container" data-aos="fade-up">
       {% for category in idiom_categories %}
-      <a class="category-pill" href="{% url 'idiom_category_page' category.id %}" class="learning-card">
+      <a class="category-card" href="{% url 'idiom_category_page' category.id %}">
         {{ category.category_name }}
       </a>
       {% endfor %}
