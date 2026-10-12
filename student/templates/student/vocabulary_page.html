@@ -96,7 +96,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' %}
+      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' %}
       <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
         <div class="accordion" id="topicVocabularyAccordion"></div>
@@ -222,7 +222,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' %}
+{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isFood = '{{ category.category_name|lower|escapejs }}'.includes('food');
   const isAnimals = '{{ category.category_name|lower|escapejs }}' === 'animals';
   const isColors = ['colors', 'colours'].includes('{{ category.category_name|lower|escapejs }}');
+  const isBodyParts = '{{ category.category_name|lower|escapejs }}' === 'body parts';
   const foodDefinitions = [
     { title: 'Fruits 水果', words: ['水果','蘋果','香蕉','橘子','柳丁','葡萄','草莓','西瓜','哈密瓜','芒果','鳳梨','桃子','梨子','櫻桃','檸檬','柚子','木瓜','奇異果','荔枝','龍眼','百香果','藍莓'] },
     { title: 'Vegetables 蔬菜', words: ['蔬菜','青菜','白菜','高麗菜','菠菜','花椰菜','胡蘿蔔','紅蘿蔔','馬鈴薯','地瓜','番茄','西紅柿','黃瓜','小黃瓜','洋蔥','大蒜','蒜頭','蔥','薑','蘑菇','香菇','茄子','玉米','南瓜','豆芽菜','青椒'] },
@@ -251,7 +252,13 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Light & Dark Colors 深淺顏色', words: ['淺色','深色','淡色','亮色','暗色','淺藍色','深藍色','淺綠色','深綠色','淡黃色','深紅色','淺紫色','深紫色','米色','米白色','天藍色','寶藍色','墨綠色','藏青色'] },
     { title: 'Color Descriptions 顏色描述', words: ['彩色','五顏六色','五彩繽紛','五光十色','鮮豔','明亮','暗淡','透明','不透明','色調','配色','染色','變色','同色','不同顏色','彩虹','金色','銀色','金黃色'] }
   ];
-  const definitions = isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
+  const bodyPartDefinitions = [
+    { title: 'Head & Face 頭部與臉部', words: ['頭','頭部','頭髮','臉','臉部','額頭','眉毛','眼睛','眼','耳朵','耳','鼻子','鼻','嘴巴','嘴','嘴唇','牙齒','牙','舌頭','下巴','臉頰','脖子','頸部'] },
+    { title: 'Upper Body 上半身', words: ['身體','上半身','肩膀','肩','手臂','手','手掌','手指','指甲','手腕','手肘','胳膊','胸部','胸口','背','背部','腰','肚子','肚臍','皮膚'] },
+    { title: 'Lower Body 下半身', words: ['下半身','腿','大腿','小腿','膝蓋','腳','腳掌','腳趾','腳踝','腳跟','屁股','臀部','髖部'] },
+    { title: 'Internal Organs 內臟器官', words: ['心','心臟','肺','肝','肝臟','胃','腸','腸子','腎','腎臟','大腦','腦','血','血液','骨頭','骨骼','肌肉','器官'] }
+  ];
+  const definitions = isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
     { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
     { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
     { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
