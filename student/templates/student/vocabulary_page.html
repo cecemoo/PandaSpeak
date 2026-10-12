@@ -96,7 +96,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' %}
+      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' %}
       <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
         <div class="accordion" id="topicVocabularyAccordion"></div>
@@ -222,7 +222,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' %}
+{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
@@ -242,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isPossessives = '{{ category.category_name|lower|escapejs }}' === 'possessives';
   const isPlaces = '{{ category.category_name|lower|escapejs }}' === 'places & location';
   const isDemonstratives = '{{ category.category_name|lower|escapejs }}' === 'demonstratives';
+  const isAdjectives = '{{ category.category_name|lower|escapejs }}' === 'adjectives';
   const foodDefinitions = [
     { title: 'Fruits 水果', words: ['水果','蘋果','香蕉','橘子','柳丁','葡萄','草莓','西瓜','哈密瓜','芒果','鳳梨','桃子','梨子','櫻桃','檸檬','柚子','木瓜','奇異果','荔枝','龍眼','百香果','藍莓'] },
     { title: 'Vegetables 蔬菜', words: ['蔬菜','青菜','白菜','高麗菜','菠菜','花椰菜','胡蘿蔔','紅蘿蔔','馬鈴薯','地瓜','番茄','西紅柿','黃瓜','小黃瓜','洋蔥','大蒜','蒜頭','蔥','薑','蘑菇','香菇','茄子','玉米','南瓜','豆芽菜','青椒'] },
@@ -325,7 +326,16 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'This Way & That Way 這樣與那樣', words: ['這麼','那麼','這麼樣','那麼樣','這樣子','那樣子','像這樣','像那樣','這麼做','那麼做','如此','那樣做'] },
     { title: 'Which & Comparison 哪個與比較', words: ['哪','哪個','哪一個','哪些','哪一些','哪邊','哪裡','哪兒','哪種','哪一種','哪樣','哪一邊','這個或那個'] }
   ];
-  const definitions = isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
+  const adjectiveDefinitions = [
+    { title: 'Size & Shape 大小與形狀', words: ['大','小','高','矮','長','短','寬','窄','厚','薄','胖','瘦','圓','方','直','彎','尖','扁','巨大','迷你','細','粗','深','淺'] },
+    { title: 'Appearance & Qualities 外觀與特質', words: ['漂亮','美麗','好看','帥','英俊','可愛','醜','乾淨','髒','新','舊','年輕','老','亮','暗','清楚','模糊','整齊','亂','特別','普通','完美','奇怪'] },
+    { title: 'Personality & Character 個性與性格', words: ['友善','親切','善良','熱情','冷漠','誠實','勇敢','膽小','聰明','笨','勤勞','懶惰','有趣','幽默','嚴肅','溫柔','有耐心','沒耐心','害羞','外向','內向','大方','小氣','自私','可靠','負責'] },
+    { title: 'Feelings & Conditions 感受與狀態', words: ['開心','快樂','高興','難過','傷心','生氣','緊張','害怕','擔心','累','疲倦','忙','閒','舒服','不舒服','健康','生病','安全','危險','安靜','吵','平靜','興奮','無聊'] },
+    { title: 'Taste & Sensory Descriptions 味道與感官', words: ['好吃','難吃','好喝','甜','酸','苦','辣','鹹','淡','香','臭','熱','冷','溫暖','涼快','冰','軟','硬','滑','粗糙','乾','濕','脆','黏'] },
+    { title: 'Value & Difficulty 價值與難易', words: ['好','壞','對','錯','容易','簡單','難','困難','重要','不重要','有用','沒用','方便','麻煩','便宜','貴','昂貴','值得','必要','可能','不可能','免費','划算'] },
+    { title: 'Speed, Amount & Degree 速度數量與程度', words: ['快','慢','早','晚','多','少','滿','空','重','輕','強','弱','高級','低級','足夠','不足','相同','不同','一樣','差不多','全部','部分'] }
+  ];
+  const definitions = isAdjectives ? adjectiveDefinitions : isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
     { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
     { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
     { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
