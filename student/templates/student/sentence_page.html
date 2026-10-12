@@ -83,7 +83,7 @@
           Level III
         </a>
       </div>
-      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' %}
+      {% if category.category_name|lower == 'greetings' or category.category_name|lower == 'family' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'weather' or category.category_name|lower == 'food and dining' or category.category_name|lower == 'shopping' or category.category_name|lower == 'making new friends' %}
       <div class="accordion sentence-topic-accordion mb-4" id="sentenceTopicAccordion"></div>
       {% endif %}
       <div class="word-container" id="sentence-word-container">
@@ -202,7 +202,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sentenceCategory = '{{ category.category_name|lower|escapejs }}';
-    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping'].includes(sentenceCategory)) return;
+    if (!['greetings', 'family', 'time and dates', 'weather', 'food and dining', 'shopping', 'making new friends'].includes(sentenceCategory)) return;
     const container = document.getElementById('sentence-word-container');
     const accordion = document.getElementById('sentenceTopicAccordion');
     if (!container || !accordion) return;
@@ -256,7 +256,16 @@
       { title: 'Returns, Exchanges & Customer Service 退換貨與售後服務', patterns: ['退貨', '換貨', '退款', '退錢', '退費', '保固', '保證', '故障', '壞掉', '瑕疵', '不合適', '不滿意', '客戶服務', '客服', '售後', '維修', '修理', '換一個', '退回去', '購買證明', '退換'] },
       { title: 'Online Shopping & Delivery 網購與配送', patterns: ['下單', '訂單', '訂購', '網購', '線上購物', '網站買', '購物車', '配送', '運送', '運費', '免運', '寄送', '宅配', '快遞', '包裹', '物流', '到貨', '送貨', '收貨', '取貨', '追蹤', '出貨', '預購'] }
     ];
-    const definitions = sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
+    const makingFriendsDefinitions = [
+      { title: 'Meeting & Greeting New People 認識新朋友與打招呼', patterns: ['你好', '您好', '嗨', '哈囉', '初次見面', '很高興認識', '認識你', '幸會', '見到你', '交個朋友', '做朋友', '新朋友', '第一次見面', '我們見過', '好久不見'] },
+      { title: 'Introducing Yourself 自我介紹', patterns: ['我叫', '我的名字', '我姓', '我是', '你叫什麼', '你叫', '你姓', '貴姓', '怎麼稱呼', '介紹一下', '自我介紹', '來自', '哪裡人', '住在哪', '住在', '幾歲', '我的工作', '我的職業', '我在讀', '我在學'] },
+      { title: 'Getting to Know Each Other 互相了解', patterns: ['你喜歡', '我喜歡', '興趣', '嗜好', '平常', '週末', '有空', '做什麼', '你會', '你常', '你平時', '你最喜歡', '你覺得', '你的家鄉', '你在哪裡', '你住', '你工作', '你讀書', '你學中文', '我們都'] },
+      { title: 'Starting & Keeping Conversations 開啟與延續話題', patterns: ['最近怎麼樣', '最近好嗎', '今天過得', '你呢', '真的嗎', '是嗎', '原來如此', '然後呢', '後來呢', '怎麼說', '你說呢', '對了', '順便問', '我想問', '聊聊', '聊天', '有趣', '告訴我', '聽說', '你知道'] },
+      { title: 'Invitations & Making Plans 邀請與相約', patterns: ['一起去', '一起吃', '一起玩', '一起喝', '要不要一起', '想不想', '有空嗎', '約', '見面', '聚會', '出去玩', '下次一起', '週末有空', '什麼時候有空', '方便嗎', '約個時間', '邀請', '歡迎來', '一起參加'] },
+      { title: 'Exchanging Contact Information 交換聯絡方式', patterns: ['電話', '手機號碼', '號碼', '電子郵件', '信箱', '加好友', '加朋友', '聯絡方式', '聯繫方式', '微信', 'LINE', '臉書', '社群', '傳訊息', '發訊息', '傳給你', '加你', '保持聯絡', '再聯絡', '聯絡你'] },
+      { title: 'Friendship & Staying in Touch 友誼與保持聯繫', patterns: ['朋友', '友誼', '友情', '好朋友', '熟悉', '信任', '互相幫忙', '互相支持', '保持聯繫', '保持聯絡', '常聯絡', '想念你', '好久沒見', '下次見', '改天見', '有空再聊', '再見', '保重', '祝你'] }
+    ];
+    const definitions = sentenceCategory === 'making new friends' ? makingFriendsDefinitions : sentenceCategory === 'shopping' ? shoppingDefinitions : sentenceCategory === 'food and dining' ? foodDiningDefinitions : sentenceCategory === 'weather' ? weatherDefinitions : sentenceCategory === 'time and dates' ? timeDateDefinitions : sentenceCategory === 'family' ? familyDefinitions : greetingDefinitions;
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
