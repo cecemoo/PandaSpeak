@@ -2,6 +2,25 @@ from django.db import models
 from account.models import CustomUser
 
 
+
+class BlockedPurchaseEmail(models.Model):
+    """Manager-maintained list of email addresses denied new purchases."""
+    email = models.EmailField(max_length=254, unique=True)
+    reason = models.CharField(max_length=300, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        CustomUser, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="purchase_email_blocks_created",
+    )
+
+    def save(self, *args, **kwargs):
+        self.email = self.email.strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.email
+
+
 class Subscription(models.Model):
     # Base PandaSpeak membership. This remains the $15/year subscription even
     # when the student purchases or cancels the optional monthly Plus add-on.
