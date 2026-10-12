@@ -12,12 +12,12 @@ def purchase_blocked_response(request):
         return redirect("login")
     email = (user.email or "").strip().casefold()
     blocked_emails = {v.strip().casefold() for v in os.environ.get("PANDA_BLOCKED_EMAILS", "").split(",") if v.strip()}
-    blocked_customers = {v.strip() for v in os.environ.get("PANDA_BLOCKED_STRIPE_CUSTOMER_IDS", "").split(",") if v.strip()}
     subscription = Subscription.objects.filter(user=user).first()
-    customer_id = (getattr(subscription, "stripe_customer_id", "") or "").strip()
+    # Stripe customer IDs are not stored on the Subscription model yet.
+    # Check the confirmed email and local dispute flag until that mapping exists.
     if ((subscription and subscription.is_disputed)
             or (email and email in blocked_emails)
-            or (customer_id and customer_id in blocked_customers)):
+            ):
         messages.error(request, "This account is not eligible to make purchases.")
         return redirect("dispute_restricted")
     return None
