@@ -1,0 +1,40 @@
+{% extends "account/base.html" %}
+{% block content %}
+<main class="main">
+  <section class="section" style="padding: 80px 0;">
+    <div class="container">
+      <h1>Blocked Purchase Emails</h1>
+      <p>Manager-only list. Matching email addresses cannot start a new checkout. Existing dispute restrictions remain in effect.</p>
+      <a class="btn btn-outline-secondary mb-4" href="{% url 'manager_dashboard' %}">Back to Manager Dashboard</a>
+      <div class="card p-4 mb-4">
+        <h2 class="h5">Add blocked email</h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add">
+          <div class="mb-3"><label for="block-email" class="form-label">Email address</label>
+            <input id="block-email" class="form-control" type="email" name="email" maxlength="254" required>
+          </div>
+          <div class="mb-3"><label for="block-reason" class="form-label">Internal reason (optional)</label>
+            <input id="block-reason" class="form-control" name="reason" maxlength="300">
+          </div>
+          <button class="btn btn-danger" type="submit">Block email</button>
+        </form>
+      </div>
+      <h2 class="h5">Current blocks ({{ entries|length }})</h2>
+      <div class="table-responsive"><table class="table table-striped">
+        <thead><tr><th>Email</th><th>Reason</th><th>Added</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for entry in entries %}
+          <tr><td>{{ entry.email }}</td><td>{{ entry.reason|default:"—" }}</td><td>{{ entry.created_at|date:"Y-m-d H:i" }}</td>
+          <td><form method="post" onsubmit="return confirm('Remove this email from the purchase blocklist?');">
+            {% csrf_token %}<input type="hidden" name="action" value="remove">
+            <input type="hidden" name="block_id" value="{{ entry.pk }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Unblock</button>
+          </form></td></tr>
+        {% empty %}<tr><td colspan="4">No blocked emails yet.</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+{% endblock %}
