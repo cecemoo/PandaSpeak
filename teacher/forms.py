@@ -102,16 +102,20 @@ class IdiomForm(ModelForm):
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
-        self.fields["subcategory"].widget = forms.Select(choices=[
-            ("", "Other Expressions / Not assigned"),
-            ("Greetings & Politeness", "Greetings & Politeness"),
-            ("Everyday Activities", "Everyday Activities"),
-            ("Communication & Conversation", "Communication & Conversation"),
-            ("Habits & Routines", "Habits & Routines"),
-            ("Decisions & Choices", "Decisions & Choices"),
-            ("Requests & Responses", "Requests & Responses"),
-            ("Common Situations", "Common Situations"),
-        ])
+        category_id = self.data.get('category') if self.is_bound else self.initial.get('category', getattr(self.instance, 'category_id', None))
+        category = IdiomCategory.objects.filter(pk=category_id).first() if category_id else None
+        category_name = category.category_name.strip().lower() if category else ''
+        subcategories = {
+            'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations"],
+            'life & philosophy': ["Wisdom & Life Lessons","Values & Principles","Happiness & Contentment","Personal Growth","Attitude & Mindset","Success & Failure","Time & Opportunity"],
+        }.get(category_name, [])
+        current = self.data.get('subcategory') if self.is_bound else (getattr(self.instance, 'subcategory', '') or '')
+        choices = [('', 'Other Expressions / Not assigned')]
+        choices += [(name, name) for name in subcategories]
+        if current and current not in subcategories:
+            choices.append((current, current + ' (previous selection)'))
+        self.fields['subcategory'].widget = forms.Select(choices=choices)
+        self.fields['subcategory'].choices = choices
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
