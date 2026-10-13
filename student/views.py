@@ -419,15 +419,18 @@ def idiom_category_page(request, category_id):
         idioms = idioms.filter(
             level__in=['level1', 'level2', 'level3']
         )
-    daily_life_subcategories = [
-        "Greetings & Politeness",
-        "Everyday Activities",
-        "Communication & Conversation",
-        "Habits & Routines",
-        "Decisions & Choices",
-        "Requests & Responses",
-        "Common Situations",
-    ] if category.category_name.strip().lower() == "daily life" else []
+    expression_subcategories = {
+        'daily life': [
+            'Greetings & Politeness', 'Everyday Activities',
+            'Communication & Conversation', 'Habits & Routines',
+            'Decisions & Choices', 'Requests & Responses', 'Common Situations',
+        ],
+        'life & philosophy': [
+            'Wisdom & Life Lessons', 'Values & Principles',
+            'Happiness & Contentment', 'Personal Growth',
+            'Attitude & Mindset', 'Success & Failure', 'Time & Opportunity',
+        ],
+    }.get(category.category_name.strip().lower(), [])
     favorite_idiom_ids = set(
         Favorite.objects.filter(
             student=request.user,
@@ -442,19 +445,19 @@ def idiom_category_page(request, category_id):
     )
     idioms = idioms.exclude(id__in=learned_idiom_ids)
     idiom_list = list(idioms)
-    if daily_life_subcategories:
+    if expression_subcategories:
         grouped_idioms = [
             {'name': name, 'items': [item for item in idiom_list if item.subcategory == name]}
-            for name in daily_life_subcategories
+            for name in expression_subcategories
         ]
         grouped_idioms.append({
             'name': 'Other Expressions',
-            'items': [item for item in idiom_list if item.subcategory not in daily_life_subcategories],
+            'items': [item for item in idiom_list if item.subcategory not in expression_subcategories],
         })
         grouped_idioms = [group for group in grouped_idioms if group['items']]
     else:
         grouped_idioms = []
-    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids, 'subcategories': daily_life_subcategories, 'grouped_idioms': grouped_idioms})
+    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids, 'subcategories': expression_subcategories, 'grouped_idioms': grouped_idioms})
    
 
 
