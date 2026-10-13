@@ -108,7 +108,8 @@ class IdiomForm(ModelForm):
         subcategories = {
             'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations","Emotions & Reactions","Behavior & Personality","Difficulties & Challenges"],
             'life & philosophy': ["Wisdom & Life Lessons","Values & Principles","Happiness & Contentment","Personal Growth","Attitude & Mindset","Success & Failure","Time & Opportunity","Cause & Effect","Human Nature & Relationships"],
-            'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
+            'weather': ["Pleasant Weather & Scenery","Wind & Storms","Rain & Thunder","Extreme Weather","Weather Metaphors & Life Lessons"],
+    'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
     'numbers': ["Unity & Consistency","Actions & Decisions","Numbers & Quantities","Perfection & Repetition","Emotions & Feelings"],
     'colors': ["Colors & Appearance","Clarity & Truth","Emotions & Facial Expressions","Success & Recognition","Descriptions & Metaphors"],
     'body parts': ["Eyes & Observation","Ears & Listening","Mouth & Speech","Heart & Emotions","Hands, Feet & Actions","Physical Appearance & Health","Mindset & Character","Human Relationships"],
