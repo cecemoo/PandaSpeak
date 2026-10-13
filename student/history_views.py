@@ -15,12 +15,13 @@ from .song_history_lessons import SONG_CARDS, SONG_HISTORY_LESSONS
 from .yuan_history_lessons import YUAN_CARDS, YUAN_HISTORY_LESSONS
 from .ming_history_lessons import MING_CARDS, MING_HISTORY_LESSONS
 from .qing_history_lessons import QING_CARDS, QING_HISTORY_LESSONS
+from .modern_history_lessons import MODERN_HISTORY_LESSONS
 from .history_media import media_for_lesson
 from .models import HistoryLessonCompletion
 
 
 # Build one chronological History Journey while keeping the existing lessons intact.
-HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS, **FIVE_DYNASTIES_HISTORY_LESSONS, **SONG_HISTORY_LESSONS, **YUAN_HISTORY_LESSONS, **MING_HISTORY_LESSONS, **QING_HISTORY_LESSONS}
+HISTORY_LESSONS = {**EXISTING_HISTORY_LESSONS, **EARLY_HISTORY_LESSONS, **QIN_HISTORY_LESSONS, **JIN_HISTORY_LESSONS, **NORTHERN_SOUTHERN_HISTORY_LESSONS, **SUI_HISTORY_LESSONS, **TANG_HISTORY_LESSONS, **FIVE_DYNASTIES_HISTORY_LESSONS, **SONG_HISTORY_LESSONS, **YUAN_HISTORY_LESSONS, **MING_HISTORY_LESSONS, **QING_HISTORY_LESSONS, **MODERN_HISTORY_LESSONS}
 _oracle_card = EXISTING_HISTORY_LESSONS['oracle-bones']
 _qin_card = EXISTING_HISTORY_LESSONS['qin-unification']
 _other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug'] not in ('oracle-bones', 'qin-unification')]
@@ -43,6 +44,7 @@ HISTORY_CARDS = (
     + YUAN_CARDS
     + MING_CARDS
     + QING_CARDS
+    + list(MODERN_HISTORY_LESSONS.values())
 )
 
 HISTORY_PREVIEW_SLUG = 'oracle-bones'
@@ -64,7 +66,7 @@ DYNASTIES = [
     {'slug': 'yuan', 'name': 'Yuan Dynasty', 'chinese_name': '元朝', 'dates': '1271–1368', 'icon': '🐎', 'description': 'Mongol origins, Yuan rule, Eurasian connections, science, drama, and the transition to Ming.', 'story_slugs': ['genghis-unifies-mongols', 'genghis-western-campaigns', 'qiu-chuji-meets-genghis', 'kublai-founds-yuan', 'kublai-capital-dadu', 'battle-xiangyang', 'battle-yamen-yuan', 'wen-tianxiang-unyielding', 'who-can-escape-death', 'marco-polo-china', 'guo-shoujing-calendar', 'huang-daopo-textiles', 'zhao-mengfu-art', 'guan-hanqing-dou-e', 'injustice-dou-e', 'snow-in-june', 'yuan-drama-flourishes', 'red-turban-rebellion', 'zhu-yuanzhang-rises', 'ming-founded-yuan-ends']},
     {'slug': 'ming', 'name': 'Ming Dynasty', 'chinese_name': '明朝', 'dates': '1368–1644', 'icon': '⛵', 'description': 'Imperial politics, maritime voyages, defense, scholarship, reform, and the fall of Ming.', 'story_slugs': ['jingnan-campaign', 'yongle-moves-capital-beijing', 'forbidden-city-built', 'zheng-he', 'tumu-crisis', 'yu-qian-defends-beijing', 'duomen-coup', 'wang-yangming-longchang', 'qi-jiguang-fights-wokou', 'hai-rui-memorial', 'zhang-juzheng-reforms', 'li-shizhen-bencao', 'xu-xiake-travels', 'wei-zhongxian-power', 'yuan-chonghuan-ningyuan', 'li-zicheng-rebellion', 'li-zicheng-enters-beijing', 'chongzhen-meishan']},
     {'slug': 'qing', 'name': 'Qing Dynasty', 'chinese_name': '清朝', 'dates': '1644–1912', 'icon': '🏯', 'description': 'The last imperial dynasty and the transformation toward the modern era.', 'story_slugs': ['qing-entry', 'zheng-chenggong-taiwan', 'revolt-three-feudatories', 'qing-taiwan-1683', 'kangxi-southern-tour', 'treaty-nerchinsk', 'yongzheng-reforms', 'qianlong-dream-red-chamber', 'heshen-downfall', 'opium-war', 'taiping-rebellion', 'self-strengthening', 'sino-japanese-war', 'hundred-days-reform', 'boxer-rebellion', 'late-qing-new-policies', 'wuchang-uprising']},
-    {'slug': 'modern', 'name': 'Modern China & Taiwan', 'chinese_name': '近現代中國與臺灣', 'dates': '1912–Present', 'icon': '🌏', 'description': 'Modern change, society, identity, and the Chinese-speaking world today.', 'story_slugs': ['modern-and-taiwan']},
+    {'slug': 'modern', 'name': 'Modern China & Taiwan', 'chinese_name': '近現代中國與臺灣', 'dates': '1912–Present', 'icon': '🌏', 'description': 'Modern change, society, identity, and the Chinese-speaking world today.', 'story_slugs': ['modern-and-taiwan','republic-1912','may-fourth','northern-expedition','war-1937','february-28','cross-strait-1949','taiwan-land-reform','great-leap','cultural-revolution','taiwan-economy','reform-1978','martial-law-1987','tiananmen-1989','taiwan-election-1996','hongkong-1997','taiwan-election-2000','chinese-world-today']},
 ]
 
 
