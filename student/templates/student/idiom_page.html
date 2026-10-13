@@ -27,51 +27,32 @@
     color: #111111;
   }
 
-  .expression-subcategory-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
-    gap: 18px;
-    max-width: 1140px;
-    margin: 0 auto;
-  }
-  .expression-subcategory-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 112px;
-    padding: 22px 18px;
+  .expression-topic-accordion .accordion-item {
     border: 1px solid #d9b7ed;
-    border-radius: 14px;
-    background: #f2e5fa;
-    color: #75418e;
-    text-align: center;
-    text-decoration: none;
-    font-size: 1.05rem;
-    font-weight: 650;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-    box-shadow: 0 5px 16px rgba(0, 0, 0, .14);
-    transition: transform .2s ease, box-shadow .2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: transparent;
   }
-  .expression-subcategory-card:hover,
-  .expression-subcategory-card:focus-visible,
-  .expression-subcategory-card.active {
-    background: #e6d0f3;
+  .expression-topic-accordion .accordion-button {
+    background: #eee0f5;
     color: #59316e;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
-    text-decoration: none;
+    font-weight: 700;
   }
-  .expression-subcategory-card:hover { transform: translateY(-4px); }
-  .expression-subcategory-card:focus-visible { outline: 3px solid white; outline-offset: 3px; }
-  @media (max-width: 575px) {
-    .expression-subcategory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .expression-subcategory-card { min-height: 96px; padding: 16px 10px; font-size: .95rem; }
+  .expression-topic-accordion .accordion-button:not(.collapsed) {
+    background: #dcc1ed;
+    color: #49265e;
+    box-shadow: none;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .expression-subcategory-card { transition: none; }
-    .expression-subcategory-card:hover { transform: none; }
+  .expression-topic-accordion .accordion-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: transparent;
   }
-
+  .expression-topic-accordion .accordion-button:focus-visible {
+    box-shadow: 0 0 0 3px #c5a2dc;
+  }
   .word-container {
     display: flex;
     flex-wrap: wrap;
@@ -128,17 +109,123 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
       {% if subcategories %}
-      <div class="mb-4">
-        <h3 class="h5 text-center">Daily Life Subcategories</h3>
-        <div class="expression-subcategory-grid">
-          <a class="expression-subcategory-card {% if not selected_subcategory %}active{% endif %}" href="?level={{ selected_level|urlencode }}">All Daily Life</a>
-          {% for subcategory in subcategories %}
-          <a class="expression-subcategory-card {% if selected_subcategory == subcategory %}active{% endif %}" href="?level={{ selected_level|urlencode }}&amp;subcategory={{ subcategory|urlencode }}">{{ subcategory }}</a>
-          {% endfor %}
+      <p class="text-center text-muted">Choose a topic to explore Chinese expressions.</p>
+      <div class="accordion expression-topic-accordion mb-4" id="expressionTopicAccordion">
+        {% for group in grouped_idioms %}
+        <div class="accordion-item">
+          <h3 class="accordion-header" id="expressionHeading{{ forloop.counter }}">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+              data-bs-toggle="collapse" data-bs-target="#expressionCollapse{{ forloop.counter }}"
+              aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-controls="expressionCollapse{{ forloop.counter }}">
+              {{ group.name }} ({{ group.items|length }})
+            </button>
+          </h3>
+          <div id="expressionCollapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+            aria-labelledby="expressionHeading{{ forloop.counter }}" data-bs-parent="#expressionTopicAccordion">
+            <div class="accordion-body">
+              {% for item in group.items %}
+
+
+        <button type="button" class="vocab-pill" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+          {{ item.idiom }}
+          {% if item.level != 'unclassified' %}
+          <span class="fw-semibold">
+            {{ item.expression }}
+          </span>
+
+          {% if item.level == 'level1' %}
+          <span class="badge rounded-pill bg-success ms-2">
+            Level I
+          </span>
+
+          {% elif item.level == 'level2' %}
+          <span class="badge rounded-pill bg-primary ms-2">
+            Level II
+          </span>
+
+          {% elif item.level == 'level3' %}
+          <span class="badge rounded-pill bg-warning text-dark ms-2">
+            Level III
+          </span>
+          {% endif %}
+          {% endif %}
+        </button>
+
+        <div class="modal fade" id="vocabModal{{ item.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content text-dark">
+
+              <div class="modal-header">
+                <h5 class="modal-title">{{ item.idiom }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+
+              <div class="modal-body">
+                <p><strong>Type:</strong> {{ item.get_expression_type_display }}</p>
+                <p><strong>Pinyin:</strong> {{ item.pinyin }}</p>
+                <p><strong>Level: </strong>{{ item.get_level_display }}</p>
+                <p><strong>Meaning:</strong> {{ item.meaning }}</p>
+                {% if item.example_sentence or item.example_pinyin or item.example_translation %}
+                <p><strong>Example Sentence:</strong><br>
+                  {% if item.example_sentence %}{{ item.example_sentence }}<br>{% endif %}
+                  {% if item.example_pinyin %}{{ item.example_pinyin }}<br>{% endif %}
+                  {% if item.example_translation %}{{ item.example_translation }}{% endif %}
+                </p>
+                {% endif %}
+
+                <form method="post" action="{% url 'toggle_favorite' 'idiom' item.id %}" class="mb-3">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-warning">
+                    {% if item.id in favorite_idiom_ids %}
+                    ★ Remove from My Review
+                    {% else %}
+                    ☆ Add to My Review
+                    {% endif %}
+                  </button>
+                </form>
+
+                <form method="post" action="{% url 'toggle_learned' 'idiom' item.id %}" class="mb-2">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-success">
+                    {% if item.id in learned_idiom_ids %}
+                    ✓ Learned
+                    {% else %}
+                    Mark as Learned
+                    {% endif %}
+                  </button>
+                </form>
+
+                {% if item.audio_scenario_file %}
+                <audio id="audio{{ item.id }}">
+                  <source src="{{ item.audio_scenario_file.url }}">
+                </audio>
+
+                <button type="button" class="btn btn-secondary"
+                  onclick="document.getElementById('audio{{ item.id }}').play();">
+                  ▶ Play Audio
+                </button>
+                {% else %}
+                <p>No audio available.</p>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
         </div>
-        <p class="text-center text-muted small mt-3">Expressions not yet assigned to a subcategory remain available under All Daily Life.</p>
+
+        {% empty %}
+        <p>No idioms added yet.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p>No expressions available at this level.</p>
+        {% endfor %}
       </div>
-      {% endif %}
+      {% else %}
       <div class="word-container">
         {% for item in idioms %}
 
@@ -234,6 +321,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         <p>No idioms added yet.</p>
         {% endfor %}
       </div>
+      {% endif %}
     </div>
 
     <div class="container text-center mt-4 mb-3">
