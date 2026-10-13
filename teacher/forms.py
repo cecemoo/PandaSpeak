@@ -106,7 +106,7 @@ class IdiomForm(ModelForm):
         category = IdiomCategory.objects.filter(pk=category_id).first() if category_id else None
         category_name = category.category_name.strip().lower() if category else ''
         subcategories = {
-            'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations"],
+            'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations","Emotions & Reactions","Behavior & Personality","Difficulties & Challenges"],
             'life & philosophy': ["Wisdom & Life Lessons","Values & Principles","Happiness & Contentment","Personal Growth","Attitude & Mindset","Success & Failure","Time & Opportunity"],
             'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships"],
         }.get(category_name, [])
