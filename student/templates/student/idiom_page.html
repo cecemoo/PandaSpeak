@@ -82,6 +82,18 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
           Level III
         </a>
       </div>
+      {% if subcategories %}
+      <div class="mb-4">
+        <h3 class="h5 text-center">Daily Life Subcategories</h3>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <a class="btn {% if not selected_subcategory %}btn-success{% else %}btn-outline-success{% endif %}" href="?level={{ selected_level|urlencode }}">All Daily Life</a>
+          {% for subcategory in subcategories %}
+          <a class="btn {% if selected_subcategory == subcategory %}btn-success{% else %}btn-outline-success{% endif %}" href="?level={{ selected_level|urlencode }}&amp;subcategory={{ subcategory|urlencode }}">{{ subcategory }}</a>
+          {% endfor %}
+        </div>
+        <p class="text-center text-muted small mt-2">Expressions not yet assigned to a subcategory remain available under All Daily Life.</p>
+      </div>
+      {% endif %}
       <div class="word-container">
         {% for item in idioms %}
 
