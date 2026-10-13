@@ -436,6 +436,7 @@ def idiom_category_page(request, category_id):
         'society & resource': ["Resources & Value","Wealth & Social Status","Public Welfare & Responsibility","Cooperation & Interdependence","Social Behavior & Opportunity"],
         'emotions': ["Anger & Frustration","Fear & Anxiety","Joy & Excitement","Sadness & Grief","Surprise & Mixed Feelings"],
         'work & career': ["Hard Work & Dedication","Career Success & Achievement","Workplace Challenges & Setbacks"],
+        'people': ["Personality & Character","Speech & Behavior","Judgment & Perception","Difficulties & Survival","Humor & Everyday Sayings"],
         'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
     'numbers': ["Unity & Consistency","Actions & Decisions","Numbers & Quantities","Perfection & Repetition","Emotions & Feelings"],
     'colors': ["Colors & Appearance","Clarity & Truth","Emotions & Facial Expressions","Success & Recognition","Descriptions & Metaphors"],
