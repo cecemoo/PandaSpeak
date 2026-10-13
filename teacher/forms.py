@@ -108,6 +108,7 @@ class IdiomForm(ModelForm):
         subcategories = {
             'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations","Emotions & Reactions","Behavior & Personality","Difficulties & Challenges"],
             'life & philosophy': ["Wisdom & Life Lessons","Values & Principles","Happiness & Contentment","Personal Growth","Attitude & Mindset","Success & Failure","Time & Opportunity","Cause & Effect","Human Nature & Relationships"],
+            'time & dates': ["Time Is Precious","Punctuality & Timing","Time Management & Productivity","Passing Time & Change","Patience & Waiting","Opportunities & Deadlines","Seasons & Passage of Time"],
             'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships","Friendship & Betrayal"],
         }.get(category_name, [])
         current = self.data.get('subcategory') if self.is_bound else (getattr(self.instance, 'subcategory', '') or '')
