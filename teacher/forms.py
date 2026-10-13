@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from account.models import CustomUser
-from . models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, LearningSurvey, SurveyQuestion
+from . models import Vocabulary, Sentence, Pronunciation, Idiom, IdiomCategory, Tone, LearningSurvey, SurveyQuestion
 from student.models import LanguageTest, TestQuestion
 from course.models import StudentGroup
 from opencc import OpenCC
