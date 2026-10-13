@@ -27,6 +27,51 @@
     color: #111111;
   }
 
+  .expression-subcategory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
+    gap: 18px;
+    max-width: 1140px;
+    margin: 0 auto;
+  }
+  .expression-subcategory-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 112px;
+    padding: 22px 18px;
+    border: 1px solid #d9b7ed;
+    border-radius: 14px;
+    background: #f2e5fa;
+    color: #75418e;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1.05rem;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, .14);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .expression-subcategory-card:hover,
+  .expression-subcategory-card:focus-visible,
+  .expression-subcategory-card.active {
+    background: #e6d0f3;
+    color: #59316e;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
+    text-decoration: none;
+  }
+  .expression-subcategory-card:hover { transform: translateY(-4px); }
+  .expression-subcategory-card:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+  @media (max-width: 575px) {
+    .expression-subcategory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .expression-subcategory-card { min-height: 96px; padding: 16px 10px; font-size: .95rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .expression-subcategory-card { transition: none; }
+    .expression-subcategory-card:hover { transform: none; }
+  }
+
   .word-container {
     display: flex;
     flex-wrap: wrap;
@@ -85,13 +130,13 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
       {% if subcategories %}
       <div class="mb-4">
         <h3 class="h5 text-center">Daily Life Subcategories</h3>
-        <div class="d-flex flex-wrap justify-content-center gap-2">
-          <a class="btn {% if not selected_subcategory %}btn-success{% else %}btn-outline-success{% endif %}" href="?level={{ selected_level|urlencode }}">All Daily Life</a>
+        <div class="expression-subcategory-grid">
+          <a class="expression-subcategory-card {% if not selected_subcategory %}active{% endif %}" href="?level={{ selected_level|urlencode }}">All Daily Life</a>
           {% for subcategory in subcategories %}
-          <a class="btn {% if selected_subcategory == subcategory %}btn-success{% else %}btn-outline-success{% endif %}" href="?level={{ selected_level|urlencode }}&amp;subcategory={{ subcategory|urlencode }}">{{ subcategory }}</a>
+          <a class="expression-subcategory-card {% if selected_subcategory == subcategory %}active{% endif %}" href="?level={{ selected_level|urlencode }}&amp;subcategory={{ subcategory|urlencode }}">{{ subcategory }}</a>
           {% endfor %}
         </div>
-        <p class="text-center text-muted small mt-2">Expressions not yet assigned to a subcategory remain available under All Daily Life.</p>
+        <p class="text-center text-muted small mt-3">Expressions not yet assigned to a subcategory remain available under All Daily Life.</p>
       </div>
       {% endif %}
       <div class="word-container">
