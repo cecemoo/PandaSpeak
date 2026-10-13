@@ -424,6 +424,7 @@ def idiom_category_page(request, category_id):
             'Greetings & Politeness', 'Everyday Activities',
             'Communication & Conversation', 'Habits & Routines',
             'Decisions & Choices', 'Requests & Responses', 'Common Situations',
+            'Emotions & Reactions', 'Behavior & Personality', 'Difficulties & Challenges',
         ],
         'life & philosophy': [
             'Wisdom & Life Lessons', 'Values & Principles',
