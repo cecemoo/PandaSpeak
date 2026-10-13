@@ -432,7 +432,8 @@ def idiom_category_page(request, category_id):
             'Attitude & Mindset', 'Success & Failure', 'Time & Opportunity',
             'Cause & Effect', 'Human Nature & Relationships',
         ],
-        'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships","Friendship & Betrayal"],
+        'time & dates': ["Time Is Precious","Punctuality & Timing","Time Management & Productivity","Passing Time & Change","Patience & Waiting","Opportunities & Deadlines","Seasons & Passage of Time"],
+            'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships","Friendship & Betrayal"],
     }.get(category.category_name.strip().lower(), [])
     favorite_idiom_ids = set(
         Favorite.objects.filter(
