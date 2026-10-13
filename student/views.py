@@ -437,6 +437,7 @@ def idiom_category_page(request, category_id):
         'emotions': ["Anger & Frustration","Fear & Anxiety","Joy & Excitement","Sadness & Grief","Surprise & Mixed Feelings"],
         'work & career': ["Hard Work & Dedication","Career Success & Achievement","Workplace Challenges & Setbacks"],
         'people': ["Personality & Character","Speech & Behavior","Judgment & Perception","Difficulties & Survival","Humor & Everyday Sayings"],
+        'food and dining': ["Food & Ingredients","Cooking & Preparation","Eating & Appetite","Taste & Flavor","Dining Etiquette & Sharing"],
         'nature': ["Nature & Landscapes","Weather & Seasons","Plants & Flowers","Fire, Water & Natural Forces","Nature as Metaphor"],
         'problems & challenges & situations': ["Difficulties & Setbacks","Causes & Consequences","Solutions & Coping","Conflict & Dilemmas","Unexpected Situations"],
         'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
