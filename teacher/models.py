@@ -145,6 +145,7 @@ class Idiom(models.Model):
         ("quotation", "Quotation"),
     ]
     expression_type = models.CharField(max_length=30, choices=EXPRESSION_TYPES, default="idiom", verbose_name="Expression Type")
+    subcategory = models.CharField(max_length=100, blank=True, default="", db_index=True)
     idiom = models.CharField(max_length=100)
     pinyin = models.CharField(max_length=100, blank=True)
     english_translation = models.CharField(max_length=255, blank=True)
