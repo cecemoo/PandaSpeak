@@ -38,6 +38,11 @@
 
                 <!-- right side content -->
                 <div class="col-md-9"><p><a class="btn btn-outline-primary" href="/subscription/manager/acknowledgements/">View Subscription &amp; Stripe Connect Acknowledgments</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_purchase_blocklist' %}">Blocked Purchase Emails</a></p>
+                    <div class="card mb-4"><div class="card-header fw-bold">Manage Learning Subcategories</div><div class="card-body">
+                    {% for group in subcategory_groups %}<details class="border rounded p-3 mb-2"><summary>{{ group.kind|title }} — {{ group.category.category_name }}</summary>
+                    <form method="post" action="{% url 'manage_learning_subcategory' %}" class="d-flex gap-2 mt-2">{% csrf_token %}<input type="hidden" name="kind" value="{{ group.kind }}"><input type="hidden" name="category_id" value="{{ group.category.pk }}"><input name="name" required maxlength="100" placeholder="New subcategory" class="form-control"><button name="action" value="add" class="btn btn-success">Add</button></form>
+                    {% for item in group.items %}<form method="post" action="{% url 'manage_learning_subcategory' %}" class="d-flex gap-2 mt-2">{% csrf_token %}<input type="hidden" name="kind" value="{{ group.kind }}"><input type="hidden" name="category_id" value="{{ group.category.pk }}"><input type="hidden" name="item_id" value="{{ item.pk }}"><input name="name" value="{{ item.name }}" required maxlength="100" class="form-control"><button name="action" value="rename" class="btn btn-outline-primary">Rename</button><button name="action" value="delete" formnovalidate class="btn btn-outline-danger" onclick="return confirm('Delete subcategory?')">Delete</button></form>{% endfor %}
+                    </details>{% endfor %}</div></div>
                     <!-- Search -->
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-body">

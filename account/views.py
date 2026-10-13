@@ -262,7 +262,10 @@ def manager_dashboard(request):
 
         ).distinct()
 
+    from teacher.models import LearningSubcategory
+    subcategory_groups = [{'kind': kind, 'category': c, 'items': LearningSubcategory.objects.filter(material_type=kind, category_id_value=c.pk)} for kind, cls in [('vocabulary', VocabularyCategory), ('sentence', SentenceCategory), ('expression', IdiomCategory)] for c in cls.objects.order_by('category_name')]
     context = {
+        'subcategory_groups': subcategory_groups,
 
         'vocabulary_category_count': vocabulary_category_count,
 
@@ -1170,3 +1173,50 @@ def lead_unsubscribe(request, token):
     except Exception:
         done = False
     return render(request, 'account/lead_unsubscribe.html', {'done': done})
+
+
+@login_required(login_url='my_login')
+@user_passes_test(admin_only, login_url='my_login')
+@require_POST
+def manage_learning_subcategory(request):
+    from teacher.models import LearningSubcategory
+    from django.db import transaction
+    kind = request.POST.get('kind')
+    cls = {'vocabulary': VocabularyCategory, 'sentence': SentenceCategory, 'expression': IdiomCategory}.get(kind)
+    pk = request.POST.get('category_id','')
+    category = cls.objects.filter(pk=pk).first() if cls and pk.isdigit() else None
+    if not category:
+        messages.error(request,'Invalid category.')
+        return redirect('manager_dashboard')
+    action = request.POST.get('action')
+    name = request.POST.get('name','').strip()
+    if len(name)>100:
+        messages.error(request,'Name is too long.')
+        return redirect('manager_dashboard')
+    with transaction.atomic():
+        if action == 'add' and name:
+            obj, created = LearningSubcategory.objects.get_or_create(material_type=kind,category_id_value=category.pk,name=name)
+            messages.success(request,'Subcategory added.' if created else 'Subcategory already exists.')
+        else:
+            item_pk = request.POST.get('item_id','')
+            item = LearningSubcategory.objects.filter(pk=item_pk,material_type=kind,category_id_value=category.pk).first() if item_pk.isdigit() else None
+            if not item:
+                messages.error(request,'Invalid subcategory.')
+            elif action == 'rename' and name:
+                if LearningSubcategory.objects.filter(material_type=kind,category_id_value=category.pk,name=name).exclude(pk=item.pk).exists():
+                    messages.error(request,'Name already exists.')
+                else:
+                    if kind == 'expression':
+                        Idiom.objects.filter(category=category,subcategory=item.name).update(subcategory=name)
+                    item.name=name
+                    item.save(update_fields=['name'])
+                    messages.success(request,'Subcategory renamed.')
+            elif action == 'delete':
+                if kind == 'expression' and Idiom.objects.filter(category=category,subcategory=item.name).exists():
+                    messages.error(request,'Move expressions before deleting this subcategory.')
+                else:
+                    item.delete()
+                    messages.success(request,'Subcategory deleted.')
+            else:
+                messages.error(request,'Invalid operation.')
+    return redirect('manager_dashboard')

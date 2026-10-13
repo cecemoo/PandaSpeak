@@ -9,6 +9,7 @@ from . import email_verification_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    path('manager/subcategories/', views.manage_learning_subcategory, name='manage_learning_subcategory'),
     path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
     path('email-preferences/', announcement_views.preferences, name='email_preferences'),
     path('news/unsubscribe/<str:token>/', announcement_views.unsubscribe, name='news_unsubscribe'),

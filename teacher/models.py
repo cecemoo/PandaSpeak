@@ -278,3 +278,13 @@ class SurveyAnswer(models.Model):
 
 # Bingo models live in a separate module to keep this file manageable.
 from .bingo_models import BingoGame, BingoCard
+
+
+class LearningSubcategory(models.Model):
+    material_type = models.CharField(max_length=20, choices=[('vocabulary','Vocabulary'),('sentence','Sentences'),('expression','Chinese Expressions')])
+    category_id_value = models.PositiveIntegerField()
+    name = models.CharField(max_length=100)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['material_type','category_id_value','name'],name='unique_learning_subcategory')]
+    def __str__(self):
+        return self.name
