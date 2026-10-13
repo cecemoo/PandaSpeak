@@ -433,6 +433,7 @@ def idiom_category_page(request, category_id):
             'Cause & Effect', 'Human Nature & Relationships',
         ],
         'weather': ["Pleasant Weather & Scenery","Wind & Storms","Rain & Thunder","Extreme Weather","Weather Metaphors & Life Lessons"],
+    'society & resource': ["Resources & Value","Wealth & Social Status","Public Welfare & Responsibility","Cooperation & Interdependence","Social Behavior & Opportunity"],
     'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
     'numbers': ["Unity & Consistency","Actions & Decisions","Numbers & Quantities","Perfection & Repetition","Emotions & Feelings"],
     'colors': ["Colors & Appearance","Clarity & Truth","Emotions & Facial Expressions","Success & Recognition","Descriptions & Metaphors"],
