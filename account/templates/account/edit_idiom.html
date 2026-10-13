@@ -42,4 +42,30 @@
     </section><!-- /Edit Idiom Section -->
 
   </main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const category = document.getElementById('id_category');
+  const subcategory = document.getElementById('id_subcategory');
+  if (!category || !subcategory) return;
+  const topics = {
+    'daily life': ['Greetings & Politeness', 'Everyday Activities', 'Communication & Conversation', 'Habits & Routines', 'Decisions & Choices', 'Requests & Responses', 'Common Situations'],
+    'life & philosophy': ['Wisdom & Life Lessons', 'Values & Principles', 'Happiness & Contentment', 'Personal Growth', 'Attitude & Mindset', 'Success & Failure', 'Time & Opportunity']
+  };
+  const initial = subcategory.value;
+  function refresh(preserve) {
+    const label = category.options[category.selectedIndex]?.text.trim().toLowerCase() || '';
+    const values = topics[label] || [];
+    const previous = preserve ? subcategory.value : '';
+    subcategory.replaceChildren(new Option('Other Expressions / Not assigned', ''));
+    values.forEach(name => subcategory.add(new Option(name, name)));
+    if (previous && !values.includes(previous)) {
+      subcategory.add(new Option(previous + ' (previous selection)', previous));
+    }
+    subcategory.value = previous;
+    subcategory.disabled = false;
+  }
+  refresh(true);
+  category.addEventListener('change', () => refresh(false));
+});
+</script>
 {% endblock %}
