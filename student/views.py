@@ -430,6 +430,7 @@ def idiom_category_page(request, category_id):
             'Happiness & Contentment', 'Personal Growth',
             'Attitude & Mindset', 'Success & Failure', 'Time & Opportunity',
         ],
+        'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships"],
     }.get(category.category_name.strip().lower(), [])
     favorite_idiom_ids = set(
         Favorite.objects.filter(
