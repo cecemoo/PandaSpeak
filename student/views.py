@@ -428,11 +428,6 @@ def idiom_category_page(request, category_id):
         "Requests & Responses",
         "Common Situations",
     ] if category.category_name.strip().lower() == "daily life" else []
-    selected_subcategory = request.GET.get('subcategory', '').strip()
-    if selected_subcategory and selected_subcategory in daily_life_subcategories:
-        idioms = idioms.filter(subcategory=selected_subcategory)
-    else:
-        selected_subcategory = ''
     favorite_idiom_ids = set(
         Favorite.objects.filter(
             student=request.user,
@@ -446,7 +441,20 @@ def idiom_category_page(request, category_id):
         ).values_list('idiom_id', flat=True)
     )
     idioms = idioms.exclude(id__in=learned_idiom_ids)
-    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids, 'subcategories': daily_life_subcategories, 'selected_subcategory': selected_subcategory})
+    idiom_list = list(idioms)
+    if daily_life_subcategories:
+        grouped_idioms = [
+            {'name': name, 'items': [item for item in idiom_list if item.subcategory == name]}
+            for name in daily_life_subcategories
+        ]
+        grouped_idioms.append({
+            'name': 'Other Expressions',
+            'items': [item for item in idiom_list if item.subcategory not in daily_life_subcategories],
+        })
+        grouped_idioms = [group for group in grouped_idioms if group['items']]
+    else:
+        grouped_idioms = []
+    return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids, 'subcategories': daily_life_subcategories, 'grouped_idioms': grouped_idioms})
    
 
 
