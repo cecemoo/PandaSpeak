@@ -102,6 +102,16 @@ class IdiomForm(ModelForm):
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
+        self.fields["subcategory"].widget = forms.Select(choices=[
+            ("", "Other Expressions / Not assigned"),
+            ("Greetings & Politeness", "Greetings & Politeness"),
+            ("Everyday Activities", "Everyday Activities"),
+            ("Communication & Conversation", "Communication & Conversation"),
+            ("Habits & Routines", "Habits & Routines"),
+            ("Decisions & Choices", "Decisions & Choices"),
+            ("Requests & Responses", "Requests & Responses"),
+            ("Common Situations", "Common Situations"),
+        ])
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
