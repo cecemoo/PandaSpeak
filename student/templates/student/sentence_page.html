@@ -27,8 +27,12 @@
     color: #111111;
   }
 
-  .sentence-topic-accordion .accordion-item { border: 1px solid #b9dfc4; border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
-  .sentence-topic-accordion .accordion-button { background: #f2fbf5; color: #225c35; font-weight: 700; }
+  .sentence-topic-accordion .accordion-item { border: 1px solid #aec8f5; border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .sentence-topic-accordion .accordion-button { background: #e4edff; color: #28558d; font-weight: 700; box-shadow: none; }
+  .sentence-topic-accordion .accordion-button:hover,
+  .sentence-topic-accordion .accordion-button:focus-visible { background: #cbdcfb; color: #1e416f; }
+  .sentence-topic-accordion .accordion-button:not(.collapsed) { background: #cbdcfb; color: #1e416f; box-shadow: none; }
+  .sentence-topic-accordion .accordion-button:focus-visible { outline: 2px solid #aec8f5; outline-offset: -2px; }
   .sentence-topic-accordion .accordion-body { display: flex; flex-wrap: wrap; gap: 12px; }
   .word-container {
     display: flex;
