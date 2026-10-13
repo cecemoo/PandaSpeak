@@ -430,6 +430,7 @@ def idiom_category_page(request, category_id):
             'Wisdom & Life Lessons', 'Values & Principles',
             'Happiness & Contentment', 'Personal Growth',
             'Attitude & Mindset', 'Success & Failure', 'Time & Opportunity',
+            'Cause & Effect', 'Human Nature & Relationships',
         ],
         'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships"],
     }.get(category.category_name.strip().lower(), [])
