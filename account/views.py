@@ -440,7 +440,11 @@ def edit_vocabulary(request, vocab_id):
             return redirect('vocabularies')
     else:
         form = VocabularyForm(instance=vocab)
-    context = {'form': form, 'vocab': vocab}
+    from teacher.models import LearningSubcategory
+    subcategory_map = {}
+    for item in LearningSubcategory.objects.filter(material_type='vocabulary').order_by('name'):
+        subcategory_map.setdefault(str(item.category_id_value), []).append(item.name)
+    context = {'form': form, 'vocab': vocab, 'subcategory_map': subcategory_map}
     return render(request, 'account/edit_vocabulary.html', context)
      # Debugging line to print form errors
 
@@ -475,7 +479,11 @@ def edit_sentence(request, sentence_id):
             return redirect('sentences')
     else:
         form = SentenceForm(instance=sentence)
-    context = {'form': form, 'sentence': sentence}
+    from teacher.models import LearningSubcategory
+    subcategory_map = {}
+    for item in LearningSubcategory.objects.filter(material_type='sentence').order_by('name'):
+        subcategory_map.setdefault(str(item.category_id_value), []).append(item.name)
+    context = {'form': form, 'sentence': sentence, 'subcategory_map': subcategory_map}
     return render(request, 'account/edit_sentence.html', context)
 
 
@@ -506,7 +514,11 @@ def edit_idiom(request, idiom_id):
             return redirect('idioms')
     else:
         form = IdiomForm(instance=idiom)
-    context = {'form': form, 'idiom': idiom}
+    from teacher.models import LearningSubcategory
+    subcategory_map = {}
+    for item in LearningSubcategory.objects.filter(material_type='expression').order_by('name'):
+        subcategory_map.setdefault(str(item.category_id_value), []).append(item.name)
+    context = {'form': form, 'idiom': idiom, 'subcategory_map': subcategory_map}
     return render(request, 'account/edit_idiom.html', context)
 
 
