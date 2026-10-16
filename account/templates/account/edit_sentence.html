@@ -42,4 +42,24 @@
     </section><!-- /Edit Sentence Section -->
 
   </main>
+{{ subcategory_map|json_script:"edit-subcategory-map" }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const category = document.getElementById('id_category');
+  const subcategory = document.getElementById('id_subcategory');
+  const source = document.getElementById('edit-subcategory-map');
+  if (!category || !subcategory || !source) return;
+  const mapping = JSON.parse(source.textContent);
+  function refresh(keep) {
+    const previous = keep ? subcategory.value : '';
+    const names = mapping[category.value] || [];
+    subcategory.replaceChildren(new Option('Not assigned', ''));
+    names.forEach(name => subcategory.add(new Option(name, name)));
+    if (keep && previous && !names.includes(previous)) subcategory.add(new Option(previous + ' (previous selection)', previous));
+    subcategory.value = previous;
+  }
+  refresh(true);
+  category.addEventListener('change', function () { refresh(false); });
+});
+</script>
 {% endblock %}
