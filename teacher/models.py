@@ -34,6 +34,7 @@ class Vocabulary(models.Model):
     audio_file = models.FileField(upload_to='vocabulary_audio/', blank=True, null=True)
     category = models.ForeignKey(VocabularyCategory, on_delete=models.CASCADE, related_name='vocabularies', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    subcategory = models.CharField(max_length=100, blank=True, default='')
 
     VISIBILITY_CHOICES = [
     ('all', 'All Students'),
@@ -72,6 +73,7 @@ class Pronunciation(models.Model):
     english_example = models.CharField(max_length=50, blank=True)
     audio_file = models.FileField(upload_to='pronunciations/')
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    subcategory = models.CharField(max_length=100, blank=True, default='')
 
     level =models.CharField(
         max_length=20,
