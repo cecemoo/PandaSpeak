@@ -18,10 +18,28 @@
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form|crispy }}
+        {{ subcategory_map|json_script:'material-subcategory-map' }}
         <button type="submit" class="btn btn-primary rounded-pill">Add Vocabulary</button>
         <button type="button" class="btn btn-secondary rounded-pill ms-2" onclick="history.back()">Go Back</button>
       </form>
     </div>
   </section>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const category = document.getElementById('id_category');
+    const subcategory = document.getElementById('id_subcategory');
+    const data = document.getElementById('material-subcategory-map');
+    if (!category || !subcategory || !data) return;
+    const mapping = JSON.parse(data.textContent);
+    function update() {
+      const selected = subcategory.value;
+      subcategory.replaceChildren(new Option('Not assigned', ''));
+      (mapping[category.value] || []).forEach(name => subcategory.add(new Option(name, name)));
+      if ([...subcategory.options].some(option => option.value === selected)) subcategory.value = selected;
+    }
+    category.addEventListener('change', function () { subcategory.value = ''; update(); });
+    update();
+  });
+  </script>
 </main>
 {% endblock %}
