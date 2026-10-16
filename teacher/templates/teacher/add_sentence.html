@@ -24,4 +24,22 @@
     </div>
   </section>
 </main>
+{{ subcategory_map|json_script:"material-subcategory-map" }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const category = document.getElementById('id_category');
+  const subcategory = document.getElementById('id_subcategory');
+  const data = document.getElementById('material-subcategory-map');
+  if (!category || !subcategory || !data) return;
+  const mapping = JSON.parse(data.textContent);
+  function update() {
+    const previous = subcategory.value;
+    subcategory.replaceChildren(new Option('Not assigned', ''));
+    (mapping[category.value] || []).forEach(name => subcategory.add(new Option(name, name)));
+    if ([...subcategory.options].some(option => option.value === previous)) subcategory.value = previous;
+  }
+  category.addEventListener('change', () => { subcategory.value = ''; update(); });
+  update();
+});
+</script>
 {% endblock %}
