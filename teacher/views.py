@@ -10,7 +10,7 @@ from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from student.models import LanguageTest, TestQuestion, StudentTestSubmission, StudentSpeakingAnswer
-from .models import LearningSurvey, SurveyQuestion
+from .models import LearningSurvey, SurveyQuestion, LearningSubcategory
 from django.core.mail import send_mail
 from django.conf import settings
 from course.forms import StudentGroupForm
@@ -161,6 +161,12 @@ def account_management(request):
 
 
 
+def material_subcategory_map(kind):
+    result = {}
+    for item in LearningSubcategory.objects.filter(material_type=kind).order_by('name'):
+        result.setdefault(str(item.category_id_value), []).append(item.name)
+    return result
+
 def add_vocabulary(request):
     if request.method == 'POST':
         form = VocabularyForm(request.POST, request.FILES, teacher=request.user)
@@ -179,7 +185,7 @@ def add_vocabulary(request):
                 return redirect('teacher_dashboard')
     else:
         form = VocabularyForm(teacher=request.user)
-    context = {'form': form}
+    context = {'form': form, 'subcategory_map': material_subcategory_map('vocabulary')}
     return render(request, 'teacher/add_vocabulary.html', context)
 
 
@@ -201,7 +207,7 @@ def add_sentence(request):
                 return redirect('teacher_dashboard')
     else:
         form = SentenceForm(teacher=request.user)
-    context = {'form': form}
+    context = {'form': form, 'subcategory_map': material_subcategory_map('sentence')}
     return render(request, 'teacher/add_sentence.html', context)
 
 
@@ -225,7 +231,7 @@ def add_idiom(request):
                 return redirect('teacher_dashboard')
     else:
         form = IdiomForm(teacher=request.user)
-    return render(request, 'teacher/add_idiom.html', {'form': form})
+    return render(request, 'teacher/add_idiom.html', {'form': form, 'subcategory_map': material_subcategory_map('expression')})
 
 
 
