@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from account.models import CustomUser
-from . models import Vocabulary, Sentence, Pronunciation, Idiom, IdiomCategory, Tone, LearningSurvey, SurveyQuestion
+from . models import Vocabulary, Sentence, Pronunciation, Idiom, IdiomCategory, LearningSubcategory, Tone, LearningSurvey, SurveyQuestion
 from student.models import LanguageTest, TestQuestion
 from course.models import StudentGroup
 from opencc import OpenCC
@@ -43,6 +43,18 @@ class UpdateUserForm(ModelForm):
         fields = ['email', 'first_name', 'last_name',]
         exclude = ['password1', 'password2',]
 
+
+def configure_material_subcategory(form, kind):
+    category_id = form.data.get('category') if form.is_bound else form.initial.get('category', getattr(form.instance, 'category_id', None))
+    items = LearningSubcategory.objects.filter(material_type=kind, category_id_value=category_id).order_by('name') if str(category_id or '').isdigit() else LearningSubcategory.objects.none()
+    names = list(items.values_list('name', flat=True))
+    current = form.data.get('subcategory', '') if form.is_bound else getattr(form.instance, 'subcategory', '') or ''
+    choices = [('', 'Not assigned')] + [(name, name) for name in names]
+    if current and current not in names and not form.is_bound:
+        choices.append((current, current + ' (previous selection)'))
+    form.fields['subcategory'].widget = forms.Select(choices=choices, attrs={'class': 'form-select'})
+    form.fields['subcategory'].choices = choices
+
 class VocabularyForm(ModelForm):
     def clean_word(self):
         word = validate_traditional_chinese(self.cleaned_data.get('word'))
@@ -57,6 +69,7 @@ class VocabularyForm(ModelForm):
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
+        configure_material_subcategory(self, "vocabulary")
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
@@ -76,6 +89,7 @@ class SentenceForm(ModelForm):
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
+        configure_material_subcategory(self, "sentence")
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
@@ -102,35 +116,7 @@ class IdiomForm(ModelForm):
     def __init__(self, *args, **kwargs):
         teacher = kwargs.pop("teacher", None)
         super().__init__(*args, **kwargs)
-        category_id = self.data.get('category') if self.is_bound else self.initial.get('category', getattr(self.instance, 'category_id', None))
-        category = IdiomCategory.objects.filter(pk=category_id).first() if category_id else None
-        category_name = category.category_name.strip().lower() if category else ''
-        subcategories = {
-            'daily life': ["Greetings & Politeness","Everyday Activities","Communication & Conversation","Habits & Routines","Decisions & Choices","Requests & Responses","Common Situations","Emotions & Reactions","Behavior & Personality","Difficulties & Challenges"],
-            'life & philosophy': ["Wisdom & Life Lessons","Values & Principles","Happiness & Contentment","Personal Growth","Attitude & Mindset","Success & Failure","Time & Opportunity","Cause & Effect","Human Nature & Relationships"],
-            'weather': ["Pleasant Weather & Scenery","Wind & Storms","Rain & Thunder","Extreme Weather","Weather Metaphors & Life Lessons"],
-            'society & resource': ["Resources & Value","Wealth & Social Status","Public Welfare & Responsibility","Cooperation & Interdependence","Social Behavior & Opportunity"],
-            'emotions': ["Anger & Frustration","Fear & Anxiety","Joy & Excitement","Sadness & Grief","Surprise & Mixed Feelings"],
-            'work & career': ["Hard Work & Dedication","Career Success & Achievement","Workplace Challenges & Setbacks"],
-            'people': ["Personality & Character","Speech & Behavior","Judgment & Perception","Difficulties & Survival","Humor & Everyday Sayings"],
-            'problems & challenges & situations': ["Difficulties & Setbacks","Causes & Consequences","Solutions & Coping","Conflict & Dilemmas","Unexpected Situations"],
-            'food and dining': ["Food & Ingredients","Cooking & Preparation","Eating & Appetite","Taste & Flavor","Dining Etiquette & Sharing"],
-        'nature': ["Nature & Landscapes","Weather & Seasons","Plants & Flowers","Fire, Water & Natural Forces","Nature as Metaphor"],
-            'animals': ["Courage & Strength","Success & Achievement","Wisdom & Strategy","Personality & Behavior","Danger & Difficulties","Relationships & Society","Animal Characteristics & Comparisons"],
-    'numbers': ["Unity & Consistency","Actions & Decisions","Numbers & Quantities","Perfection & Repetition","Emotions & Feelings"],
-    'colors': ["Colors & Appearance","Clarity & Truth","Emotions & Facial Expressions","Success & Recognition","Descriptions & Metaphors"],
-    'body parts': ["Eyes & Observation","Ears & Listening","Mouth & Speech","Heart & Emotions","Hands, Feet & Actions","Physical Appearance & Health","Mindset & Character","Human Relationships"],
-    'family & relationships': ["Family Harmony & Values","Marriage & Couples","Parenting & Children","Family Duties & Support","Family Conflict & Difficulties","Love & Relationships","Relatives & Generations","Social Customs & Roles"],
-            'time & dates': ["Time Is Precious","Punctuality & Timing","Time Management & Productivity","Passing Time & Change","Patience & Waiting","Opportunities & Deadlines","Seasons & Passage of Time"],
-            'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships","Friendship & Betrayal"],
-        }.get(category_name, [])
-        current = self.data.get('subcategory') if self.is_bound else (getattr(self.instance, 'subcategory', '') or '')
-        choices = [('', 'Other Expressions / Not assigned')]
-        choices += [(name, name) for name in subcategories]
-        if current and current not in subcategories:
-            choices.append((current, current + ' (previous selection)'))
-        self.fields['subcategory'].widget = forms.Select(choices=choices)
-        self.fields['subcategory'].choices = choices
+        configure_material_subcategory(self, "expression")
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
