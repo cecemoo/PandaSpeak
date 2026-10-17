@@ -85,10 +85,11 @@ def _lesson_items(user, allowed, plus_active):
     completed_slugs = set(HistoryLessonCompletion.objects.filter(student=user).values_list('lesson_slug', flat=True))
     items = []
     for card in HISTORY_CARDS:
-        if card['level'] in allowed:
+        if card['level'] in ('level2', 'level3'):
             item = card.copy()
             item['completed'] = item['slug'] in completed_slugs
             item['is_preview'] = item['slug'] == HISTORY_PREVIEW_SLUG
+            item['level_locked'] = card['level'] not in allowed
             item['plus_locked'] = not plus_active and not item['is_preview']
             items.append(item)
     return items
@@ -118,7 +119,7 @@ def chinese_history(request):
         item['available'] = bool(stories)
         dynasties.append(item)
 
-    accessible_lessons = [item for item in lessons if not item['plus_locked']]
+    accessible_lessons = [item for item in lessons if not item['plus_locked'] and not item['level_locked']]
     return render(request, 'student/chinese_history.html', {
         'level_locked': False, 'dynasties': dynasties, 'student_level': level,
         'completed_count': sum(1 for item in accessible_lessons if item['completed']),
