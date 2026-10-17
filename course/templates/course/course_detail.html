@@ -15,13 +15,20 @@
     border-radius: 18px;
     background: rgba(255,255,255,.04);
 }
+/* Keep every course image the same size, including the default image. */
+.course-image-box {
+    width: 100%;
+    height: 340px;
+    overflow: hidden;
+    border-radius: 16px;
+}
+
 .course-image-box img {
     display: block;
     width: 100%;
-    height: 340px;
+    height: 100%;
     object-fit: cover;
     object-position: center;
-    border-radius: 16px;
 }
 .course-info-box h2 {
     margin-bottom: 15px;
