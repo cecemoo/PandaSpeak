@@ -125,23 +125,23 @@
                         <div class="course-image-box">
                             {% with course_title=course.title|lower %}
                                 {% if 'speaking' in course_title or 'conversation' in course_title %}
-                  {% if 'level 1' in course_title or 'level i ' in course_title or 'level i-' in course_title or 'level i:' in course_title %}
-                                <img src="{% static 'assets/img/education/level_1.png' %}" alt="{{ course.title }}">
-                                {% elif 'level 2' in course_title or 'level ii ' in course_title or 'level ii-' in course_title or 'level ii:' in course_title %}
-                                <img src="{% static 'assets/img/education/level_2.png' %}" alt="{{ course.title }}">
-                                {% elif 'level 3' in course_title or 'level iii ' in course_title or 'level iii-' in course_title or 'level iii:' in course_title %}
-                                <img src="{% static 'assets/img/education/level_3.png' %}" alt="{{ course.title }}">
+                                    {% if 'level 3' in course_title or 'level iii' in course_title %}
+                                        <img src="{% static 'assets/img/education/level_3.png' %}" alt="{{ course.title }}">
+                                    {% elif 'level 2' in course_title or 'level ii' in course_title %}
+                                        <img src="{% static 'assets/img/education/level_2.png' %}" alt="{{ course.title }}">
+                                    {% elif 'level 1' in course_title or 'level i' in course_title %}
+                                        <img src="{% static 'assets/img/education/level_1.png' %}" alt="{{ course.title }}">
+                                    {% elif course.image %}
+                                        <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                                    {% else %}
+                                        <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
+                                    {% endif %}
                                 {% elif course.image %}
-                                <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                                    <img src="{{ course.image.url }}" alt="{{ course.title }}">
                                 {% else %}
-                                <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
+                                    <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
                                 {% endif %}
-                {% elif course.image %}
-                                <img src="{{ course.image.url }}" alt="{{ course.title }}">
-                                {% else %}
-                                <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
-                                {% endif %}
-              {% endwith %}
+                                {% endwith %}
                             </div>
                             <div class="course-info-box">
                                 <h2>
