@@ -4,11 +4,10 @@
 {% block content %}
 <style>
 .course-detail-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: 35px;
-    align-items: start;
-    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 900px;
     margin: 25px auto 40px;
     padding: 30px;
     border: 1px solid #444;
@@ -31,6 +30,16 @@
     object-fit: contain;
     object-position: center;
 }
+/* Stack the title, description, and booking details below the image. */
+.course-info-box {
+    width: 100%;
+    min-width: 0;
+}
+
+.course-description {
+    white-space: pre-line;
+}
+
 .course-info-box h2 {
     margin-bottom: 15px;
 }
@@ -63,9 +72,6 @@
     line-height: 1.5;
 }
 @media (max-width: 768px) {
-    .course-detail-card {
-        grid-template-columns: 1fr;
-    }
     .course-list-nav {
         margin-top: 15px;
     }
@@ -151,9 +157,9 @@
                                 {% else %}
                                     <img src="{% static 'assets/img/pandaspeak.png' %}" alt="{{ course.title }}">
                                 {% endif %}
-                                {% endwith %}
-                            </div>
-                            <div class="course-info-box">
+                            {% endwith %}
+                        </div>
+                        <div class="course-info-box">
                                 <h2>
                                     {{ course.title }}
                                 </h2>
@@ -240,7 +246,6 @@
                                         </li>
                                     {% endif %}
                                 </ul>
-                            </div>
                         </div>
                     </div>
                     {% if course.video_url %}
