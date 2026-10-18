@@ -586,7 +586,7 @@ def grade_speaking_answer(request, answer_id):
                 )
         except (TypeError, ValueError):
             messages.error(request, "Please enter a valid score.")
-            return redirect('teacher_student_test_detail', submission_id=answer.submission.id)
+            return redirect('teacher_student_test_results')
         
         answer.score = score
         answer.teacher_feedback = teacher_feedback
