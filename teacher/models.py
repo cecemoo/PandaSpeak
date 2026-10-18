@@ -98,6 +98,7 @@ class Sentence(models.Model):
     translation = models.TextField(blank=True)
     audio_file = models.FileField(upload_to='sentences/', blank=True, null=True)
     category = models.ForeignKey(SentenceCategory, on_delete=models.CASCADE, related_name='sentences', blank=True, null=True)
+    subcategory = models.CharField(max_length=100, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     level =models.CharField(
