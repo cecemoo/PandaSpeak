@@ -88,18 +88,14 @@
                                 {% if result.is_graded %}
                                 Graded
                                 {% else %}
-                                Waiting for speaking grade
+                                Waiting for grading
                                 {% endif %}
                                 {% else %}
                                 Completed
                                 {% endif %}
                             </td>
                             <td>
-                                {% if result.has_speaking and not result.is_graded %}
-                                <a href="{% url 'teacher_student_test_detail' result.id %}" class="btn btn-primary rounded-pill btn-sm">Grade Speaking</a>
-                                {% else %}
-                                <a href="{% url 'teacher_student_test_detail' result.id %}" class="btn btn-outline-primary rounded-pill btn-sm">View Results</a>
-                                {% endif %}
+                                <a href="{% url 'teacher_student_test_detail' result.id %}" class="btn btn-primary rounded-pill btn-sm">View / Grade Results</a>
                             </td>
                         </tr>
                         {% endfor %}
