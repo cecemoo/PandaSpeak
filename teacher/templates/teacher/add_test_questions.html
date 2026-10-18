@@ -136,10 +136,12 @@
 
     const audioField =
       document.getElementById("audio-field");
+    const audioInput = document.getElementById("id_audio");
 
     function updateFields() {
 
       const selectedType = questionType.value;
+      audioInput.required = selectedType === "listen_mc" || selectedType === "listen_text";
 
       if (selectedType === "listen_mc") {
         multipleChoiceFields.style.display = "block";
