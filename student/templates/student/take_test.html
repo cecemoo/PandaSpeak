@@ -29,7 +29,7 @@
       <p>Level: {{ test.level }}</p>
     </div><!-- End Section Title -->
 
-    <div class="container" data-aos="fade-up">
+    <div class="container">
       {% if timed_attempt %}
       <div class="alert alert-info" role="status" id="timed-test-banner" style="position:fixed;top:85px;right:16px;z-index:1100;max-width:min(420px,calc(100vw - 32px));box-shadow:0 4px 18px rgba(0,0,0,.25);">
         Time remaining: <strong id="test-countdown">--:--</strong>
@@ -45,7 +45,7 @@
         {% csrf_token %}
         <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
         <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
-        <ul>
+        <div>
           {% if test.description %}
           <p>{{ test.description }}</p>
           {% for question in questions %}
@@ -132,7 +132,7 @@
           </div>
           {% endfor %}
           {% endif %}
-        </ul>
+        </div>
         <button type="submit" class="btn btn-primary rounded-pill mt-4">
           Submit Test
         </button>
@@ -159,6 +159,12 @@
     }
     {% endif %}
     {% if timed_attempt %}
+    // Keep the countdown outside animated/recording containers, where it cannot
+    // be clipped or repositioned by transforms applied to the page content.
+    for (const id of ['timed-test-banner', 'test-expiry-warning']) {
+      const element = document.getElementById(id);
+      if (element && element.parentElement !== document.body) document.body.appendChild(element);
+    }
     const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
     let submitting = false;
     let expiryTriggered = false;
