@@ -64,25 +64,43 @@
               date.className = 'form-control flex-grow-1';
               date.style.minWidth = '150px';
               date.style.width = '55%';
-              const time = document.createElement('input');
-              time.type = 'time';
-              time.className = 'form-control';
-              time.style.width = '125px';
+              // Native time pickers cannot be reliably closed from JavaScript.
+              // Three standard selects close themselves after each selection.
+              const makeSelect = (label, values) => {
+                const select = document.createElement('select');
+                select.className = 'form-select';
+                select.setAttribute('aria-label', label);
+                select.style.width = label === 'Minute' ? '76px' : '72px';
+                values.forEach(([value, text]) => select.add(new Option(text, value)));
+                return select;
+              };
+              const hours = makeSelect('Hour', Array.from({length:12}, (_, i) => [String(i + 1), String(i + 1)]));
+              const minutes = makeSelect('Minute', Array.from({length:60}, (_, i) => [String(i).padStart(2, '0'), String(i).padStart(2, '0')]));
+              const period = makeSelect('AM or PM', [['AM','AM'], ['PM','PM']]);
               const sync = function () {
-                input.value = date.value && time.value ? date.value + 'T' + time.value : '';
+                let hour = Number(hours.value) % 12;
+                if (period.value === 'PM') hour += 12;
+                input.value = date.value ? date.value + 'T' + String(hour).padStart(2,'0') + ':' + minutes.value : '';
                 input.dispatchEvent(new Event('change', { bubbles: true }));
               };
               if (input.value) {
                 const parts = input.value.split('T');
                 date.value = parts[0] || '';
-                time.value = parts[1] || '';
+                if (parts[1]) {
+                  const [h, m] = parts[1].split(':').map(Number);
+                  hours.value = String(h % 12 || 12);
+                  minutes.value = String(m).padStart(2, '0');
+                  period.value = h >= 12 ? 'PM' : 'AM';
+                }
               }
               date.addEventListener('change', sync);
-              time.addEventListener('change', sync);
+              [hours, minutes, period].forEach(select => select.addEventListener('change', sync));
               input.type = 'hidden';
               input.parentNode.insertBefore(wrapper, input);
               wrapper.appendChild(date);
-              wrapper.appendChild(time);
+              wrapper.appendChild(hours);
+              wrapper.appendChild(minutes);
+              wrapper.appendChild(period);
             });
           });
         </script>
