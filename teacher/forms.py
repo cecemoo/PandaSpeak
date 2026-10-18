@@ -54,6 +54,9 @@ def configure_material_subcategory(form, kind):
         choices.append((current, current + ' (previous selection)'))
     form.fields['subcategory'].widget = forms.Select(choices=choices, attrs={'class': 'form-select'})
     form.fields['subcategory'].choices = choices
+    # Explicitly restore the saved value on edit forms; never infer an assignment for blank legacy rows.
+    if not form.is_bound:
+        form.initial['subcategory'] = current
 
 class VocabularyForm(ModelForm):
     def clean_word(self):
