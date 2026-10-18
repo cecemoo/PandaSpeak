@@ -133,12 +133,13 @@ class ToneForm(ModelForm):
 class LanguageTestForm(forms.ModelForm):
     class Meta:
         model = LanguageTest
-        fields = ['title','level','test_type','description','available_from','available_until','is_active','student_group']
+        fields = ['title','level','test_type','description','available_from','available_until','time_limit_minutes','is_active','student_group']
         widgets = {
             'title': forms.TextInput(attrs={'class':'form-control'}),
             'level': forms.TextInput(attrs={'class':'form-control'}),
             'test_type': forms.Select(attrs={'class':'form-control'}),
             'description': forms.Textarea(attrs={'class':'form-control','rows':4}),
+            'time_limit_minutes': forms.NumberInput(attrs={'class':'form-control','min':1,'placeholder':'Leave blank for untimed test'}),
             'available_from': forms.DateTimeInput(attrs={'class':'form-control','type':'datetime-local'},format='%Y-%m-%dT%H:%M'),
             'available_until': forms.DateTimeInput(attrs={'class':'form-control','type':'datetime-local'},format='%Y-%m-%dT%H:%M'),
         }
@@ -152,6 +153,9 @@ class LanguageTestForm(forms.ModelForm):
         cleaned_data=super().clean(); available_from=cleaned_data.get("available_from"); available_until=cleaned_data.get("available_until")
         if available_from and available_until and available_until <= available_from:
             self.add_error("available_until","Available until must be later than available from.")
+        duration = cleaned_data.get('time_limit_minutes')
+        if duration is not None and duration < 1:
+            self.add_error('time_limit_minutes', 'Enter at least 1 minute.')
         return cleaned_data
 
 class TestQuestionForm(forms.ModelForm):
