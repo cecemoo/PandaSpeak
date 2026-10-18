@@ -571,15 +571,30 @@ def take_test(request, test_id):
                 finalize_attempt(attempt.pk, auto=True)
                 return redirect('student_test_results')
             if request.method == 'POST' and request.POST.get('draft_save') == '1':
+                with transaction.atomic():
+                    locked = TimedTestAttempt.objects.select_for_update().get(pk=attempt.pk)
+                    if locked.completed_at or timezone.now() >= locked.deadline:
+                        return JsonResponse({'saved': False, 'expired': True}, status=409)
+                    answers = dict(locked.draft_answers or {})
+                    for question in questions:
+                        key = f'answer_{question.id}'
+                        if key in request.POST:
+                            answers[key] = request.POST[key]
+                    locked.draft_answers = answers
+                    locked.save(update_fields=['draft_answers'])
+                    attempt = locked
+                return JsonResponse({'saved': True})
+            if request.method == 'POST' and request.POST.get('recording_save') == '1':
                 if timezone.now() >= attempt.deadline:
                     return JsonResponse({'saved': False, 'expired': True}, status=409)
-                answers = dict(attempt.draft_answers or {})
-                for question in questions:
-                    key = f'answer_{question.id}'
-                    if key in request.POST:
-                        answers[key] = request.POST[key]
-                attempt.draft_answers = answers
-                attempt.save(update_fields=['draft_answers'])
+                question = questions.filter(pk=request.POST.get('question_id'), question_type__in=['speak_read','speaking_answer']).first()
+                recording = request.FILES.get('recording')
+                if not question or not recording:
+                    return JsonResponse({'saved': False, 'error': 'Missing question or recording'}, status=400)
+                StudentSpeakingAnswer.objects.update_or_create(
+                    student=request.user, question=question, submission__isnull=True,
+                    defaults={'audio_file': recording}
+                )
                 return JsonResponse({'saved': True})
             expired = timezone.now() >= attempt.deadline
         else:
