@@ -159,6 +159,12 @@ class LanguageTestForm(forms.ModelForm):
         return cleaned_data
 
 class TestQuestionForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('question_type') in ('listen_mc', 'listen_text') and not cleaned_data.get('audio'):
+            self.add_error('audio', 'An audio file is required for listening questions.')
+        return cleaned_data
+
     correct_choice=forms.ChoiceField(choices=[('','Select correct answer'),('A','Choice A'),('B','Choice B'),('C','Choice C'),('D','Choice D')],required=False,label='Correct Answer',widget=forms.Select(attrs={'class':'form-control'}))
     class Meta:
         model=TestQuestion
