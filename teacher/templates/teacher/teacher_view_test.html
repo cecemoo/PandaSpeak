@@ -85,10 +85,17 @@
                         <p>B. {{ question.choice_b }}</p>
                         <p>C. {{ question.choice_c }}</p>
                         <p>D. {{ question.choice_d }}</p>
-                        <p class="mt-3">
-                            <strong>Correct Answer:</strong>
-                            {{ question.correct_answer|upper }}
-                        </p>
+                        <div class="mt-3">
+                            <strong>Student Answer{% if question.display_student_answers|length != 1 %}s{% endif %}:</strong>
+                            {% for response in question.display_student_answers %}
+                            <div class="small mt-1">
+                                {{ response.student.get_full_name|default:response.student.username }}:
+                                {% if response.answer %}{{ response.answer|upper }}{% if response.choice_text %} — {{ response.choice_text }}{% endif %}{% else %}Not answered{% endif %}
+                            </div>
+                            {% empty %}
+                            <div class="small text-muted mt-1">No student answer submitted yet.</div>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endif %}
 
