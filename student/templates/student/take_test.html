@@ -224,6 +224,16 @@
             );
 
             recordings[questionId] = audioBlob;
+            {% if timed_attempt %}
+            const draft = new FormData();
+            draft.append('csrfmiddlewaretoken', form.querySelector('[name=csrfmiddlewaretoken]').value);
+            draft.append('recording_save', '1');
+            draft.append('question_id', questionId);
+            draft.append('recording', audioBlob, 'recording_' + questionId + '.webm');
+            saveQueue = saveQueue.catch(() => {}).then(() => fetch(window.location.href, {
+              method: 'POST', body: draft, credentials: 'same-origin'
+            }).then(response => { if (!response.ok) throw new Error('Recording autosave failed'); }));
+            {% endif %}
 
             const audioURL = URL.createObjectURL(audioBlob);
 
