@@ -568,7 +568,13 @@ def take_test(request, test_id):
             if attempt.completed_at:
                 return redirect('student_test_results')
             if timezone.now() >= attempt.deadline:
-                finalize_attempt(attempt.pk, auto=True)
+                submission = finalize_attempt(attempt.pk, auto=True)
+                if request.method == 'POST' and request.POST.get('draft_save') == '1':
+                    return JsonResponse({'saved': False, 'expired': True}, status=409)
+                if request.method == 'POST' and request.POST.get('recording_save') == '1':
+                    return JsonResponse({'saved': False, 'expired': True}, status=409)
+                if submission:
+                    return redirect('test_result', submission_id=submission.pk)
                 return redirect('student_test_results')
             if request.method == 'POST' and request.POST.get('draft_save') == '1':
                 with transaction.atomic():
