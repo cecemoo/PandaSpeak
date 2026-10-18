@@ -156,6 +156,7 @@
     {% if timed_attempt %}
     const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
     let submitting = false;
+    let expiryTriggered = false;
     let saveQueue = Promise.resolve();
     async function saveDraft() {
       if (submitting || Date.now() >= deadline) return;
@@ -171,7 +172,8 @@
     function updateClock() {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       document.getElementById('test-countdown').textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
-      if (!remaining && !submitting) {
+      if (!remaining && !submitting && !expiryTriggered) {
+        expiryTriggered = true;
         const flag = document.createElement('input');
         flag.type = 'hidden'; flag.name = 'auto_submit'; flag.value = '1';
         form.appendChild(flag);
@@ -179,6 +181,7 @@
       }
     }
     setInterval(updateClock, 1000);
+    document.addEventListener('visibilitychange', updateClock);
     updateClock();
     {% endif %}
 
@@ -292,6 +295,7 @@
 
       event.preventDefault();
       {% if timed_attempt %}
+      if (submitting) return;
       submitting = true;
       try { await saveQueue; } catch (_) {}
       {% endif %}
@@ -353,11 +357,11 @@
         }
 
 
-        const html = await response.text();
-
-        document.open();
-        document.write(html);
-        document.close();
+        // Never replace the active document: doing so destroys the timer and its handlers.
+        // Navigate instead, allowing the server to render any validation/error page normally.
+        if (!response.ok) throw new Error('Test submission failed: ' + response.status);
+        window.location.reload();
+        return;
 
 
       } catch (error) {
@@ -370,6 +374,11 @@
 
         submitButton.disabled = false;
         submitButton.textContent = 'Submit Test';
+        {% if timed_attempt %}
+        submitting = false;
+        expiryTriggered = false;
+        updateClock();
+        {% endif %}
 
       }
 
