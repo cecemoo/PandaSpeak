@@ -21,7 +21,7 @@ def finalize_attempt(attempt_id, auto=False):
             return None
         now = timezone.now()
         expired = now >= attempt.deadline
-        if not auto and expired:
+        if expired:
             auto = True
         submission = StudentTestSubmission.objects.create(student=attempt.student, test=attempt.test, listening_score=0)
         score = 0
