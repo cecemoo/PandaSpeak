@@ -481,10 +481,12 @@ def teacher_view_test(request, test_id):
     test = get_object_or_404(LanguageTest, id=test_id, teacher=request.user)
     questions = test.questions.all().order_by('order')
     submissions = StudentTestSubmission.objects.filter(test=test, test__teacher=request.user).select_related('student').order_by('-submitted_at')
+    has_speaking = questions.filter(question_type__in=['speak_read', 'speaking_answer']).exists()
     context = {
         'test': test,
         'questions': questions,
         'submissions': submissions,
+        'has_speaking': has_speaking,
     }
     return render(request, 'teacher/teacher_view_test.html', context)
 
