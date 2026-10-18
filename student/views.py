@@ -19,6 +19,8 @@ from account.models import Notification
 from django.urls import reverse
 from django.conf import settings
 from datetime import timedelta
+from django.db import transaction
+from .models import TimedTestAttempt
 
 
 
@@ -555,7 +557,46 @@ def take_test(request, test_id):
         questions = TestQuestion.objects.filter(
                 test=test
         ).order_by('order')
+        attempt = None
+        if test.time_limit_minutes:
+            with transaction.atomic():
+                attempt, created = TimedTestAttempt.objects.get_or_create(
+                    student=request.user, test=test,
+                    defaults={'deadline': timezone.now() + timedelta(minutes=test.time_limit_minutes)}
+                )
+            if attempt.completed_at:
+                return redirect('student_test_results')
+            if request.method == 'POST' and request.POST.get('draft_save') == '1':
+                if timezone.now() >= attempt.deadline:
+                    return JsonResponse({'saved': False, 'expired': True}, status=409)
+                answers = dict(attempt.draft_answers or {})
+                for question in questions:
+                    key = f'answer_{question.id}'
+                    if key in request.POST:
+                        answers[key] = request.POST[key]
+                attempt.draft_answers = answers
+                attempt.save(update_fields=['draft_answers'])
+                return JsonResponse({'saved': True})
+            expired = timezone.now() >= attempt.deadline
+        else:
+            expired = False
         if request.method == 'POST':
+            if attempt:
+                with transaction.atomic():
+                    locked = TimedTestAttempt.objects.select_for_update().get(pk=attempt.pk)
+                    if locked.completed_at:
+                        return redirect('student_test_results')
+                    locked.completed_at = timezone.now()
+                    locked.auto_submitted = expired or request.POST.get('auto_submit') == '1'
+                    locked.save(update_fields=['completed_at', 'auto_submitted'])
+                if not expired:
+                    answers = dict(attempt.draft_answers or {})
+                    for question in questions:
+                        key = f'answer_{question.id}'
+                        if key in request.POST:
+                            answers[key] = request.POST[key]
+                    attempt.draft_answers = answers
+                    attempt.save(update_fields=['draft_answers'])
             submission = StudentTestSubmission.objects.create(
                 student=request.user,
                 test=test,
@@ -571,10 +612,10 @@ def take_test(request, test_id):
                      'listen_text'
                 ]:
                     listening_total += question.points
-                    student_answer = request.POST.get(
-                            f'answer_{question.id}',
-                            ''
-                     ).strip()
+                    student_answer = (
+                        (attempt.draft_answers or {}).get(f'answer_{question.id}', '')
+                        if attempt else request.POST.get(f'answer_{question.id}', '')
+                    ).strip()
                     correct_answer = (
                             question.correct_answer or ''
                     ).strip()
@@ -600,7 +641,7 @@ def take_test(request, test_id):
                     'speak_read',
                     'speaking_answer'
                 ]:
-                    recording = request.FILES.get(
+                    recording = None if expired else request.FILES.get(
                             f'recording_{question.id}'
                     )
                     if recording:
@@ -692,6 +733,8 @@ def take_test(request, test_id):
                 {
                     'test': test,
                     'questions': questions,
+                    'timed_attempt': attempt,
+                    'saved_answers': attempt.draft_answers if attempt else {},
                 }
         )
 
