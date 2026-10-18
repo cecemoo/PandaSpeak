@@ -41,7 +41,7 @@
                 {% endif %}
             </div>
 
-            <div class="card mb-4">
+            <div class="card mb-4" style="max-height:440px;overflow-y:auto;">
                 <div class="card-body">
                     <div class="row g-4">
                       <div class="col-12 col-lg-6 border-lg-end">
@@ -103,7 +103,27 @@
                     <h4 class="mb-3">Student Submissions</h4>
                     {% for submission in submissions %}
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom py-2">
-                        <span>{{ submission.student.get_full_name|default:submission.student.username }} — {{ submission.submitted_at|date:"M d, Y H:i" }}</span>
+                        <div>
+                            <strong>{{ submission.student.get_full_name|default:submission.student.username }}</strong>
+                            <small class="text-muted">— {{ submission.submitted_at|date:"M d, Y H:i" }}</small>
+                            {% for answer in submission.display_answers %}
+                            <div class="small mt-2">
+                              <strong>Question {{ answer.question.order }} — Student answer:</strong>
+                              {% if answer.answer %}
+                                {{ answer.answer }}
+                                {% if answer.question.question_type == 'listen_mc' %}
+                                  {% if answer.answer == 'A' %}— {{ answer.question.choice_a }}
+                                  {% elif answer.answer == 'B' %}— {{ answer.question.choice_b }}
+                                  {% elif answer.answer == 'C' %}— {{ answer.question.choice_c }}
+                                  {% elif answer.answer == 'D' %}— {{ answer.question.choice_d }}
+                                  {% endif %}
+                                {% endif %}
+                              {% else %}Not answered{% endif %}
+                            </div>
+                            {% empty %}
+                            {% if not has_speaking %}<div class="small text-muted mt-2">No saved listening answers.</div>{% endif %}
+                            {% endfor %}
+                        </div>
                         <a class="btn btn-outline-success btn-sm" href="{% url 'teacher_student_test_detail' submission.id %}">{% if has_speaking %}Play Recording &amp; Grade{% else %}View Results{% endif %}</a>
                     </div>
                     {% empty %}
