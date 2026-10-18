@@ -49,6 +49,25 @@
           {% endfor %}
           <button type="submit" class="btn btn-primary rounded-pill">Create Test</button>
         </form>
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            ['id_available_from', 'id_available_until'].forEach(function (id) {
+              const input = document.getElementById(id);
+              if (!input) return;
+              let pickerOpened = false;
+              input.addEventListener('click', function () { pickerOpened = true; });
+              input.addEventListener('change', function () {
+                if (!input.value || !pickerOpened) return;
+                // Native datetime-local pickers have no standard close() API.
+                // Blur after the completed value changes, closing Chrome's picker.
+                requestAnimationFrame(function () {
+                  input.blur();
+                  pickerOpened = false;
+                });
+              });
+            });
+          });
+        </script>
         
       </div>
 
