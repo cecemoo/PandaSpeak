@@ -9,7 +9,7 @@ from course.models import Course, Booking, StudentGroup
 from . decorators import add_teacher_local_times
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from student.models import LanguageTest, TestQuestion, StudentTestSubmission, StudentSpeakingAnswer
+from student.models import LanguageTest, TestQuestion, StudentTestSubmission, StudentSpeakingAnswer, StudentListeningAnswer
 from .models import LearningSurvey, SurveyQuestion, LearningSubcategory
 from django.core.mail import send_mail
 from django.conf import settings
@@ -482,6 +482,15 @@ def teacher_view_test(request, test_id):
     questions = test.questions.all().order_by('order')
     submissions = StudentTestSubmission.objects.filter(test=test, test__teacher=request.user).select_related('student').order_by('-submitted_at')
     has_speaking = questions.filter(question_type__in=['speak_read', 'speaking_answer']).exists()
+    listening_answers = StudentListeningAnswer.objects.filter(
+        submission__in=submissions, question__test=test
+    ).select_related('submission', 'question')
+    answers_by_submission = {}
+    for answer in listening_answers:
+        answers_by_submission.setdefault(answer.submission_id, []).append(answer)
+    for submission in submissions:
+        submission.display_answers = answers_by_submission.get(submission.pk, [])
+
     context = {
         'test': test,
         'questions': questions,
