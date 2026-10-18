@@ -42,7 +42,12 @@
             </div>
 
             <details class="card mb-4" open>
-                <summary class="card-header fw-semibold" style="cursor:pointer;list-style-position:inside;">Test Questions &amp; Student Submissions</summary>
+                <summary class="card-header fw-semibold" style="cursor:pointer;list-style-position:inside;">
+                    {{ test.title }} &nbsp;|&nbsp;
+                    Class: {% if test.student_group %}{{ test.student_group.name }}{% else %}All Students{% endif %}
+                    &nbsp;|&nbsp; Student{% if submissions|length != 1 %}s{% endif %}:
+                    {% for submission in submissions %}{{ submission.student.get_full_name|default:submission.student.username }}{% if not forloop.last %}, {% endif %}{% empty %}No submissions yet{% endfor %}
+                </summary>
                 <div class="card-body" style="max-height:440px;overflow-y:auto;">
                     <div class="row g-4">
                       <div class="col-12 col-lg-6 border-lg-end">
