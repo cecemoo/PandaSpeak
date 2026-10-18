@@ -491,6 +491,23 @@ def teacher_view_test(request, test_id):
     for submission in submissions:
         submission.display_answers = answers_by_submission.get(submission.pk, [])
 
+    # Show submitted responses beside their questions rather than answer keys.
+    answers_by_question = {}
+    for submission in submissions:
+        for answer in submission.display_answers:
+            answers_by_question.setdefault(answer.question_id, []).append({
+                'student': submission.student,
+                'answer': answer.answer,
+                'choice_text': {
+                    'A': answer.question.choice_a,
+                    'B': answer.question.choice_b,
+                    'C': answer.question.choice_c,
+                    'D': answer.question.choice_d,
+                }.get((answer.answer or '').upper(), ''),
+            })
+    for question in questions:
+        question.display_student_answers = answers_by_question.get(question.pk, [])
+
     context = {
         'test': test,
         'questions': questions,
