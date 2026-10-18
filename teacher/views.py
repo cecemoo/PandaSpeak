@@ -478,11 +478,13 @@ def delete_test(request, test_id):
 
 @login_required(login_url='my_login')
 def teacher_view_test(request, test_id):
-    test = get_object_or_404(LanguageTest, id=test_id)
+    test = get_object_or_404(LanguageTest, id=test_id, teacher=request.user)
     questions = test.questions.all().order_by('order')
+    submissions = StudentTestSubmission.objects.filter(test=test, test__teacher=request.user).select_related('student').order_by('-submitted_at')
     context = {
         'test': test,
         'questions': questions,
+        'submissions': submissions,
     }
     return render(request, 'teacher/teacher_view_test.html', context)
 
