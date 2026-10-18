@@ -113,6 +113,7 @@ class LanguageTest(models.Model):
     is_active = models.BooleanField(default=True)
     is_published = models.BooleanField(default=False)
     notification_sent = models.BooleanField(default=False)
+    time_limit_minutes = models.PositiveIntegerField(null=True, blank=True, help_text='Optional time limit per student in minutes')
     student_group = models.ForeignKey(StudentGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='language_tests')
     def __str__(self): return self.title
 
@@ -126,6 +127,18 @@ class TestQuestion(models.Model):
     correct_answer = models.TextField(blank=True, null=True)
     points = models.PositiveIntegerField(default=1); order = models.PositiveIntegerField(default=1)
     def __str__(self): return f"{self.test.title} - Question {self.order}"
+
+class TimedTestAttempt(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    test = models.ForeignKey(LanguageTest, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField()
+    draft_answers = models.JSONField(default=dict, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    auto_submitted = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'test'], name='unique_timed_test_attempt')]
 
 class StudentTestSubmission(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE); test = models.ForeignKey(LanguageTest, on_delete=models.CASCADE)
