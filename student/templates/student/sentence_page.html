@@ -93,7 +93,7 @@
       <div class="word-container" id="sentence-word-container">
         {% for item in sentences %}
 
-        <button type="button" class="vocab-pill" data-sentence="{{ item.text }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+        <button type="button" class="vocab-pill" data-sentence="{{ item.text }}" data-subcategory="{{ item.subcategory }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.text }}
           {% if item.level != 'unclassified' %}
           <span class="fw-semibold">
@@ -302,7 +302,14 @@
     const buttons = Array.from(container.querySelectorAll(':scope > button.vocab-pill'));
     const remaining = new Set(buttons);
     const groups = definitions.map(def => {
-      const matched = buttons.filter(button => remaining.has(button) && def.patterns.some(pattern => (button.dataset.sentence || '').includes(pattern)));
+      // Saved subcategories override the legacy keyword-based grouping.
+      const matched = buttons.filter(button => {
+        if (!remaining.has(button)) return false;
+        const saved = (button.dataset.subcategory || '').trim();
+        if (saved) return def.title.toLowerCase().startsWith(saved.toLowerCase() + ' ')
+          || def.title.toLowerCase() === saved.toLowerCase();
+        return def.patterns.some(pattern => (button.dataset.sentence || '').includes(pattern));
+      });
       matched.forEach(button => remaining.delete(button));
       return {title: def.title, buttons: matched};
     }).filter(group => group.buttons.length);
