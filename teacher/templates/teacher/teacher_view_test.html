@@ -41,8 +41,9 @@
                 {% endif %}
             </div>
 
-            <div class="card mb-4" style="max-height:440px;overflow-y:auto;">
-                <div class="card-body">
+            <details class="card mb-4" open>
+                <summary class="card-header fw-semibold" style="cursor:pointer;list-style-position:inside;">Test Questions &amp; Student Submissions</summary>
+                <div class="card-body" style="max-height:440px;overflow-y:auto;">
                     <div class="row g-4">
                       <div class="col-12 col-lg-6 border-lg-end">
                     <h4 class="mb-3">Test Questions</h4>
@@ -132,7 +133,7 @@
                     </div>
                     </div>
                 </div>
-            </div>
+            </details>
 
             <div class="mt-4">
                 <a href="{% url 'teacher_add_test_questions' test.id %}" class="btn btn-primary rounded-pill">
