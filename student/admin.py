@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (
-    CulturalInsight, CulturalInsightUnlock, LanguageTest, TestQuestion,
+    CulturalInsight, CulturalInsightUnlock, LanguageTest,
     StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer,
 )
 
@@ -24,7 +24,6 @@ class CulturalInsightUnlockAdmin(admin.ModelAdmin):
 
 
 admin.site.register(LanguageTest)
-admin.site.register(TestQuestion)
 admin.site.register(StudentSpeakingAnswer)
 
 
