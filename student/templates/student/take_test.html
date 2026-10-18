@@ -31,7 +31,7 @@
 
     <div class="container" data-aos="fade-up">
       {% if timed_attempt %}
-      <div class="alert alert-info sticky-top" role="status">
+      <div class="alert alert-info" role="status" id="timed-test-banner" style="position:fixed;top:85px;right:16px;z-index:1100;max-width:min(420px,calc(100vw - 32px));box-shadow:0 4px 18px rgba(0,0,0,.25);">
         Time remaining: <strong id="test-countdown">--:--</strong>
         <small class="d-block">Listening answers save automatically. Finish speaking recordings before time expires.</small>
       </div>
@@ -177,7 +177,9 @@
         const flag = document.createElement('input');
         flag.type = 'hidden'; flag.name = 'auto_submit'; flag.value = '1';
         form.appendChild(flag);
-        form.requestSubmit();
+        // Bypass the asynchronous submit listener on expiry: it can be blocked
+        // waiting for a recording upload or draft-save request.
+        HTMLFormElement.prototype.submit.call(form);
       }
     }
     setInterval(updateClock, 1000);
@@ -297,7 +299,10 @@
       {% if timed_attempt %}
       if (submitting) return;
       submitting = true;
-      try { await saveQueue; } catch (_) {}
+      // An expiry must never wait for a stalled autosave/upload.
+      if (Date.now() < deadline) {
+        try { await saveQueue; } catch (_) {}
+      }
       {% endif %}
       const formData = new FormData(form);
 
