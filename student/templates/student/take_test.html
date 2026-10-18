@@ -137,12 +137,22 @@
   </section><!-- /Register Section Section -->
 
 </main>
+{% if timed_attempt %}{{ saved_answers|json_script:"saved-test-answers" }}{% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
     const form = document.getElementById('pandaspeak-test-form');
 
     const recordings = {};
+    {% if timed_attempt %}
+    const savedAnswers = JSON.parse(document.getElementById('saved-test-answers').textContent);
+    for (const [name, value] of Object.entries(savedAnswers)) {
+      form.querySelectorAll('[name="' + name + '"]').forEach(el => {
+        if (el.type === 'radio') el.checked = el.value === value;
+        else if (el.type === 'text') el.value = value;
+      });
+    }
+    {% endif %}
     {% if timed_attempt %}
     const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
     let submitting = false;
