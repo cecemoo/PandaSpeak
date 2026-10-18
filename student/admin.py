@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import (
     CulturalInsight, CulturalInsightUnlock, LanguageTest, TestQuestion,
-    StudentSpeakingAnswer,
+    StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer,
 )
 
 
@@ -26,3 +26,41 @@ class CulturalInsightUnlockAdmin(admin.ModelAdmin):
 admin.site.register(LanguageTest)
 admin.site.register(TestQuestion)
 admin.site.register(StudentSpeakingAnswer)
+
+
+class StudentListeningAnswerInline(admin.TabularInline):
+    model = StudentListeningAnswer
+    extra = 0
+    can_delete = False
+    readonly_fields = ('question', 'answer', 'is_correct', 'score')
+    fields = readonly_fields
+    show_change_link = False
+
+
+class StudentSpeakingAnswerInline(admin.TabularInline):
+    model = StudentSpeakingAnswer
+    extra = 0
+    can_delete = False
+    readonly_fields = ('question', 'audio_file', 'score', 'teacher_feedback', 'submitted_at')
+    fields = readonly_fields
+    show_change_link = False
+
+
+@admin.register(StudentTestSubmission)
+class StudentTestSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('student', 'test', 'submitted_at', 'listening_score',
+                    'speaking_score', 'total_score', 'grading_status')
+    list_filter = ('is_graded', 'test__test_type', 'submitted_at')
+    search_fields = ('student__email', 'test__title')
+    readonly_fields = ('student', 'test', 'submitted_at', 'listening_score',
+                       'speaking_score', 'total_score', 'is_graded')
+    inlines = (StudentListeningAnswerInline, StudentSpeakingAnswerInline)
+    ordering = ('-submitted_at',)
+
+    @admin.display(description='Status')
+    def grading_status(self, obj):
+        if obj.is_graded:
+            return 'Graded'
+        if obj.speaking_answers.filter(score__isnull=True).exists():
+            return 'Waiting for speaking grade'
+        return 'Completed'
