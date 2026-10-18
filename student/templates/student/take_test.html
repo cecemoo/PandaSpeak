@@ -36,6 +36,11 @@
         <small class="d-block">Listening answers save automatically. Finish speaking recordings before time expires.</small>
       </div>
       {% endif %}
+      {% if timed_attempt %}
+      <div id="test-expiry-warning" role="alert" aria-live="assertive" style="display:none;position:fixed;top:160px;right:16px;z-index:1101;background:#fff3cd;color:#664d03;border:2px solid #ff9800;border-radius:10px;padding:12px 18px;box-shadow:0 4px 16px rgba(0,0,0,.25);font-weight:700;max-width:min(420px,calc(100vw - 32px));">
+        Only 10 seconds remaining! Finish your answers now.
+      </div>
+      {% endif %}
       <form id="pandaspeak-test-form" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
@@ -157,6 +162,7 @@
     const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
     let submitting = false;
     let expiryTriggered = false;
+    let warningShown = false;
     let saveQueue = Promise.resolve();
     async function saveDraft() {
       if (submitting || Date.now() >= deadline) return;
@@ -172,6 +178,13 @@
     function updateClock() {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       document.getElementById('test-countdown').textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
+      if (remaining > 0 && remaining <= 10) {
+        document.getElementById('test-expiry-warning').style.display = 'block';
+        if (!warningShown) {
+          warningShown = true;
+          document.getElementById('test-countdown').style.color = '#dc3545';
+        }
+      }
       if (!remaining && !submitting && !expiryTriggered) {
         expiryTriggered = true;
         // A GET to this URL is finalized by Django when the deadline has passed.
