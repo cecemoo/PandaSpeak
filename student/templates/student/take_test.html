@@ -29,10 +29,10 @@
       <p>Level: {{ test.level }}</p>
     </div><!-- End Section Title -->
 
-    <div class="container">
+    <div class="container" style="max-width:860px;margin-inline:auto;">
       {% if timed_attempt %}
-      <div class="alert alert-info" role="status" id="timed-test-banner" style="position:fixed;top:85px;right:16px;z-index:1100;width:min(290px,calc(100vw - 32px));padding:10px 14px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.25);font-size:0.875rem;line-height:1.4;">
-        Time remaining: <strong id="test-countdown">--:--</strong>
+      <div class="alert alert-info" role="status" id="timed-test-banner" style="position:fixed;top:85px;right:16px;z-index:1100;width:min(340px,calc(100vw - 32px));padding:16px 20px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.25);font-size:1rem;line-height:1.5;">
+        <div style="font-weight:600;">Time remaining</div><strong id="test-countdown" style="display:block;font-size:2rem;line-height:1.2;margin:4px 0 8px;font-variant-numeric:tabular-nums;">--:--</strong>
         <small class="d-block">Listening answers save automatically. Finish speaking recordings before time expires.</small>
       </div>
       {% endif %}
