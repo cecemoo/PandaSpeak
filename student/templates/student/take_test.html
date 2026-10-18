@@ -177,19 +177,21 @@
     form.addEventListener('input', event => { if (event.target.matches('input[type="text"][name^="answer_"]')) queueSave(); });
     function updateClock() {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-      document.getElementById('test-countdown').textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
+      const countdown = document.getElementById('test-countdown');
+      if (countdown) countdown.textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
       if (remaining > 0 && remaining <= 10) {
-        document.getElementById('test-expiry-warning').style.display = 'block';
+        const warning = document.getElementById('test-expiry-warning');
+        if (warning) warning.style.display = 'block';
         if (!warningShown) {
           warningShown = true;
-          document.getElementById('test-countdown').style.color = '#dc3545';
+          if (countdown) countdown.style.color = '#dc3545';
         }
       }
       if (!remaining && !submitting && !expiryTriggered) {
         expiryTriggered = true;
         // A GET to this URL is finalized by Django when the deadline has passed.
         // Avoid POST/upload races that previously left the expired page open.
-        form.querySelectorAll('button, input, textarea').forEach(el => { if (el.type !== 'hidden') el.disabled = true; });
+        if (form) form.querySelectorAll('button, input, textarea').forEach(el => { if (el.type !== 'hidden') el.disabled = true; });
         const banner = document.getElementById('timed-test-banner');
         if (banner) banner.innerHTML = '<strong>Time expired. Submitting your test…</strong>';
         window.location.replace(window.location.pathname + '?expired=1');
