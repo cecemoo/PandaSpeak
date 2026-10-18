@@ -54,17 +54,35 @@
             ['id_available_from', 'id_available_until'].forEach(function (id) {
               const input = document.getElementById(id);
               if (!input) return;
-              let pickerOpened = false;
-              input.addEventListener('click', function () { pickerOpened = true; });
-              input.addEventListener('change', function () {
-                if (!input.value || !pickerOpened) return;
-                // Native datetime-local pickers have no standard close() API.
-                // Blur after the completed value changes, closing Chrome's picker.
-                requestAnimationFrame(function () {
-                  input.blur();
-                  pickerOpened = false;
-                });
-              });
+              // Chrome's native picker does not consistently dismiss on blur.
+              // Replace it with separate date/time controls so choosing a date
+              // closes its native calendar while time can be entered independently.
+              const wrapper = document.createElement('div');
+              wrapper.className = 'd-flex flex-wrap gap-2';
+              const date = document.createElement('input');
+              date.type = 'date';
+              date.className = 'form-control flex-grow-1';
+              date.style.minWidth = '150px';
+              date.style.width = '55%';
+              const time = document.createElement('input');
+              time.type = 'time';
+              time.className = 'form-control';
+              time.style.width = '125px';
+              const sync = function () {
+                input.value = date.value && time.value ? date.value + 'T' + time.value : '';
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+              };
+              if (input.value) {
+                const parts = input.value.split('T');
+                date.value = parts[0] || '';
+                time.value = parts[1] || '';
+              }
+              date.addEventListener('change', sync);
+              time.addEventListener('change', sync);
+              input.type = 'hidden';
+              input.parentNode.insertBefore(wrapper, input);
+              wrapper.appendChild(date);
+              wrapper.appendChild(time);
             });
           });
         </script>
