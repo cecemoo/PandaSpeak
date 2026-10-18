@@ -21,6 +21,7 @@ from django.conf import settings
 from datetime import timedelta
 from django.db import transaction
 from .models import TimedTestAttempt
+from .timed_tests import finalize_attempt
 
 
 
@@ -566,6 +567,9 @@ def take_test(request, test_id):
                 )
             if attempt.completed_at:
                 return redirect('student_test_results')
+            if timezone.now() >= attempt.deadline:
+                finalize_attempt(attempt.pk, auto=True)
+                return redirect('student_test_results')
             if request.method == 'POST' and request.POST.get('draft_save') == '1':
                 if timezone.now() >= attempt.deadline:
                     return JsonResponse({'saved': False, 'expired': True}, status=409)
@@ -586,17 +590,26 @@ def take_test(request, test_id):
                     locked = TimedTestAttempt.objects.select_for_update().get(pk=attempt.pk)
                     if locked.completed_at:
                         return redirect('student_test_results')
-                    locked.completed_at = timezone.now()
-                    locked.auto_submitted = expired or request.POST.get('auto_submit') == '1'
-                    locked.save(update_fields=['completed_at', 'auto_submitted'])
-                if not expired:
-                    answers = dict(attempt.draft_answers or {})
-                    for question in questions:
-                        key = f'answer_{question.id}'
-                        if key in request.POST:
-                            answers[key] = request.POST[key]
-                    attempt.draft_answers = answers
-                    attempt.save(update_fields=['draft_answers'])
+                    if timezone.now() < locked.deadline:
+                        answers = dict(locked.draft_answers or {})
+                        for question in questions:
+                            key = f'answer_{question.id}'
+                            if key in request.POST:
+                                answers[key] = request.POST[key]
+                        locked.draft_answers = answers
+                        locked.save(update_fields=['draft_answers'])
+                for question in questions:
+                    if question.question_type in ('speak_read', 'speaking_answer'):
+                        recording = request.FILES.get(f'recording_{question.id}')
+                        if recording and timezone.now() < attempt.deadline:
+                            StudentSpeakingAnswer.objects.update_or_create(
+                                student=request.user, question=question, submission__isnull=True,
+                                defaults={'audio_file': recording}
+                            )
+                submission = finalize_attempt(attempt.pk, auto=request.POST.get('auto_submit') == '1')
+                if submission:
+                    return redirect('test_result', submission_id=submission.pk)
+                return redirect('student_test_results')
             submission = StudentTestSubmission.objects.create(
                 student=request.user,
                 test=test,
