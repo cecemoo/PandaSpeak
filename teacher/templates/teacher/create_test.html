@@ -32,7 +32,21 @@
       <div class="container" data-aos="fade-up">
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          {{ form|crispy }}
+          {% for field in form %}
+            {% if field.name == 'available_from' %}
+              <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                  {{ field|as_crispy_field }}
+                </div>
+            {% elif field.name == 'available_until' %}
+                <div class="col-12 col-md-6">
+                  {{ field|as_crispy_field }}
+                </div>
+              </div>
+            {% else %}
+              {{ field|as_crispy_field }}
+            {% endif %}
+          {% endfor %}
           <button type="submit" class="btn btn-primary rounded-pill">Create Test</button>
         </form>
         
