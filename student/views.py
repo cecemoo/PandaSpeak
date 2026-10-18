@@ -532,11 +532,11 @@ def test_list(request):
 @login_required(login_url='my_login')
 def take_test(request, test_id):
         now = timezone.now()
-        if StudentTestSubmission.objects.filter(
-            student=request.user,
-            test_id=test_id
-        ).exists():
-            return redirect('student_test_results')
+        existing_submission = StudentTestSubmission.objects.filter(
+            student=request.user, test_id=test_id
+        ).first()
+        if existing_submission:
+            return redirect('test_result', submission_id=existing_submission.pk)
 
         test = get_object_or_404(
 
@@ -566,6 +566,9 @@ def take_test(request, test_id):
                     defaults={'deadline': timezone.now() + timedelta(minutes=test.time_limit_minutes)}
                 )
             if attempt.completed_at:
+                submission = StudentTestSubmission.objects.filter(student=request.user, test=test).first()
+                if submission:
+                    return redirect('test_result', submission_id=submission.pk)
                 return redirect('student_test_results')
             if timezone.now() >= attempt.deadline:
                 submission = finalize_attempt(attempt.pk, auto=True)
