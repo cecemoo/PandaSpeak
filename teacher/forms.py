@@ -136,7 +136,7 @@ class LanguageTestForm(forms.ModelForm):
         fields = ['title','level','test_type','description','available_from','available_until','time_limit_minutes','is_active','student_group']
         widgets = {
             'title': forms.TextInput(attrs={'class':'form-control'}),
-            'level': forms.TextInput(attrs={'class':'form-control'}),
+            'level': forms.Select(choices=[('', 'Select level'), ('1', 'Level 1'), ('2', 'Level 2'), ('3', 'Level 3')], attrs={'class':'form-control'}),
             'test_type': forms.Select(attrs={'class':'form-control'}),
             'description': forms.Textarea(attrs={'class':'form-control','rows':4}),
             'time_limit_minutes': forms.NumberInput(attrs={'class':'form-control','min':1,'placeholder':'Leave blank for untimed test'}),
