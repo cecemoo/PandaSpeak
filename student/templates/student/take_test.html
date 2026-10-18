@@ -37,7 +37,8 @@
       </div>
       {% endif %}
       {% if timed_attempt %}
-      <div id="test-expiry-warning" role="alert" aria-live="assertive" style="display:none;position:fixed;top:160px;right:16px;z-index:1101;background:#fff3cd;color:#664d03;border:2px solid #ff9800;border-radius:10px;padding:12px 18px;box-shadow:0 4px 16px rgba(0,0,0,.25);font-weight:700;max-width:min(420px,calc(100vw - 32px));">
+      <div id="test-expiry-warning" role="alert" aria-live="assertive" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1200;text-align:center;background:#fff3cd;color:#664d03;border:2px solid #ff9800;border-radius:10px;padding:12px 18px;box-shadow:0 4px 16px rgba(0,0,0,.25);font-weight:700;max-width:min(420px,calc(100vw - 32px));">
+        <button type="button" id="dismiss-test-expiry-warning" aria-label="Close warning" style="position:absolute;right:8px;top:5px;border:0;background:transparent;font-size:24px;color:#664d03;cursor:pointer;">&times;</button>
         Only 10 seconds remaining! Finish your answers now.
       </div>
       {% endif %}
@@ -193,6 +194,12 @@
     function queueSave() { saveQueue = saveQueue.catch(() => {}).then(saveDraft); }
     form.addEventListener('change', queueSave);
     form.addEventListener('input', event => { if (event.target.matches('input[type="text"][name^="answer_"]')) queueSave(); });
+    let warningDismissed = false;
+    const dismissWarning = document.getElementById('dismiss-test-expiry-warning');
+    if (dismissWarning) dismissWarning.addEventListener('click', function () {
+      warningDismissed = true;
+      if (countdownWarning) countdownWarning.style.display = 'none';
+    });
     function updateClock() {
       ensureTimerVisible();
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
@@ -200,7 +207,7 @@
       if (countdown) countdown.textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
       if (remaining > 0 && remaining <= 10) {
         const warning = countdownWarning;
-        if (warning) warning.style.display = 'block';
+        if (warning && !warningDismissed) warning.style.display = 'block';
         if (!warningShown) {
           warningShown = true;
           if (countdown) countdown.style.color = '#dc3545';
