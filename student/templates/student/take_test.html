@@ -30,7 +30,13 @@
     </div><!-- End Section Title -->
 
     <div class="container" data-aos="fade-up">
-      <form method="POST" enctype="multipart/form-data">
+      {% if timed_attempt %}
+      <div class="alert alert-info sticky-top" role="status">
+        Time remaining: <strong id="test-countdown">--:--</strong>
+        <small class="d-block">Listening answers save automatically. Finish speaking recordings before time expires.</small>
+      </div>
+      {% endif %}
+      <form id="pandaspeak-test-form" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <!-- <p>Welcome to your student dashboard. Here you can access all your courses, track your progress, and manage your account settings.</p> -->
         <!-- <h5>Your Subscription status: {{ SubPlan }}</h5> -->
@@ -131,12 +137,50 @@
   </section><!-- /Register Section Section -->
 
 </main>
+{% if timed_attempt %}{{ saved_answers|json_script:"saved-test-answers" }}{% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
-    const form = document.querySelector('form');
+    const form = document.getElementById('pandaspeak-test-form');
 
     const recordings = {};
+    {% if timed_attempt %}
+    const savedAnswers = JSON.parse(document.getElementById('saved-test-answers').textContent);
+    for (const [name, value] of Object.entries(savedAnswers)) {
+      form.querySelectorAll('[name="' + name + '"]').forEach(el => {
+        if (el.type === 'radio') el.checked = el.value === value;
+        else if (el.type === 'text') el.value = value;
+      });
+    }
+    {% endif %}
+    {% if timed_attempt %}
+    const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
+    let submitting = false;
+    let saveQueue = Promise.resolve();
+    async function saveDraft() {
+      if (submitting || Date.now() >= deadline) return;
+      const data = new FormData();
+      data.append('csrfmiddlewaretoken', form.querySelector('[name=csrfmiddlewaretoken]').value);
+      data.append('draft_save', '1');
+      form.querySelectorAll('input[name^="answer_"]:checked, input[type="text"][name^="answer_"]').forEach(el => data.append(el.name, el.value));
+      await fetch(window.location.href, {method:'POST', body:data, credentials:'same-origin'});
+    }
+    function queueSave() { saveQueue = saveQueue.catch(() => {}).then(saveDraft); }
+    form.addEventListener('change', queueSave);
+    form.addEventListener('input', event => { if (event.target.matches('input[type="text"][name^="answer_"]')) queueSave(); });
+    function updateClock() {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      document.getElementById('test-countdown').textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
+      if (!remaining && !submitting) {
+        const flag = document.createElement('input');
+        flag.type = 'hidden'; flag.name = 'auto_submit'; flag.value = '1';
+        form.appendChild(flag);
+        form.requestSubmit();
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    {% endif %}
 
     document.querySelectorAll('.speaking-question').forEach(function (container) {
 
@@ -180,6 +224,16 @@
             );
 
             recordings[questionId] = audioBlob;
+            {% if timed_attempt %}
+            const draft = new FormData();
+            draft.append('csrfmiddlewaretoken', form.querySelector('[name=csrfmiddlewaretoken]').value);
+            draft.append('recording_save', '1');
+            draft.append('question_id', questionId);
+            draft.append('recording', audioBlob, 'recording_' + questionId + '.webm');
+            saveQueue = saveQueue.catch(() => {}).then(() => fetch(window.location.href, {
+              method: 'POST', body: draft, credentials: 'same-origin'
+            }).then(response => { if (!response.ok) throw new Error('Recording autosave failed'); }));
+            {% endif %}
 
             const audioURL = URL.createObjectURL(audioBlob);
 
@@ -237,7 +291,10 @@
     form.addEventListener('submit', async function (event) {
 
       event.preventDefault();
-
+      {% if timed_attempt %}
+      submitting = true;
+      try { await saveQueue; } catch (_) {}
+      {% endif %}
       const formData = new FormData(form);
 
 

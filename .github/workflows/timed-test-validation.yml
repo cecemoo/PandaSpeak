@@ -1,0 +1,21 @@
+name: Timed Test Code Validation
+
+on:
+  push:
+    branches:
+      - feature/timed-teacher-tests
+  pull_request:
+    paths:
+      - 'student/**'
+      - 'teacher/**'
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile changed Django modules
+        run: python -m compileall -q student teacher
