@@ -48,6 +48,7 @@
         <div>
           {% if test.description %}
           <p>{{ test.description }}</p>
+          {% endif %}
           {% for question in questions %}
           <div class="card mb-4">
             <div class="card-body">
@@ -131,7 +132,6 @@
             </div>
           </div>
           {% endfor %}
-          {% endif %}
         </div>
         <button type="submit" class="btn btn-primary rounded-pill mt-4">
           Submit Test
@@ -166,6 +166,18 @@
       if (element && element.parentElement !== document.body) document.body.appendChild(element);
     }
     const deadline = Date.parse('{{ timed_attempt.deadline|date:"c" }}');
+    // Restore the banner if third-party page scripts unexpectedly remove it.
+    const countdownBanner = document.getElementById('timed-test-banner');
+    const countdownWarning = document.getElementById('test-expiry-warning');
+    function ensureTimerVisible() {
+      if (countdownBanner && !countdownBanner.isConnected) document.body.appendChild(countdownBanner);
+      if (countdownBanner) {
+        countdownBanner.style.setProperty('display', 'block', 'important');
+        countdownBanner.style.setProperty('visibility', 'visible', 'important');
+        countdownBanner.style.setProperty('opacity', '1', 'important');
+      }
+      if (countdownWarning && !countdownWarning.isConnected) document.body.appendChild(countdownWarning);
+    }
     let submitting = false;
     let expiryTriggered = false;
     let warningShown = false;
@@ -182,11 +194,12 @@
     form.addEventListener('change', queueSave);
     form.addEventListener('input', event => { if (event.target.matches('input[type="text"][name^="answer_"]')) queueSave(); });
     function updateClock() {
+      ensureTimerVisible();
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-      const countdown = document.getElementById('test-countdown');
+      const countdown = countdownBanner ? countdownBanner.querySelector('#test-countdown') : null;
       if (countdown) countdown.textContent = String(Math.floor(remaining / 60)).padStart(2,'0') + ':' + String(remaining % 60).padStart(2,'0');
       if (remaining > 0 && remaining <= 10) {
-        const warning = document.getElementById('test-expiry-warning');
+        const warning = countdownWarning;
         if (warning) warning.style.display = 'block';
         if (!warningShown) {
           warningShown = true;
@@ -198,7 +211,7 @@
         // A GET to this URL is finalized by Django when the deadline has passed.
         // Avoid POST/upload races that previously left the expired page open.
         if (form) form.querySelectorAll('button, input, textarea').forEach(el => { if (el.type !== 'hidden') el.disabled = true; });
-        const banner = document.getElementById('timed-test-banner');
+        const banner = countdownBanner;
         if (banner) banner.innerHTML = '<strong>Time expired. Submitting your test…</strong>';
         window.location.replace(window.location.pathname + '?expired=1');
       }
