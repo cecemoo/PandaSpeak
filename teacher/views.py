@@ -432,7 +432,7 @@ def publish_test(request, test_id):
                 Notification.objects.create(
                     user=student,
                     title="New Test Available",
-                    message=f"{test.title} has been published by {test.teacher.get_full_name()}. Please log in to take the test.",
+                    message=f"{test.title} has been published by {test.teacher.get_full_name()}. Select View to take the test.",
                     link=reverse('take_test', args=[test.id]),
                 )
                 send_push_to_user(
