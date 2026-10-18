@@ -35,12 +35,15 @@
             {% csrf_token %}
             {{ form.non_field_errors }}
             {% for field in form %}
-              {% if field.name == 'subcategory' %}
-                <div class="mb-3" id="expression-subcategory-field">
-                  {{ field|as_crispy_field }}
-                </div>
-              {% else %}
+              {% if field.name != 'subcategory' %}
                 {{ field|as_crispy_field }}
+                {% if field.name == 'category' %}
+                  <div class="mb-3" id="expression-subcategory-field">
+                    <label for="id_subcategory" class="form-label">Subcategory</label>
+                    {{ form.subcategory }}
+                    {{ form.subcategory.errors }}
+                  </div>
+                {% endif %}
               {% endif %}
             {% endfor %}
             <button type="submit" value="submit" class="btn btn-success round">Save Changes</button>
