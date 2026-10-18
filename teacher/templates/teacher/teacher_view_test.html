@@ -41,9 +41,11 @@
                 {% endif %}
             </div>
 
-            {% for question in questions %}
             <div class="card mb-4">
                 <div class="card-body">
+                    <h4 class="mb-3">Test Questions</h4>
+            {% for question in questions %}
+            <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
 
                     <h5>
                         Question {{ forloop.counter }}
@@ -95,6 +97,8 @@
             {% empty %}
             <p>No questions have been added to this test yet.</p>
             {% endfor %}
+                </div>
+            </div>
 
             <div class="card mb-4">
                 <div class="card-body">
