@@ -790,6 +790,74 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Ming/chongzhen-meishan-discovery-narration.m4a',
         'video': 'student/history/Ming/chongzhen-meishan-1min.mp4',
     },
+    'qing-entry': {
+        'audio': 'student/history/Qing/qing-entry-discovery-narration.m4a',
+        'video': 'student/history/Qing/qing-entry-1min.mp4',
+    },
+    'zheng-chenggong-taiwan': {
+        'audio': 'student/history/Qing/zheng-chenggong-taiwan-discovery-narration.m4a',
+        'video': 'student/history/Qing/zheng-chenggong-taiwan-1min.mp4',
+    },
+    'revolt-three-feudatories': {
+        'audio': 'student/history/Qing/revolt-three-feudatories-discovery-narration.m4a',
+        'video': 'student/history/Qing/revolt-three-feudatories-1min.mp4',
+    },
+    'qing-taiwan-1683': {
+        'audio': 'student/history/Qing/qing-taiwan-1683-discovery-narration.m4a',
+        'video': 'student/history/Qing/qing-taiwan-1683-1min.mp4',
+    },
+    'kangxi-southern-tour': {
+        'audio': 'student/history/Qing/kangxi-southern-tour-discovery-narration.m4a',
+        'video': 'student/history/Qing/kangxi-southern-tour-1min.mp4',
+    },
+    'treaty-nerchinsk': {
+        'audio': 'student/history/Qing/treaty-nerchinsk-discovery-narration.m4a',
+        'video': 'student/history/Qing/treaty-nerchinsk-1min.mp4',
+    },
+    'yongzheng-reforms': {
+        'audio': 'student/history/Qing/yongzheng-reforms-discovery-narration.m4a',
+        'video': 'student/history/Qing/yongzheng-reforms-1min.mp4',
+    },
+    'qianlong-dream-red-chamber': {
+        'audio': 'student/history/Qing/qianlong-dream-red-chamber-discovery-narration.m4a',
+        'video': 'student/history/Qing/qianlong-dream-red-chamber-1min.mp4',
+    },
+    'heshen-downfall': {
+        'audio': 'student/history/Qing/heshen-downfall-discovery-narration.m4a',
+        'video': 'student/history/Qing/heshen-downfall-1min.mp4',
+    },
+    'opium-war': {
+        'audio': 'student/history/Qing/opium-war-discovery-narration.m4a',
+        'video': 'student/history/Qing/opium-war-1min.mp4',
+    },
+    'taiping-rebellion': {
+        'audio': 'student/history/Qing/taiping-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Qing/taiping-rebellion-1min.mp4',
+    },
+    'self-strengthening': {
+        'audio': 'student/history/Qing/self-strengthening-discovery-narration.m4a',
+        'video': 'student/history/Qing/self-strengthening-1min.mp4',
+    },
+    'sino-japanese-war': {
+        'audio': 'student/history/Qing/sino-japanese-war-discovery-narration.m4a',
+        'video': 'student/history/Qing/sino-japanese-war-1min.mp4',
+    },
+    'hundred-days-reform': {
+        'audio': 'student/history/Qing/hundred-days-reform-discovery-narration.m4a',
+        'video': 'student/history/Qing/hundred-days-reform-1min.mp4',
+    },
+    'boxer-rebellion': {
+        'audio': 'student/history/Qing/boxer-rebellion-discovery-narration.m4a',
+        'video': 'student/history/Qing/boxer-rebellion-1min.mp4',
+    },
+    'late-qing-new-policies': {
+        'audio': 'student/history/Qing/late-qing-new-policies-discovery-narration.m4a',
+        'video': 'student/history/Qing/late-qing-new-policies-1min.mp4',
+    },
+    'wuchang-uprising': {
+        'audio': 'student/history/Qing/wuchang-uprising-discovery-narration.m4a',
+        'video': 'student/history/Qing/wuchang-uprising-1min.mp4',
+    },
 }
 
 
