@@ -858,6 +858,74 @@ HISTORY_MEDIA = {
         'audio': 'student/history/Qing/wuchang-uprising-discovery-narration.m4a',
         'video': 'student/history/Qing/wuchang-uprising-1min.mp4',
     },
+    'republic-1912': {
+        'audio': 'student/history/Modern/republic-1912-discovery-narration.m4a',
+        'video': 'student/history/Modern/republic-1912-1min.mp4',
+    },
+    'may-fourth': {
+        'audio': 'student/history/Modern/may-fourth-discovery-narration.m4a',
+        'video': 'student/history/Modern/may-fourth-1min.mp4',
+    },
+    'northern-expedition': {
+        'audio': 'student/history/Modern/northern-expedition-discovery-narration.m4a',
+        'video': 'student/history/Modern/northern-expedition-1min.mp4',
+    },
+    'war-1937': {
+        'audio': 'student/history/Modern/war-1937-discovery-narration.m4a',
+        'video': 'student/history/Modern/war-1937-1min.mp4',
+    },
+    'february-28': {
+        'audio': 'student/history/Modern/february-28-discovery-narration.m4a',
+        'video': 'student/history/Modern/february-28-1min.mp4',
+    },
+    'cross-strait-1949': {
+        'audio': 'student/history/Modern/cross-strait-1949-discovery-narration.m4a',
+        'video': 'student/history/Modern/cross-strait-1949-1min.mp4',
+    },
+    'taiwan-land-reform': {
+        'audio': 'student/history/Modern/taiwan-land-reform-discovery-narration.m4a',
+        'video': 'student/history/Modern/taiwan-land-reform-1min.mp4',
+    },
+    'great-leap': {
+        'audio': 'student/history/Modern/great-leap-discovery-narration.m4a',
+        'video': 'student/history/Modern/great-leap-1min.mp4',
+    },
+    'cultural-revolution': {
+        'audio': 'student/history/Modern/cultural-revolution-discovery-narration.m4a',
+        'video': 'student/history/Modern/cultural-revolution-1min.mp4',
+    },
+    'taiwan-economy': {
+        'audio': 'student/history/Modern/taiwan-economy-discovery-narration.m4a',
+        'video': 'student/history/Modern/taiwan-economy-1min.mp4',
+    },
+    'reform-1978': {
+        'audio': 'student/history/Modern/reform-1978-discovery-narration.m4a',
+        'video': 'student/history/Modern/reform-1978-1min.mp4',
+    },
+    'martial-law-1987': {
+        'audio': 'student/history/Modern/martial-law-1987-discovery-narration.m4a',
+        'video': 'student/history/Modern/martial-law-1987-1min.mp4',
+    },
+    'tiananmen-1989': {
+        'audio': 'student/history/Modern/tiananmen-1989-discovery-narration.m4a',
+        'video': 'student/history/Modern/tiananmen-1989-1min.mp4',
+    },
+    'taiwan-election-1996': {
+        'audio': 'student/history/Modern/taiwan-election-1996-discovery-narration.m4a',
+        'video': 'student/history/Modern/taiwan-election-1996-1min.mp4',
+    },
+    'hongkong-1997': {
+        'audio': 'student/history/Modern/hongkong-1997-discovery-narration.m4a',
+        'video': 'student/history/Modern/hongkong-1997-1min.mp4',
+    },
+    'taiwan-election-2000': {
+        'audio': 'student/history/Modern/taiwan-election-2000-discovery-narration.m4a',
+        'video': 'student/history/Modern/taiwan-election-2000-1min.mp4',
+    },
+    'chinese-world-today': {
+        'audio': 'student/history/Modern/chinese-world-today-discovery-narration.m4a',
+        'video': 'student/history/Modern/chinese-world-today-1min.mp4',
+    },
 }
 
 
