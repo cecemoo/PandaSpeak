@@ -111,3 +111,6 @@ class TutoringPayment(models.Model):
 
 
 from .referral_models import PlusReward, Referral  # noqa: E402,F401
+
+
+from .school_models import SchoolAccount, SchoolEnrollment  # noqa: E402,F401
