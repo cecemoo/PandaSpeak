@@ -14,16 +14,24 @@ def _has_current_subscription(user):
     try:
         subscription = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
-        return False
+        subscription = None
+
+    from .school_models import SchoolEnrollment
+    school_access = SchoolEnrollment.objects.filter(
+        student=user, school__is_active=True, revoked_at__isnull=True,
+        starts_at__lte=timezone.now(), expires_at__gt=timezone.now(),
+    ).exists()
+    if subscription is None:
+        return school_access
 
     if subscription.is_disputed:
         return False
 
     if not subscription.is_active:
-        return False
+        return school_access
 
     if subscription.is_cancelled and subscription.access_until:
-        return subscription.access_until > timezone.now()
+        return subscription.access_until > timezone.now() or school_access
 
     return True
 
