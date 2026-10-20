@@ -38,3 +38,5 @@ class SubscriptionConsentEventAdmin(admin.ModelAdmin):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
+
+from . import school_admin  # noqa: E402,F401
