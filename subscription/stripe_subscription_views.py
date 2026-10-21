@@ -98,7 +98,8 @@ def _sync_plus_from_stripe(remote, user=None, payment_confirmed=None):
         except (User.DoesNotExist, ValueError, TypeError):
             return
     local = Subscription.objects.filter(user=user).first()
-    if not local or not local.is_active or local.is_disputed:
+    from .plan_access import has_base_access
+    if not local or local.is_disputed or not has_base_access(user):
         return
     if local.plus_stripe_subscription_id and local.plus_stripe_subscription_id != sid:
         return
@@ -352,9 +353,12 @@ def stripe_plus_upgrade(request):
     local = Subscription.objects.filter(user=request.user).first()
     if local and local.is_disputed:
         return redirect("dispute_restricted")
-    if not local or not local.is_active or local.is_cancelled:
+    from .plan_access import has_base_access
+    if not has_base_access(request.user):
         messages.error(request, "An active PandaSpeak Standard annual subscription is required before upgrading.")
         return redirect("subscribe")
+    if local is None:
+        local = Subscription.objects.create(user=request.user, subscription_plan="standard", subscription_cost=0, is_active=False)
     if local.plus_is_active:
         messages.info(request, "You already have PandaSpeak Plus.")
         return redirect("student_dashboard")
