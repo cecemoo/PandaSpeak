@@ -42,7 +42,7 @@ class EnrollmentForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["payment"].queryset = SchoolPayment.objects.filter(received_at__isnull=False)
+        self.fields["payment"].queryset = SchoolPayment.objects.filter(received_at__isnull=False, reversed_at__isnull=True)
 
     def clean(self):
         cleaned = super().clean()
@@ -139,7 +139,7 @@ def manage_schools(request):
             if enrollment_form.is_valid():
                 data = enrollment_form.cleaned_data
                 with transaction.atomic():
-                    payment = SchoolPayment.objects.select_for_update().get(pk=data["payment"].pk, received_at__isnull=False)
+                    payment = SchoolPayment.objects.select_for_update().get(pk=data["payment"].pk, received_at__isnull=False, reversed_at__isnull=True)
                     used = sum((item.agreed_price for item in payment.enrollments.all()), Decimal("0.00"))
                     if used + data["school"].annual_price > payment.amount:
                         enrollment_form.add_error("payment", "Insufficient remaining payment balance.")
