@@ -27,3 +27,5 @@ class SchoolEnrollment(models.Model):
         from django.core.exceptions import ValidationError
         if self.starts_at and self.expires_at and self.expires_at <= self.starts_at:
             raise ValidationError('Expiration must follow start date.')
+        if not self.payment_reference or not self.payment_reference.strip():
+            raise ValidationError('A received payment reference is required before activation.')
