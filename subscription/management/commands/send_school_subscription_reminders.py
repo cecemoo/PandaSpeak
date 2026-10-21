@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.urls import reverse
 from account.models import Notification
 from subscription.models import Subscription
 from subscription.school_models import SchoolEnrollment
@@ -30,7 +31,7 @@ class Command(BaseCommand):
                 )
                 if Notification.objects.filter(user=user, title=title, created_at__date=today).exists():
                     continue
-                Notification.objects.create(user=user, title=title, message=message, link="/student/account-management/")
+                Notification.objects.create(user=user, title=title, message=message, link=reverse("account_management_student"))
                 if user.email:
                     send_mail(title, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
         self.stdout.write(self.style.SUCCESS("School subscription reminders processed."))
