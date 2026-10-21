@@ -1,0 +1,46 @@
+name: School Subscription Validation
+on:
+  push:
+    branches:
+      - feature/school-group-subscriptions
+  pull_request:
+    paths:
+      - 'subscription/**'
+      - 'account/**'
+      - '.github/workflows/school-subscription-validation.yml'
+jobs:
+  django:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: pandaspeak_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/pandaspeak_test
+      SECRET_KEY: django-ci-not-production-secret
+      DEBUG: "True"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Python
+        run: python -m compileall -q subscription
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Django checks
+        run: python manage.py check
+      - name: Check migrations
+        run: python manage.py makemigrations --check --dry-run
+      - name: Run school subscription tests
+        run: python manage.py test subscription.test_school_subscriptions
