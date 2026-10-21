@@ -36,6 +36,21 @@ class Subscription(models.Model):
     is_cancelled = models.BooleanField(default=False)
     access_until = models.DateTimeField(blank=True, null=True)
 
+    # School / group subscriptions are paid to PandaSpeak by the school
+    # (offline), then activated manually by a manager. They carry no Stripe or
+    # PayPal subscription and never renew automatically.
+    PAYMENT_SOURCE_CHOICES = [
+        ("individual", "Individual"),
+        ("school", "School / group"),
+    ]
+    payment_source = models.CharField(max_length=20, choices=PAYMENT_SOURCE_CHOICES, default="individual")
+    school_name = models.CharField(max_length=200, blank=True, default="")
+    activated_by = models.ForeignKey(
+        CustomUser, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="school_activations",
+    )
+    activated_at = models.DateTimeField(null=True, blank=True)
+
     # Dispute protection. A disputed account is preserved as evidence, but its
     # learning-material access is blocked immediately.
     is_disputed = models.BooleanField(default=False)

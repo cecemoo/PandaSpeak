@@ -1,0 +1,84 @@
+{% extends "account/base.html" %}
+{% block content %}
+<main class="main">
+  <section class="section" style="padding: 80px 0;">
+    <div class="container">
+      <h1>School / Group Subscriptions</h1>
+      <p>Manager-only page. Use it after PandaSpeak has received a school's payment: the student keeps their own PandaSpeak account, and the manager activates the $15/year base subscription here. School-paid access does not renew automatically; the student receives an end-of-subscription reminder before the end date and can still upgrade to PandaSpeak Plus individually.</p>
+      <a class="btn btn-outline-secondary mb-4" href="{% url 'manager_dashboard' %}">Back to Manager Dashboard</a>
+
+      <div class="card p-4 mb-4">
+        <h2 class="h5">Find a student</h2>
+        <form method="get">
+          <div class="input-group">
+            <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Search student name or email">
+            <button class="btn btn-primary" type="submit">Search</button>
+          </div>
+        </form>
+      </div>
+
+      {% if query %}
+      <h2 class="h5">Students matching &ldquo;{{ query }}&rdquo;</h2>
+      <div class="table-responsive mb-4"><table class="table table-striped align-middle">
+        <thead><tr><th>Student</th><th>Current subscription</th><th>School / group name</th><th>Access ends</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for student, sub in student_rows %}
+          <tr>
+            <td><strong>{{ student.get_full_name|default:student.email }}</strong><br><small>{{ student.email }}</small></td>
+            <td>
+              {% if sub %}
+                {% if sub.is_disputed %}<span class="badge bg-danger">Disputed</span>
+                {% elif sub.is_active %}<span class="badge bg-success">Active</span> <small>({{ sub.get_payment_source_display }})</small>
+                {% else %}<span class="badge bg-secondary">Inactive</span> <small>({{ sub.get_payment_source_display }})</small>{% endif %}
+              {% else %}<span class="text-muted">No subscription yet</span>{% endif %}
+            </td>
+            <td colspan="3">
+              <form method="post" action="{% url 'manager_school_subscription_activate' %}" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="student_id" value="{{ student.id }}">
+                <div class="col-md-5">
+                  <input class="form-control" type="text" name="school_name" maxlength="200" placeholder="e.g. Sunnyvale Chinese School" required>
+                </div>
+                <div class="col-md-4">
+                  <input class="form-control" type="date" name="end_date" value="{{ default_end_date }}" required>
+                </div>
+                <div class="col-md-3">
+                  <button class="btn btn-success w-100" type="submit">Activate</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="5">No students found for that search.</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+      {% endif %}
+
+      <h2 class="h5">School-paid subscriptions ({{ school_subscriptions|length }})</h2>
+      <div class="table-responsive"><table class="table table-striped align-middle">
+        <thead><tr><th>School / group</th><th>Student</th><th>Access until</th><th>Status</th><th>Activated by</th><th>Activated at</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for sub in school_subscriptions %}
+          <tr>
+            <td>{{ sub.school_name|default:"—" }}</td>
+            <td><strong>{{ sub.user.get_full_name|default:sub.user.email }}</strong><br><small>{{ sub.user.email }}</small></td>
+            <td>{{ sub.access_until|date:"Y-m-d"|default:"—" }}</td>
+            <td>{% if sub.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+            <td>{{ sub.activated_by.email|default:"—" }}</td>
+            <td>{{ sub.activated_at|date:"Y-m-d H:i"|default:"—" }}</td>
+            <td>
+              {% if sub.is_active %}
+              <form method="post" action="{% url 'manager_school_subscription_deactivate' %}" onsubmit="return confirm('Deactivate this school-paid subscription?');">
+                {% csrf_token %}
+                <input type="hidden" name="subscription_id" value="{{ sub.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+              </form>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="7">No school-paid subscriptions yet.</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+{% endblock %}

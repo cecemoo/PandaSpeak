@@ -1,10 +1,18 @@
+from datetime import datetime, time as dt_time, timedelta
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
+from django.core import mail
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
+
+from account.models import Notification
 
 from .models import Subscription, SubscriptionConsentEvent
+from .plan_access import has_base_access
 from .stripe_subscription_views import _update_subscription_dispute_status
 
 
@@ -176,3 +184,131 @@ class CheckoutConsentHistoryTests(TestCase):
         self.client.post(reverse("stripe_subscription_checkout"), {"accept_subscription_terms": "yes"})
         self.assertFalse(SubscriptionConsentEvent.objects.filter(user=self.user).exists())
         create.assert_not_called()
+
+
+class SchoolSubscriptionTests(TestCase):
+    def setUp(self):
+        self.manager = User.objects.create_user(
+            email="manager@example.com", password="test-password", is_staff=True
+        )
+        self.student = User.objects.create_user(
+            email="school-student@example.com",
+            password="test-password",
+            first_name="School",
+            last_name="Student",
+        )
+        self.client.force_login(self.manager)
+        self.end_date = timezone.localdate() + timedelta(days=365)
+
+    def _activate(self, student=None, school_name="Sunnyvale Chinese School", end_date=None):
+        return self.client.post(
+            reverse("manager_school_subscription_activate"),
+            {
+                "student_id": str((student or self.student).id),
+                "school_name": school_name,
+                "end_date": (end_date or self.end_date).isoformat(),
+            },
+        )
+
+    def test_manager_activation_grants_base_access_and_plus_gate(self):
+        response = self._activate()
+        self.assertRedirects(response, reverse("manager_school_subscriptions"), fetch_redirect_response=False)
+
+        subscription = Subscription.objects.get(user=self.student)
+        self.assertEqual(subscription.subscription_plan, "standard")
+        self.assertEqual(subscription.subscription_cost, Decimal("15.00"))
+        self.assertTrue(subscription.is_active)
+        self.assertFalse(subscription.is_cancelled)
+        self.assertEqual(subscription.payment_source, "school")
+        self.assertEqual(subscription.school_name, "Sunnyvale Chinese School")
+        self.assertEqual(subscription.activated_by, self.manager)
+        self.assertIsNotNone(subscription.activated_at)
+        self.assertEqual(timezone.localtime(subscription.access_until).date(), self.end_date)
+
+        self.assertTrue(has_base_access(self.student))
+        # The existing Plus upgrade view gates on exactly this condition.
+        self.assertTrue(subscription.is_active and not subscription.is_cancelled)
+
+    def test_activation_refuses_active_individual_stripe_subscription(self):
+        existing = Subscription.objects.create(
+            user=self.student,
+            subscription_plan="standard",
+            subscription_cost=15.00,
+            stripe_subscription_id="sub_existing_123",
+            is_active=True,
+        )
+        response = self._activate()
+        self.assertRedirects(response, reverse("manager_school_subscriptions"), fetch_redirect_response=False)
+
+        existing.refresh_from_db()
+        self.assertEqual(existing.payment_source, "individual")
+        self.assertEqual(existing.school_name, "")
+        self.assertIsNone(existing.access_until)
+        self.assertIsNone(existing.activated_by)
+
+    def test_activation_refuses_disputed_student(self):
+        Subscription.objects.create(
+            user=self.student,
+            subscription_plan="standard",
+            subscription_cost=15.00,
+            is_active=False,
+            is_disputed=True,
+            dispute_status="under_review",
+        )
+        self._activate()
+        subscription = Subscription.objects.get(user=self.student)
+        self.assertEqual(subscription.payment_source, "individual")
+        self.assertFalse(subscription.is_active)
+
+    def test_school_student_gets_school_renewal_reminder_not_auto_renew(self):
+        access_until = timezone.make_aware(
+            datetime.combine(timezone.localdate() + timedelta(days=7), dt_time(12, 0)),
+            timezone.get_current_timezone(),
+        )
+        Subscription.objects.create(
+            user=self.student,
+            subscription_plan="standard",
+            subscription_cost=15.00,
+            is_active=True,
+            access_until=access_until,
+            payment_source="school",
+            school_name="Sunnyvale Chinese School",
+        )
+
+        mail.outbox.clear()  # ignore any account-creation emails from setUp
+        call_command("send_subscription_reminders")
+
+        notification = Notification.objects.get(
+            user=self.student, title="PandaSpeak Subscription Renewal Reminder"
+        )
+        self.assertIn("Sunnyvale Chinese School", notification.message)
+        self.assertNotIn("renew automatically", notification.message)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.student.email])
+        self.assertIn("Sunnyvale Chinese School", mail.outbox[0].body)
+        self.assertIn("no automatic renewal", mail.outbox[0].body)
+        self.assertNotIn("renew automatically", mail.outbox[0].body)
+
+    def test_deactivate_turns_access_off_but_keeps_history(self):
+        self._activate()
+        subscription = Subscription.objects.get(user=self.student)
+        self.assertTrue(has_base_access(self.student))
+
+        response = self.client.post(
+            reverse("manager_school_subscription_deactivate"),
+            {"subscription_id": str(subscription.pk)},
+        )
+        self.assertRedirects(response, reverse("manager_school_subscriptions"), fetch_redirect_response=False)
+
+        subscription.refresh_from_db()
+        self.assertFalse(subscription.is_active)
+        self.assertEqual(subscription.payment_source, "school")
+        self.assertEqual(subscription.school_name, "Sunnyvale Chinese School")
+        fresh_student = User.objects.get(pk=self.student.pk)
+        self.assertFalse(has_base_access(fresh_student))
+
+    def test_school_page_is_staff_only(self):
+        self.client.force_login(self.student)
+        response = self.client.get(reverse("manager_school_subscriptions"))
+        self.assertEqual(response.status_code, 302)

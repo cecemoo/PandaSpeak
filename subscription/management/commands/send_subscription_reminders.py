@@ -25,7 +25,16 @@ class Command(BaseCommand):
                 continue
 
             plus_active = subscription.plus_is_active and (not subscription.plus_access_until or subscription.plus_access_until > timezone.now())
-            if subscription.is_active and not subscription.is_cancelled:
+            if subscription.payment_source == 'school' and subscription.is_active:
+                # School-paid access has no card on file and never renews
+                # automatically; the school arranges renewal.
+                title = 'PandaSpeak Subscription Renewal Reminder'
+                school_label = subscription.school_name or 'your school'
+                message = f'Your PandaSpeak access is paid through {school_label} and ends on {target:%b %d, %Y}. There is no automatic renewal for school-paid access; renewal is arranged through your school. If your school does not renew, you can subscribe individually for $15/year to keep your PandaSpeak access without a gap.'
+                if not plus_active:
+                    message += ' PandaSpeak Plus is also available as an optional $4.99/month add-on for expanded AI Conversation Practice and Plus features.'
+                email_message = message + '\n\nTo manage your subscription, sign in to PandaSpeak and open Subscription.'
+            elif subscription.is_active and not subscription.is_cancelled:
                 title = 'PandaSpeak Subscription Renewal Reminder'
                 message = f'Your $15 annual PandaSpeak subscription is scheduled to renew on {target:%b %d, %Y}. It will renew automatically unless you cancel before then.'
                 if not plus_active:

@@ -1,3 +1,6 @@
+from datetime import date, datetime, time as dt_time, timedelta
+from decimal import Decimal
+
 import stripe
 from django.conf import settings
 from django.contrib import messages
@@ -244,6 +247,142 @@ def acknowledgement_records(request):
         students = students.filter(Q(user__email__icontains=query) | Q(user__first_name__icontains=query) | Q(user__last_name__icontains=query))
         teachers = teachers.filter(Q(email__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
     return render(request, 'subscription/manager_acknowledgements.html', {'student_records': students.order_by('-checkout_terms_accepted_at')[:500], 'teacher_records': teachers.order_by('-stripe_connect_terms_accepted_at')[:500], 'query': query, 'consent_events': SubscriptionConsentEvent.objects.select_related('user').filter(user__email__icontains=query).order_by('user__email', '-accepted_at')[:500]})
+
+
+@login_required
+@user_passes_test(_manager)
+def school_subscriptions(request):
+    """Manager page for school / group subscriptions paid offline by a school."""
+    query = (request.GET.get("q") or "").strip()
+    student_rows = []
+    if query:
+        students = (
+            CustomUser.objects.filter(is_teacher=False, is_staff=False)
+            .filter(
+                Q(email__icontains=query)
+                | Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+            )
+            .order_by("email")[:50]
+        )
+        subs_by_user = {
+            sub.user_id: sub
+            for sub in Subscription.objects.filter(user_id__in=[student.id for student in students])
+        }
+        student_rows = [(student, subs_by_user.get(student.id)) for student in students]
+
+    school_subs = (
+        Subscription.objects.select_related("user", "activated_by")
+        .filter(payment_source="school")
+        .order_by("school_name", "user__email")
+    )
+    return render(
+        request,
+        "subscription/manager_school_subscriptions.html",
+        {
+            "query": query,
+            "student_rows": student_rows,
+            "school_subscriptions": school_subs,
+            "default_end_date": (timezone.localdate() + timedelta(days=365)).isoformat(),
+        },
+    )
+
+
+@login_required
+@user_passes_test(_manager)
+@require_POST
+def school_subscription_activate(request):
+    """Activate a base subscription for a student whose school paid PandaSpeak."""
+    raw_student_id = (request.POST.get("student_id") or "").strip()
+    student = None
+    if raw_student_id.isdecimal():
+        student = CustomUser.objects.filter(
+            pk=raw_student_id, is_teacher=False, is_staff=False
+        ).first()
+    if student is None:
+        messages.error(request, "Student not found. No changes were made.")
+        return redirect("manager_school_subscriptions")
+
+    school_name = (request.POST.get("school_name") or "").strip()[:200]
+    if not school_name:
+        messages.error(request, "Enter the school / group name before activating.")
+        return redirect("manager_school_subscriptions")
+
+    try:
+        end_date = date.fromisoformat((request.POST.get("end_date") or "").strip())
+    except ValueError:
+        messages.error(request, "Enter a valid access end date.")
+        return redirect("manager_school_subscriptions")
+    if end_date < timezone.localdate():
+        messages.error(request, "The access end date is in the past. Choose a future date.")
+        return redirect("manager_school_subscriptions")
+
+    subscription, _created = Subscription.objects.get_or_create(
+        user=student,
+        defaults={"subscription_plan": "standard", "subscription_cost": Decimal("15.00")},
+    )
+    if subscription.is_disputed:
+        messages.error(
+            request,
+            f"{student.email} has a payment dispute on record. No changes were made.",
+        )
+        return redirect("manager_school_subscriptions")
+    if (
+        subscription.payment_source != "school"
+        and subscription.is_active
+        and (subscription.stripe_subscription_id or subscription.paypal_subscription_id)
+    ):
+        messages.error(
+            request,
+            f"{student.email} already has an active individual subscription. No changes were made.",
+        )
+        return redirect("manager_school_subscriptions")
+
+    subscription.subscription_plan = "standard"
+    subscription.subscription_cost = Decimal("15.00")
+    subscription.is_active = True
+    subscription.is_cancelled = False
+    subscription.access_until = timezone.make_aware(
+        datetime.combine(end_date, dt_time(23, 59, 59)),
+        timezone.get_current_timezone(),
+    )
+    subscription.payment_source = "school"
+    subscription.school_name = school_name
+    subscription.activated_by = request.user
+    subscription.activated_at = timezone.now()
+    subscription.save()
+
+    messages.success(
+        request,
+        f"School subscription activated for {student.email} through {school_name} until {end_date:%b %d, %Y}.",
+    )
+    return redirect("manager_school_subscriptions")
+
+
+@login_required
+@user_passes_test(_manager)
+@require_POST
+def school_subscription_deactivate(request):
+    """Turn off a school-paid subscription; school fields stay for history."""
+    raw_id = (request.POST.get("subscription_id") or "").strip()
+    subscription = None
+    if raw_id.isdecimal():
+        subscription = (
+            Subscription.objects.select_related("user")
+            .filter(pk=raw_id, payment_source="school")
+            .first()
+        )
+    if subscription is None:
+        messages.error(request, "School subscription not found. No changes were made.")
+        return redirect("manager_school_subscriptions")
+
+    subscription.is_active = False
+    subscription.save(update_fields=["is_active"])
+    messages.success(
+        request,
+        f"School subscription deactivated for {subscription.user.email}.",
+    )
+    return redirect("manager_school_subscriptions")
 
 
 @login_required(login_url="my_login")

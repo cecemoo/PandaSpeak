@@ -495,6 +495,8 @@ def account_management(request):
         "SubPlan": sub.subscription_plan if sub else 'No Active Subscription',
         "is_cancelled": sub.is_cancelled if sub else False,
         "access_until": sub.access_until if sub else None,
+        "payment_source": sub.payment_source if sub else 'individual',
+        "school_name": sub.school_name if sub else '',
     }
     return render(request, 'student/account_management.html', context)
 
