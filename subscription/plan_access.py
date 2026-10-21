@@ -23,6 +23,8 @@ def _subscription(user):
 
 
 def has_base_access(user):
+    if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
+        return False
     if _is_admin(user):
         return True
 
