@@ -436,6 +436,15 @@ def stripe_subscription_webhook(request):
                     payment.reference = _stripe_value(obj, "payment_intent") or _stripe_value(obj, "id")
                     payment.save(update_fields=["received_at", "reference"])
                 return HttpResponse(status=200)
+        if event_type in ("charge.refunded", "charge.dispute.created"):
+            from .school_models import SchoolPayment
+            intent = _stripe_value(obj, "payment_intent")
+            if intent:
+                affected = SchoolPayment.objects.filter(
+                    method="card", reference=intent, received_at__isnull=False, reversed_at__isnull=True
+                )
+                if event_type == "charge.dispute.created" or _stripe_value(obj, "refunded") is True:
+                    affected.update(reversed_at=django_timezone.now())
         if event_type == "charge.dispute.created":
             _record_subscription_dispute(obj)
         elif event_type in ("charge.dispute.updated", "charge.dispute.closed"):
