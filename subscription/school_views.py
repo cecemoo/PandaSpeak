@@ -1,4 +1,7 @@
 from datetime import datetime, time
+from decimal import Decimal
+import stripe
+from django.conf import settings
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -7,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from account.models import CustomUser
 from .models import Subscription, BlockedPurchaseEmail
-from .school_models import SchoolAccount, SchoolEnrollment
+from .school_models import SchoolAccount, SchoolEnrollment, SchoolPayment
 
 
 class SchoolForm(forms.ModelForm):
@@ -16,19 +19,37 @@ class SchoolForm(forms.ModelForm):
         fields = ("name", "contact_email", "annual_price", "is_active")
 
 
+class SchoolPaymentForm(forms.Form):
+    school = forms.ModelChoiceField(queryset=SchoolAccount.objects.filter(is_active=True))
+    method = forms.ChoiceField(choices=SchoolPayment.METHOD_CHOICES)
+    amount = forms.DecimalField(min_value=Decimal("0.01"), max_digits=10, decimal_places=2)
+    reference = forms.CharField(max_length=200, required=False)
+    received = forms.BooleanField(required=False)
+
+    def clean(self):
+        data = super().clean()
+        if data.get("method") in ("cash", "wire") and (not data.get("received") or not (data.get("reference") or "").strip()):
+            raise forms.ValidationError("Confirm receipt and enter a receipt or wire reference.")
+        return data
+
+
 class EnrollmentForm(forms.Form):
     school = forms.ModelChoiceField(queryset=SchoolAccount.objects.filter(is_active=True))
     student_email = forms.EmailField()
     starts_at = forms.DateField(initial=timezone.localdate, widget=forms.DateInput(attrs={"type": "date"}))
     expires_at = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
-    payment_method = forms.ChoiceField(choices=(("cash", "Cash"), ("wire", "Wire transfer")), help_text="Credit card school payments require Stripe verification and are not yet enabled.")
-    payment_reference = forms.CharField(max_length=200, required=True, help_text="Receipt number for cash or confirmed incoming bank transaction reference for wire.")
-    payment_received = forms.BooleanField(required=True, label="I confirm PandaSpeak has received this school payment.")
+    payment = forms.ModelChoiceField(queryset=SchoolPayment.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["payment"].queryset = SchoolPayment.objects.filter(received_at__isnull=False)
 
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("starts_at") and cleaned.get("expires_at") and cleaned["expires_at"] <= cleaned["starts_at"]:
             raise forms.ValidationError("Expiration must be after the start date.")
+        if cleaned.get("payment") and cleaned.get("school") and cleaned["payment"].school_id != cleaned["school"].pk:
+            raise forms.ValidationError("Payment belongs to another school.")
         email = cleaned.get("student_email")
         if email:
             student = CustomUser.objects.filter(email__iexact=email).first()
@@ -54,6 +75,7 @@ class EnrollmentForm(forms.Form):
 def manage_schools(request):
     school_form = SchoolForm(prefix="school")
     enrollment_form = EnrollmentForm(prefix="enrollment")
+    payment_form = SchoolPaymentForm(prefix="payment")
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "school":
@@ -84,7 +106,8 @@ def manage_schools(request):
                 messages.success(request, "School access revoked.")
             return redirect("manage_school_subscriptions")
     return render(request, "subscription/manage_schools.html", {
-        "school_form": school_form, "enrollment_form": enrollment_form,
+        "school_form": school_form, "enrollment_form": enrollment_form, "payment_form": payment_form,
+        "payments": SchoolPayment.objects.select_related("school").order_by("-created_at")[:200],
         "schools": SchoolAccount.objects.all().order_by("name"),
         "enrollments": SchoolEnrollment.objects.select_related("school", "student").order_by("-created_at")[:200],
         "now": timezone.now(),
