@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from functools import wraps
 from .models import Subscription
+from .plan_access import has_base_access
 
 
 def subscription_required(view_func):
@@ -17,7 +18,7 @@ def subscription_required(view_func):
         if subscription and subscription.is_disputed:
             return redirect("dispute_restricted")
 
-        if not subscription or not subscription.is_active:
+        if not has_base_access(request.user):
             return redirect("subscription_plans")
 
         return view_func(request, *args, **kwargs)
