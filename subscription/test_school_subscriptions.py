@@ -35,6 +35,26 @@ class SchoolSubscriptionTests(TestCase):
         self.student.save(update_fields=["is_active"])
         self.assertFalse(has_base_access(self.student))
 
+    def test_reversed_school_payment_revokes_access(self):
+        enrollment = self.enroll()
+        self.assertTrue(has_base_access(self.student))
+        payment = enrollment.payment
+        payment.reversed_at = timezone.now()
+        payment.save(update_fields=["reversed_at"])
+        self.assertFalse(has_base_access(self.student))
+
+    def test_pending_payment_never_grants_access(self):
+        payment = SchoolPayment.objects.create(
+            school=self.school, method="card", amount=Decimal("15.00"),
+            stripe_session_id="cs_test_pending",
+        )
+        SchoolEnrollment.objects.create(
+            school=self.school, student=self.student, starts_at=self.start,
+            expires_at=self.end, agreed_price=Decimal("15.00"),
+            payment=payment, payment_reference="card:cs_test_pending",
+        )
+        self.assertFalse(has_base_access(self.student))
+
     def test_default_and_historical_price(self):
         record = self.enroll()
         self.assertEqual(record.agreed_price, Decimal("15.00"))
