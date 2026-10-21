@@ -71,9 +71,30 @@ class SchoolSubscriptionTests(TestCase):
             "enrollment-starts_at": timezone.localdate().isoformat(),
             "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
             "enrollment-payment_reference": "SCHOOL-INVOICE-1",
+            "enrollment-payment_received": "on",
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(SchoolEnrollment.objects.filter(student=self.student, school=self.school).exists())
+
+    def test_unpaid_school_enrollment_cannot_be_activated(self):
+        manager = User.objects.create_user(email="unpaid-manager@example.com", password="testpassword", is_staff=True)
+        self.client.force_login(manager)
+        data = {
+            "action": "enroll", "enrollment-school": str(self.school.pk),
+            "enrollment-student_email": self.student.email,
+            "enrollment-starts_at": timezone.localdate().isoformat(),
+            "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
+            "enrollment-payment_reference": "SCHOOL-INVOICE-UNPAID",
+        }
+        response = self.client.post("/subscription/manager/schools/", data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SchoolEnrollment.objects.filter(student=self.student).exists())
+        self.assertFalse(has_base_access(self.student))
+        data["enrollment-payment_received"] = "on"
+        data["enrollment-payment_reference"] = ""
+        response = self.client.post("/subscription/manager/schools/", data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SchoolEnrollment.objects.filter(student=self.student).exists())
 
     def test_overlapping_school_enrollment_rejected(self):
         self.enroll()
