@@ -50,6 +50,11 @@ from .models import SchoolSubscriptionBatch, SchoolSubscriptionEnrollment
 class SchoolSubscriptionBatchAdmin(admin.ModelAdmin):
     list_display = ("school_name", "payment_method", "amount_received", "unit_price", "payment_received_at")
     readonly_fields = ("payment_received_at", "created_by", "created_at")
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if obj and obj.payment_received_at:
+            fields.extend(["amount_received", "unit_price", "payment_method", "payment_reference", "school_name"])
+        return fields
     change_form_template = "admin/subscription/schoolsubscriptionbatch/change_form.html"
 
     def save_model(self, request, obj, form, change):
