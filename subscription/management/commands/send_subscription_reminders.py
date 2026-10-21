@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from account.models import CustomUser, Notification
 from account.push import send_push_to_user
-from subscription.models import Subscription
+from subscription.models import Subscription, SchoolSubscriptionEnrollment
 
 
 class Command(BaseCommand):
@@ -22,6 +22,24 @@ class Command(BaseCommand):
         for subscription in subscriptions:
             user = subscription.user
             if not user.is_active or user.is_teacher or user.is_staff:
+                continue
+
+            school_enrollment = SchoolSubscriptionEnrollment.objects.filter(
+                student=user, access_until=subscription.access_until
+            ).select_related("batch").first()
+            if school_enrollment:
+                title = 'PandaSpeak School Subscription Expiring Soon'
+                message = (
+                    f'Your school-sponsored PandaSpeak access ends on {target:%b %d, %Y}. '
+                    'Please contact your school about renewal. Your school must complete payment '
+                    'to PandaSpeak before the manager can renew your access.'
+                )
+                if not Notification.objects.filter(user=user, title=title, created_at__date=today).exists():
+                    link = reverse('account_management_student')
+                    Notification.objects.create(user=user, title=title, message=message, link=link)
+                    send_push_to_user(user, title, message, link)
+                    if user.email:
+                        send_mail(title, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
                 continue
 
             plus_active = subscription.plus_is_active and (not subscription.plus_access_until or subscription.plus_access_until > timezone.now())
