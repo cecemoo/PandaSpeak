@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.utils import timezone
 from subscription.models import Subscription
@@ -23,6 +24,15 @@ class SchoolSubscriptionTests(TestCase):
             school=self.school, student=self.student, starts_at=self.start,
             expires_at=self.end, agreed_price=self.school.annual_price,
         )
+
+    def test_anonymous_user_has_no_subscription_access(self):
+        self.assertFalse(has_base_access(AnonymousUser()))
+
+    def test_inactive_school_student_has_no_access(self):
+        self.enroll()
+        self.student.is_active = False
+        self.student.save(update_fields=["is_active"])
+        self.assertFalse(has_base_access(self.student))
 
     def test_default_and_historical_price(self):
         record = self.enroll()
