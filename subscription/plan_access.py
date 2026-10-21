@@ -27,9 +27,15 @@ def has_base_access(user):
         return True
 
     sub = _subscription(user)
-    if not sub or not sub.is_active:
+    if sub and sub.is_disputed:
         return False
-    return not sub.access_until or sub.access_until > timezone.now()
+    if sub and sub.is_active and (not sub.access_until or sub.access_until > timezone.now()):
+        return True
+    from .school_models import SchoolEnrollment
+    return SchoolEnrollment.objects.filter(
+        student=user, school__is_active=True, revoked_at__isnull=True,
+        starts_at__lte=timezone.now(), expires_at__gt=timezone.now(),
+    ).exists()
 
 
 def is_plus(user):
