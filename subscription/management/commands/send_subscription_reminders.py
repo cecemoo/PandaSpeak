@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.urls import reverse
 from django.utils import timezone
@@ -85,4 +86,5 @@ class Command(BaseCommand):
                     email_message=(f'Hello {user.first_name or "PandaSpeak learner"},\n\n{message}\n\nSign in to PandaSpeak and open Subscription to subscribe.\n\nBest regards,\nPandaSpeak Team\nLearn Chinese. Speak with Confidence.\nhttps://pandaspeak.org')
                     send_mail(title,email_message,settings.DEFAULT_FROM_EMAIL,[user.email],fail_silently=True)
 
+        call_command('send_school_subscription_reminders')
         self.stdout.write(self.style.SUCCESS('Subscription reminders processed.'))
