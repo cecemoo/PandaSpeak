@@ -84,20 +84,75 @@ def manage_schools(request):
                 school_form.save()
                 messages.success(request, "School saved.")
                 return redirect("manage_school_subscriptions")
+        elif action == "payment":
+            payment_form = SchoolPaymentForm(request.POST, prefix="payment")
+            if payment_form.is_valid():
+                data = payment_form.cleaned_data
+                if data["method"] == "card":
+                    payment = SchoolPayment.objects.create(school=data["school"], method="card", amount=data["amount"])
+                    try:
+                        session = stripe.checkout.Session.create(
+                            api_key=getattr(settings, "STRIPE_SUBSCRIPTION_SECRET_KEY", "") or settings.STRIPE_SECRET_KEY,
+                            mode="payment", payment_method_types=["card"],
+                            line_items=[{"price_data": {"currency": "usd", "unit_amount": int(data["amount"] * 100),
+                                "product_data": {"name": "PandaSpeak school payment"}}, "quantity": 1}],
+                            success_url=request.build_absolute_uri("/subscription/manager/schools/"),
+                            cancel_url=request.build_absolute_uri("/subscription/manager/schools/"),
+                            metadata={"purpose": "pandaspeak_school_payment", "payment_id": str(payment.pk)},
+                            idempotency_key=f"school-payment-{payment.pk}",
+                        )
+                        payment.stripe_session_id = session.id
+                        payment.save(update_fields=["stripe_session_id"])
+                        return redirect(session.url)
+                    except stripe.error.StripeError:
+                        payment.delete()
+                        messages.error(request, "Stripe checkout unavailable.")
+                else:
+                    SchoolPayment.objects.create(school=data["school"], method=data["method"],
+                        amount=data["amount"], reference=data["reference"].strip(),
+                        received_at=timezone.now(), confirmed_by=request.user)
+                    messages.success(request, "School payment recorded.")
+                    return redirect("manage_school_subscriptions")
+        elif action == "verify_payment":
+            payment = SchoolPayment.objects.filter(pk=request.POST.get("payment_id"), method="card", received_at__isnull=True).first()
+            if payment and payment.stripe_session_id:
+                try:
+                    session = stripe.checkout.Session.retrieve(payment.stripe_session_id,
+                        api_key=getattr(settings, "STRIPE_SUBSCRIPTION_SECRET_KEY", "") or settings.STRIPE_SECRET_KEY)
+                    metadata = session.get("metadata") or {}
+                    if (session.get("payment_status") == "paid" and session.get("status") == "complete"
+                            and metadata.get("purpose") == "pandaspeak_school_payment"
+                            and metadata.get("payment_id") == str(payment.pk)
+                            and session.get("amount_total") == int(payment.amount * 100)
+                            and session.get("currency") == "usd"):
+                        payment.received_at = timezone.now()
+                        payment.reference = session.get("payment_intent") or session.id
+                        payment.save(update_fields=["received_at", "reference"])
+                        messages.success(request, "Stripe payment verified.")
+                    else:
+                        messages.error(request, "Stripe has not confirmed payment.")
+                except stripe.error.StripeError:
+                    messages.error(request, "Stripe verification unavailable.")
+            return redirect("manage_school_subscriptions")
         elif action == "enroll":
             enrollment_form = EnrollmentForm(request.POST, prefix="enrollment")
             if enrollment_form.is_valid():
                 data = enrollment_form.cleaned_data
                 with transaction.atomic():
-                    SchoolEnrollment.objects.create(
-                        school=data["school"], student=data["student"],
-                        starts_at=timezone.make_aware(datetime.combine(data["starts_at"], time.min)),
-                        expires_at=timezone.make_aware(datetime.combine(data["expires_at"], time.min)),
-                        agreed_price=data["school"].annual_price,
-                        payment_reference=f'{data["payment_method"]}:{data["payment_reference"]}',
-                    )
-                messages.success(request, "Manager-confirmed school payment recorded; subscription assigned.")
-                return redirect("manage_school_subscriptions")
+                    payment = SchoolPayment.objects.select_for_update().get(pk=data["payment"].pk, received_at__isnull=False)
+                    used = sum((item.agreed_price for item in payment.enrollments.all()), Decimal("0.00"))
+                    if used + data["school"].annual_price > payment.amount:
+                        enrollment_form.add_error("payment", "Insufficient remaining payment balance.")
+                    else:
+                        SchoolEnrollment.objects.create(
+                            school=data["school"], student=data["student"],
+                            starts_at=timezone.make_aware(datetime.combine(data["starts_at"], time.min)),
+                            expires_at=timezone.make_aware(datetime.combine(data["expires_at"], time.min)),
+                            agreed_price=data["school"].annual_price,
+                            payment=payment, payment_reference=f"{payment.method}:{payment.reference}",
+                        )
+                        messages.success(request, "Paid school subscription assigned.")
+                        return redirect("manage_school_subscriptions")
         elif action == "revoke":
             record = SchoolEnrollment.objects.filter(pk=request.POST.get("enrollment_id"), revoked_at__isnull=True).first()
             if record:
