@@ -1,0 +1,22 @@
+{% extends "account/base.html" %}
+{% block content %}
+<main class="container" style="padding-top:120px;padding-bottom:70px;max-width:1100px">
+<h1>School / Group Subscriptions</h1>
+<p>Students register their own accounts. Schools pay PandaSpeak in a consolidated transaction; managers assign Standard access.</p>
+<a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary mb-4">Back to Manager Dashboard</a>
+<div class="row g-4">
+<div class="col-md-6"><section class="card p-4"><h2 class="h5">Add School</h2>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="school">
+{{ school_form.as_p }}<button class="btn btn-primary">Save School</button></form></section></div>
+<div class="col-md-6"><section class="card p-4"><h2 class="h5">Assign Student / Renew</h2>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="enroll">
+{{ enrollment_form.as_p }}<button class="btn btn-primary">Activate Subscription</button></form>
+<p class="small text-muted mt-2">Use an existing registered student email. Price is captured from the school's current annual rate.</p></section></div>
+</div>
+<section class="card p-4 mt-4"><h2 class="h5">Schools</h2><div class="table-responsive"><table class="table"><thead><tr><th>School</th><th>Contact</th><th>Annual Price</th><th>Status</th></tr></thead><tbody>
+{% for school in schools %}<tr><td>{{ school.name }}</td><td>{{ school.contact_email }}</td><td>${{ school.annual_price }}</td><td>{{ school.is_active|yesno:"Active,Inactive" }}</td></tr>{% empty %}<tr><td colspan="4">No schools yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="card p-4 mt-4"><h2 class="h5">Student Enrollments</h2><div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>School</th><th>Start</th><th>Expires</th><th>Price</th><th>Payment Ref.</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for item in enrollments %}<tr><td>{{ item.student.email }}</td><td>{{ item.school.name }}</td><td>{{ item.starts_at|date:"M j, Y" }}</td><td>{{ item.expires_at|date:"M j, Y" }}</td><td>${{ item.agreed_price }}</td><td>{{ item.payment_reference }}</td><td>{% if item.revoked_at %}Revoked{% elif item.expires_at <= now %}Expired{% elif item.starts_at > now %}Scheduled{% else %}Active{% endif %}</td><td>{% if not item.revoked_at %}<form method="post" onsubmit="return confirm('Revoke this enrollment?')">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="enrollment_id" value="{{ item.pk }}"><button class="btn btn-sm btn-outline-danger">Revoke</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="8">No enrollments yet.</td></tr>{% endfor %}
+</tbody></table></div></section></main>
+{% endblock %}
