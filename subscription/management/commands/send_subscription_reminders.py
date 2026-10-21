@@ -10,6 +10,7 @@ from django.utils import timezone
 from account.models import CustomUser, Notification
 from account.push import send_push_to_user
 from subscription.models import Subscription
+from subscription.school_models import SchoolEnrollment
 
 
 class Command(BaseCommand):
@@ -73,10 +74,17 @@ class Command(BaseCommand):
                 send_mail(title, email_message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
 
         if today.day == 1:
+            now = timezone.now()
+            school_student_ids = SchoolEnrollment.objects.filter(
+                school__is_active=True,
+                revoked_at__isnull=True,
+                starts_at__lte=now,
+                expires_at__gt=now,
+            ).values_list('student_id', flat=True)
             title = 'Continue Learning with PandaSpeak'
             message = 'Subscribe to PandaSpeak to continue using subscriber Chinese learning materials and activities.'
             link = reverse('account_management_student')
-            students = CustomUser.objects.filter(is_active=True,is_teacher=False,is_staff=False,news_emails=True).exclude(subscription__is_active=True,subscription__is_cancelled=False).distinct()
+            students = CustomUser.objects.filter(is_active=True,is_teacher=False,is_staff=False,news_emails=True).exclude(subscription__is_active=True,subscription__is_cancelled=False).exclude(pk__in=school_student_ids).distinct()
             for user in students:
                 if Notification.objects.filter(user=user,title=title,created_at__year=today.year,created_at__month=today.month).exists():
                     continue
