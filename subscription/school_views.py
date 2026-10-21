@@ -21,7 +21,8 @@ class EnrollmentForm(forms.Form):
     student_email = forms.EmailField()
     starts_at = forms.DateField(initial=timezone.localdate, widget=forms.DateInput(attrs={"type": "date"}))
     expires_at = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
-    payment_reference = forms.CharField(max_length=200, required=False)
+    payment_reference = forms.CharField(max_length=200, required=True, help_text="Reference for payment already received by PandaSpeak.")
+    payment_received = forms.BooleanField(required=True, label="I confirm PandaSpeak has received this school payment.")
 
     def clean(self):
         cleaned = super().clean()
@@ -72,7 +73,7 @@ def manage_schools(request):
                         agreed_price=data["school"].annual_price,
                         payment_reference=data["payment_reference"],
                     )
-                messages.success(request, "School subscription assigned.")
+                messages.success(request, "School payment confirmed; subscription assigned.")
                 return redirect("manage_school_subscriptions")
         elif action == "revoke":
             record = SchoolEnrollment.objects.filter(pk=request.POST.get("enrollment_id"), revoked_at__isnull=True).first()
