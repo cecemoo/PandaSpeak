@@ -40,9 +40,10 @@ class SchoolPayment(models.Model):
     reference = models.CharField(max_length=200, blank=True)
     stripe_session_id = models.CharField(max_length=255, blank=True, unique=True, null=True)
     received_at = models.DateTimeField(null=True, blank=True)
+    reversed_at = models.DateTimeField(null=True, blank=True)
     confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def confirmed(self):
-        return self.received_at is not None
+        return self.received_at is not None and self.reversed_at is None
