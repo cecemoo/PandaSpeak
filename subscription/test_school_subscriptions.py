@@ -33,3 +33,19 @@ class SchoolSubscriptionTests(TestCase):
         with self.assertRaises(ValueError):
             self.batch.activate_student(other)
         self.assertFalse(Subscription.objects.filter(user=other, is_active=True).exists())
+
+    def test_disputed_student_is_not_enrolled(self):
+        self.batch.payment_received_at = timezone.now()
+        self.batch.save()
+        Subscription.objects.create(user=self.student, subscription_plan="Standard", subscription_cost=Decimal("15.00"), is_disputed=True)
+        with self.assertRaises(ValueError):
+            self.batch.activate_student(self.student)
+        self.assertFalse(SchoolSubscriptionEnrollment.objects.filter(student=self.student).exists())
+
+    def test_existing_provider_subscription_not_replaced(self):
+        self.batch.payment_received_at = timezone.now()
+        self.batch.save()
+        Subscription.objects.create(user=self.student, subscription_plan="Standard", subscription_cost=Decimal("15.00"), stripe_subscription_id="sub_existing")
+        with self.assertRaises(ValueError):
+            self.batch.activate_student(self.student)
+        self.assertFalse(SchoolSubscriptionEnrollment.objects.filter(student=self.student).exists())
