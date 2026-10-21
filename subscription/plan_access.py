@@ -37,6 +37,7 @@ def has_base_access(user):
     return SchoolEnrollment.objects.filter(
         student=user, school__is_active=True, revoked_at__isnull=True,
         starts_at__lte=timezone.now(), expires_at__gt=timezone.now(),
+        payment__received_at__isnull=False,
     ).exists()
 
 
