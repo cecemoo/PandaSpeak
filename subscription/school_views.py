@@ -1,5 +1,4 @@
-from decimal import Decimal
-from datetime import timedelta
+from datetime import datetime, time
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -38,6 +37,12 @@ class EnrollmentForm(forms.Form):
             existing = Subscription.objects.filter(user=student).first()
             if existing and existing.is_active and (not existing.access_until or existing.access_until > timezone.now()):
                 raise forms.ValidationError("This student already has an active individual subscription.")
+            if SchoolEnrollment.objects.filter(
+                student=student, revoked_at__isnull=True,
+                starts_at__lt=timezone.make_aware(datetime.combine(cleaned["expires_at"], time.min)),
+                expires_at__gt=timezone.make_aware(datetime.combine(cleaned["starts_at"], time.min)),
+            ).exists():
+                raise forms.ValidationError("This student already has a school enrollment overlapping these dates.")
             cleaned["student"] = student
         return cleaned
 
@@ -62,8 +67,8 @@ def manage_schools(request):
                 with transaction.atomic():
                     SchoolEnrollment.objects.create(
                         school=data["school"], student=data["student"],
-                        starts_at=timezone.make_aware(__import__("datetime").datetime.combine(data["starts_at"], __import__("datetime").time.min)),
-                        expires_at=timezone.make_aware(__import__("datetime").datetime.combine(data["expires_at"], __import__("datetime").time.min)),
+                        starts_at=timezone.make_aware(datetime.combine(data["starts_at"], time.min)),
+                        expires_at=timezone.make_aware(datetime.combine(data["expires_at"], time.min)),
                         agreed_price=data["school"].annual_price,
                         payment_reference=data["payment_reference"],
                     )
