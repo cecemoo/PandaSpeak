@@ -56,3 +56,21 @@ class SchoolSubscriptionTests(TestCase):
         )
         self.assertFalse(has_base_access(self.student))
         self.assertFalse(_has_current_subscription(self.student))
+
+    def test_non_manager_cannot_assign_enrollment(self):
+        self.client.force_login(self.student)
+        response = self.client.get("/subscription/manager/schools/")
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_manager_assigns_registered_student(self):
+        manager = User.objects.create_user(email="manager-school@example.com", password="testpassword", is_staff=True)
+        self.client.force_login(manager)
+        response = self.client.post("/subscription/manager/schools/", {
+            "action": "enroll", "enrollment-school": str(self.school.pk),
+            "enrollment-student_email": self.student.email,
+            "enrollment-starts_at": timezone.localdate().isoformat(),
+            "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
+            "enrollment-payment_reference": "SCHOOL-INVOICE-1",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(SchoolEnrollment.objects.filter(student=self.student, school=self.school).exists())
