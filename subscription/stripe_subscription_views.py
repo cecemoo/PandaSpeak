@@ -420,6 +420,22 @@ def stripe_subscription_webhook(request):
     event_type = _stripe_value(event, "type")
     obj = _stripe_value(_stripe_value(event, "data", {}) or {}, "object", {}) or {}
     try:
+        if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+            metadata = _stripe_value(obj, "metadata", {}) or {}
+            if _stripe_value(metadata, "purpose") == "pandaspeak_school_payment":
+                from .school_models import SchoolPayment
+                payment = SchoolPayment.objects.filter(
+                    pk=_stripe_value(metadata, "payment_id"),
+                    method="card", stripe_session_id=_stripe_value(obj, "id"),
+                    received_at__isnull=True,
+                ).first()
+                if (payment and _stripe_value(obj, "payment_status") == "paid"
+                        and _stripe_value(obj, "amount_total") == int(payment.amount * 100)
+                        and _stripe_value(obj, "currency") == "usd"):
+                    payment.received_at = django_timezone.now()
+                    payment.reference = _stripe_value(obj, "payment_intent") or _stripe_value(obj, "id")
+                    payment.save(update_fields=["received_at", "reference"])
+                return HttpResponse(status=200)
         if event_type == "charge.dispute.created":
             _record_subscription_dispute(obj)
         elif event_type in ("charge.dispute.updated", "charge.dispute.closed"):
