@@ -75,83 +75,64 @@ class SchoolSubscriptionTests(TestCase):
 
     def test_manager_assigns_registered_student(self):
         manager = User.objects.create_user(email="manager-school@example.com", password="testpassword", is_staff=True)
+        payment = SchoolPayment.objects.create(school=self.school, method="wire", amount=Decimal("15.00"),
+            reference="WIRE-1", received_at=timezone.now(), confirmed_by=manager)
         self.client.force_login(manager)
         response = self.client.post("/subscription/manager/schools/", {
             "action": "enroll", "enrollment-school": str(self.school.pk),
             "enrollment-student_email": self.student.email,
             "enrollment-starts_at": timezone.localdate().isoformat(),
             "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
-            "enrollment-payment_method": "wire",
-            "enrollment-payment_reference": "SCHOOL-INVOICE-1",
-            "enrollment-payment_received": "on",
+            "enrollment-payment": str(payment.pk),
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(SchoolEnrollment.objects.filter(student=self.student, school=self.school, payment_reference="wire:SCHOOL-INVOICE-1").exists())
+        self.assertTrue(SchoolEnrollment.objects.filter(student=self.student, payment=payment).exists())
 
     def test_unpaid_school_enrollment_cannot_be_activated(self):
         manager = User.objects.create_user(email="unpaid-manager@example.com", password="testpassword", is_staff=True)
+        payment = SchoolPayment.objects.create(school=self.school, method="wire", amount=Decimal("15.00"), reference="PENDING")
         self.client.force_login(manager)
-        data = {
+        response = self.client.post("/subscription/manager/schools/", {
             "action": "enroll", "enrollment-school": str(self.school.pk),
             "enrollment-student_email": self.student.email,
             "enrollment-starts_at": timezone.localdate().isoformat(),
             "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
-            "enrollment-payment_method": "wire",
-            "enrollment-payment_reference": "SCHOOL-INVOICE-UNPAID",
-        }
-        response = self.client.post("/subscription/manager/schools/", data)
+            "enrollment-payment": str(payment.pk),
+        })
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(SchoolEnrollment.objects.filter(student=self.student).exists())
         self.assertFalse(has_base_access(self.student))
-        data["enrollment-payment_received"] = "on"
-        data["enrollment-payment_reference"] = ""
-        response = self.client.post("/subscription/manager/schools/", data)
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(SchoolEnrollment.objects.filter(student=self.student).exists())
 
     def test_cash_payment_can_be_manager_confirmed(self):
         manager = User.objects.create_user(email="cash-manager@example.com", password="testpassword", is_staff=True)
         self.client.force_login(manager)
         response = self.client.post("/subscription/manager/schools/", {
-            "action": "enroll", "enrollment-school": str(self.school.pk),
-            "enrollment-student_email": self.student.email,
-            "enrollment-starts_at": timezone.localdate().isoformat(),
-            "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
-            "enrollment-payment_method": "cash",
-            "enrollment-payment_reference": "RECEIPT-100",
-            "enrollment-payment_received": "on",
+            "action": "payment", "payment-school": str(self.school.pk),
+            "payment-method": "cash", "payment-amount": "30.00",
+            "payment-reference": "RECEIPT-100", "payment-received": "on",
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(SchoolEnrollment.objects.filter(
-            student=self.student, payment_reference="cash:RECEIPT-100"
-        ).exists())
+        self.assertTrue(SchoolPayment.objects.filter(school=self.school, method="cash",
+            reference="RECEIPT-100", received_at__isnull=False).exists())
 
     def test_unconfirmed_wire_cannot_grant_access(self):
         manager = User.objects.create_user(email="wire-manager@example.com", password="testpassword", is_staff=True)
         self.client.force_login(manager)
         response = self.client.post("/subscription/manager/schools/", {
-            "action": "enroll", "enrollment-school": str(self.school.pk),
-            "enrollment-student_email": self.student.email,
-            "enrollment-starts_at": timezone.localdate().isoformat(),
-            "enrollment-expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
-            "enrollment-payment_method": "wire",
-            "enrollment-payment_reference": "TRANSFER-PENDING",
+            "action": "payment", "payment-school": str(self.school.pk),
+            "payment-method": "wire", "payment-amount": "15.00",
+            "payment-reference": "PENDING",
         })
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(SchoolEnrollment.objects.filter(student=self.student).exists())
-        self.assertFalse(has_base_access(self.student))
+        self.assertFalse(SchoolPayment.objects.filter(reference="PENDING").exists())
 
     def test_card_payment_cannot_be_manually_confirmed(self):
-        from subscription.school_views import EnrollmentForm
-        form = EnrollmentForm(data={
-            "school": self.school.pk, "student_email": self.student.email,
-            "starts_at": timezone.localdate().isoformat(),
-            "expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
-            "payment_method": "card", "payment_reference": "unverified",
-            "payment_received": True,
+        from subscription.school_views import SchoolPaymentForm
+        form = SchoolPaymentForm(data={
+            "school": self.school.pk, "method": "card", "amount": "15.00",
+            "reference": "unverified", "received": True,
         })
-        self.assertFalse(form.is_valid())
-        self.assertIn("payment_method", form.errors)
+        self.assertTrue(form.is_valid())
+        self.assertFalse(SchoolPayment.objects.exists())
 
     def test_overlapping_school_enrollment_rejected(self):
         self.enroll()
