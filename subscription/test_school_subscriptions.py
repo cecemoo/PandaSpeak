@@ -7,7 +7,7 @@ from django.utils import timezone
 from subscription.models import Subscription
 from subscription.plan_access import has_base_access, is_plus
 from subscription.subscription_guard_views import _has_current_subscription
-from subscription.school_models import SchoolAccount, SchoolEnrollment
+from subscription.school_models import SchoolAccount, SchoolEnrollment, SchoolPayment
 
 User = get_user_model()
 
@@ -20,9 +20,10 @@ class SchoolSubscriptionTests(TestCase):
         self.end = timezone.now() + timedelta(days=364)
 
     def enroll(self):
+        payment = SchoolPayment.objects.create(school=self.school, method="cash", amount=Decimal("15.00"), reference="TEST-RECEIPT", received_at=timezone.now())
         return SchoolEnrollment.objects.create(
             school=self.school, student=self.student, starts_at=self.start,
-            expires_at=self.end, agreed_price=self.school.annual_price,
+            expires_at=self.end, agreed_price=self.school.annual_price, payment=payment, payment_reference="cash:TEST-RECEIPT",
         )
 
     def test_anonymous_user_has_no_subscription_access(self):
