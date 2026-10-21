@@ -26,10 +26,10 @@ class SchoolSubscriptionBatch(models.Model):
             batch = SchoolSubscriptionBatch.objects.select_for_update().get(pk=self.pk)
             if not batch.payment_received_at:
                 raise ValueError("Payment has not been confirmed.")
-            enrollment, created = SchoolSubscriptionEnrollment.objects.get_or_create(batch=batch, student=student)
-            if not created:
+            enrollment = SchoolSubscriptionEnrollment.objects.filter(batch=batch, student=student).first()
+            if enrollment:
                 return enrollment
-            if SchoolSubscriptionEnrollment.objects.filter(batch=batch).count() * batch.unit_price > batch.amount_received:
+            if (SchoolSubscriptionEnrollment.objects.filter(batch=batch).count() + 1) * batch.unit_price > batch.amount_received:
                 raise ValueError("Insufficient confirmed funds for another student.")
             subscription, _ = Subscription.objects.select_for_update().get_or_create(
                 user=student, defaults={"subscription_plan": "Standard", "subscription_cost": batch.unit_price}
@@ -45,8 +45,7 @@ class SchoolSubscriptionBatch(models.Model):
             subscription.subscription_plan = "Standard"
             subscription.subscription_cost = batch.unit_price
             subscription.save()
-            enrollment.access_until = subscription.access_until
-            enrollment.save(update_fields=["access_until"])
+            enrollment = SchoolSubscriptionEnrollment.objects.create(batch=batch, student=student, access_until=subscription.access_until)
             return enrollment
 
 
