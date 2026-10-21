@@ -107,3 +107,36 @@ class SchoolSubscriptionTests(TestCase):
         })
         self.assertFalse(form.is_valid())
         self.assertIn("overlapping", str(form.errors).lower())
+
+    def test_school_inactive_blocks_access(self):
+        self.enroll()
+        self.school.is_active = False
+        self.school.save(update_fields=["is_active"])
+        self.assertFalse(has_base_access(self.student))
+
+    def test_school_starts_in_future_does_not_grant_access(self):
+        record = self.enroll()
+        record.starts_at = timezone.now() + timedelta(days=1)
+        record.save(update_fields=["starts_at"])
+        self.assertFalse(has_base_access(self.student))
+
+    def test_school_expiration_does_not_remove_independent_paid_access(self):
+        record = self.enroll()
+        Subscription.objects.create(
+            user=self.student, subscription_plan="standard",
+            subscription_cost=Decimal("15.00"), is_active=True,
+            access_until=timezone.now() + timedelta(days=30),
+        )
+        record.revoked_at = timezone.now()
+        record.save(update_fields=["revoked_at"])
+        self.assertTrue(has_base_access(self.student))
+
+    def test_school_enrollment_does_not_bypass_dispute_after_activation(self):
+        record = self.enroll()
+        self.assertTrue(has_base_access(self.student))
+        Subscription.objects.create(
+            user=self.student, subscription_plan="standard",
+            subscription_cost=Decimal("15.00"), is_disputed=True,
+        )
+        self.assertFalse(has_base_access(self.student))
+        self.assertIsNone(record.revoked_at)
