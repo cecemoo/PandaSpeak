@@ -38,3 +38,53 @@ class SubscriptionConsentEventAdmin(admin.ModelAdmin):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
+
+from django.urls import path
+from django.shortcuts import redirect
+from django.utils import timezone
+from django.contrib import messages
+from account.models import CustomUser
+from .models import SchoolSubscriptionBatch, SchoolSubscriptionEnrollment
+
+@admin.register(SchoolSubscriptionBatch)
+class SchoolSubscriptionBatchAdmin(admin.ModelAdmin):
+    list_display = ("school_name", "payment_method", "amount_received", "unit_price", "payment_received_at")
+    readonly_fields = ("payment_received_at", "created_by", "created_at")
+    change_form_template = "admin/subscription/schoolsubscriptionbatch/change_form.html"
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def get_urls(self):
+        return [
+            path("<int:batch_id>/confirm-payment/", self.admin_site.admin_view(self.confirm_payment), name="school_batch_confirm_payment"),
+            path("<int:batch_id>/enroll/", self.admin_site.admin_view(self.enroll_student), name="school_batch_enroll"),
+        ] + super().get_urls()
+
+    def confirm_payment(self, request, batch_id):
+        if request.method == "POST":
+            batch = SchoolSubscriptionBatch.objects.get(pk=batch_id)
+            if not batch.payment_received_at:
+                batch.payment_received_at = timezone.now()
+                batch.save(update_fields=["payment_received_at"])
+        return redirect("admin:subscription_schoolsubscriptionbatch_change", batch_id)
+
+    def enroll_student(self, request, batch_id):
+        if request.method == "POST":
+            batch = SchoolSubscriptionBatch.objects.get(pk=batch_id)
+            try:
+                student = CustomUser.objects.get(email__iexact=request.POST.get("email", "").strip())
+                batch.activate_student(student)
+                self.message_user(request, "Student enrolled successfully.", messages.SUCCESS)
+            except (CustomUser.DoesNotExist, ValueError) as exc:
+                self.message_user(request, str(exc), messages.ERROR)
+        return redirect("admin:subscription_schoolsubscriptionbatch_change", batch_id)
+
+@admin.register(SchoolSubscriptionEnrollment)
+class SchoolSubscriptionEnrollmentAdmin(admin.ModelAdmin):
+    list_display = ("batch", "student", "access_until")
+    readonly_fields = ("batch", "student", "access_until", "created_at")
+    def has_add_permission(self, request):
+        return False
