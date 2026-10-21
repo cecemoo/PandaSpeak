@@ -21,7 +21,8 @@ class EnrollmentForm(forms.Form):
     student_email = forms.EmailField()
     starts_at = forms.DateField(initial=timezone.localdate, widget=forms.DateInput(attrs={"type": "date"}))
     expires_at = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
-    payment_reference = forms.CharField(max_length=200, required=True, help_text="Reference for payment already received by PandaSpeak.")
+    payment_method = forms.ChoiceField(choices=(("cash", "Cash"), ("wire", "Wire transfer")), help_text="Credit card school payments require Stripe verification and are not yet enabled.")
+    payment_reference = forms.CharField(max_length=200, required=True, help_text="Receipt number for cash or confirmed incoming bank transaction reference for wire.")
     payment_received = forms.BooleanField(required=True, label="I confirm PandaSpeak has received this school payment.")
 
     def clean(self):
@@ -71,9 +72,9 @@ def manage_schools(request):
                         starts_at=timezone.make_aware(datetime.combine(data["starts_at"], time.min)),
                         expires_at=timezone.make_aware(datetime.combine(data["expires_at"], time.min)),
                         agreed_price=data["school"].annual_price,
-                        payment_reference=data["payment_reference"],
+                        payment_reference=f'{data["payment_method"]}:{data["payment_reference"]}',
                     )
-                messages.success(request, "School payment confirmed; subscription assigned.")
+                messages.success(request, "Manager-confirmed school payment recorded; subscription assigned.")
                 return redirect("manage_school_subscriptions")
         elif action == "revoke":
             record = SchoolEnrollment.objects.filter(pk=request.POST.get("enrollment_id"), revoked_at__isnull=True).first()
