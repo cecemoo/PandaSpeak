@@ -45,4 +45,6 @@ jobs:
       - name: Review outstanding migration differences
         run: python manage.py makemigrations --check --dry-run || echo 'Existing model index-name differences require separate review'
       - name: Run school subscription tests
-        run: python manage.py test subscription.test_school_subscriptions
+        run: |
+          export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+          python manage.py test subscription.test_school_subscriptions
