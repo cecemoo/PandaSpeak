@@ -5,8 +5,10 @@ from . import paypal_subscription_views
 from . import subscription_guard_views
 from . import cancel_views
 from . import manager_views
+from . import school_views
 
 urlpatterns = [
+    path('manager/schools/', school_views.manage_schools, name='manage_school_subscriptions'),
     path('subscribe/', subscription_guard_views.guarded_subscribe, name='subscribe'),
     path('dispute-restricted/', subscription_guard_views.dispute_restricted, name='dispute_restricted'),
     path('manager/acknowledgements/', manager_views.acknowledgement_records, name='manager_acknowledgement_records'),
