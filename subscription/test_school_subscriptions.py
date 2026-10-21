@@ -155,10 +155,11 @@ class SchoolSubscriptionTests(TestCase):
         self.assertFalse(SchoolPayment.objects.exists())
 
     def test_overlapping_school_enrollment_rejected(self):
-        self.enroll()
+        existing = self.enroll()
         from subscription.school_views import EnrollmentForm
         form = EnrollmentForm(data={
             "school": self.school.pk,
+            "payment": existing.payment_id,
             "student_email": self.student.email,
             "starts_at": timezone.localdate().isoformat(),
             "expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
