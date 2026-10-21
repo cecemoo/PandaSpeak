@@ -74,3 +74,15 @@ class SchoolSubscriptionTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(SchoolEnrollment.objects.filter(student=self.student, school=self.school).exists())
+
+    def test_overlapping_school_enrollment_rejected(self):
+        self.enroll()
+        from subscription.school_views import EnrollmentForm
+        form = EnrollmentForm(data={
+            "school": self.school.pk,
+            "student_email": self.student.email,
+            "starts_at": timezone.localdate().isoformat(),
+            "expires_at": (timezone.localdate() + timedelta(days=365)).isoformat(),
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("overlapping", str(form.errors).lower())
