@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils import timezone
 from .school_models import SchoolAccount, SchoolEnrollment
 
 
@@ -14,7 +13,8 @@ class SchoolEnrollmentAdmin(admin.ModelAdmin):
     list_display = ("student", "school", "starts_at", "expires_at", "agreed_price", "revoked_at")
     search_fields = ("student__email", "school__name", "payment_reference")
     list_filter = ("school", "revoked_at")
-    autocomplete_fields = ("student", "school")
+    raw_id_fields = ("student",)
+    autocomplete_fields = ("school",)
     readonly_fields = ("created_at",)
 
     def save_model(self, request, obj, form, change):
