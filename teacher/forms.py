@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django import forms
 from django.forms import ModelForm
 from account.models import CustomUser
@@ -123,6 +125,12 @@ class IdiomForm(ModelForm):
         self.fields["allowed_groups"].widget = forms.CheckboxSelectMultiple()
         if teacher:
             self.fields["allowed_groups"].queryset = StudentGroup.objects.filter(teacher=teacher, is_active=True).order_by("name")
+        # Show Subcategory directly under Category: its options depend on the
+        # selected category, so it belongs next to that field (as on the edit form).
+        if "category" in self.fields and "subcategory" in self.fields:
+            names = [name for name in self.fields if name != "subcategory"]
+            names.insert(names.index("category") + 1, "subcategory")
+            self.fields = OrderedDict((name, self.fields[name]) for name in names)
     class Meta:
         model = Idiom
         exclude = ['english_translation']
