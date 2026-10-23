@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from subscription.models import Subscription
 from subscription.decorators import subscription_required
-from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory, LearningSurvey, SurveyResponse
+from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory, LearningSurvey, SurveyResponse, LearningSubcategory
 from datetime import date
 from django.http import JsonResponse
 from django.core.mail import EmailMessage
@@ -451,6 +451,18 @@ def idiom_category_page(request, category_id):
             'time & dates': ["Time Is Precious","Punctuality & Timing","Time Management & Productivity","Passing Time & Change","Patience & Waiting","Opportunities & Deadlines","Seasons & Passage of Time"],
             'friendship': ["Making Friends","Trust & Loyalty","Support & Encouragement","Friendship & Affection","Conflict & Reconciliation","Social Relationships","Friendship & Betrayal"],
     }.get(category.category_name.strip().lower(), [])
+    # Subcategories managed on the manager dashboard are the source of
+    # truth: append any registered names the legacy list above does not
+    # know about, so new dashboard subcategories also show on this page.
+    registry_subcategories = list(
+        LearningSubcategory.objects.filter(
+            material_type='expression',
+            category_id_value=category.pk,
+        ).order_by('name').values_list('name', flat=True)
+    )
+    for registry_name in registry_subcategories:
+        if registry_name not in expression_subcategories:
+            expression_subcategories.append(registry_name)
     favorite_idiom_ids = set(
         Favorite.objects.filter(
             student=request.user,
@@ -475,6 +487,11 @@ def idiom_category_page(request, category_id):
             'items': [item for item in idiom_list if item.subcategory not in expression_subcategories],
         })
         grouped_idioms = [group for group in grouped_idioms if group['items']]
+    elif idiom_list:
+        # No known subcategories for this category: still show everything
+        # under one group rather than rendering an empty page.
+        grouped_idioms = [{'name': category.category_name, 'items': idiom_list}]
+        expression_subcategories = [category.category_name]
     else:
         grouped_idioms = []
     return render(request, 'student/idiom_page.html', {'category': category, 'idioms': idioms, 'selected_level': selected_level, 'favorite_idiom_ids': favorite_idiom_ids, 'learned_idiom_ids': learned_idiom_ids, 'subcategories': expression_subcategories, 'grouped_idioms': grouped_idioms})

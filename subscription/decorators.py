@@ -7,7 +7,7 @@ def subscription_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect("login")
+            return redirect("my_login")
 
         # Staff and superusers need unrestricted access to manage and test PandaSpeak.
         if request.user.is_staff or request.user.is_superuser:
