@@ -313,6 +313,18 @@
       matched.forEach(button => remaining.delete(button));
       return {title: def.title, buttons: matched};
     }).filter(group => group.buttons.length);
+    // A saved subcategory with no matching curated title forms its own
+    // group, so subcategories created on the manager dashboard always show.
+    const extraGroups = new Map();
+    buttons.forEach(button => {
+      if (!remaining.has(button)) return;
+      const saved = (button.dataset.subcategory || '').trim();
+      if (!saved) return;
+      if (!extraGroups.has(saved)) extraGroups.set(saved, []);
+      extraGroups.get(saved).push(button);
+      remaining.delete(button);
+    });
+    extraGroups.forEach((groupButtons, title) => groups.push({title: title, buttons: groupButtons}));
     if (remaining.size) groups.push({title: 'Other Sentences 其他句子', buttons: Array.from(remaining)});
     // Keep the Bootstrap modals outside the hidden source container.
     container.querySelectorAll(':scope > .modal').forEach(modal => document.body.appendChild(modal));

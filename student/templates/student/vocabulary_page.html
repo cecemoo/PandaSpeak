@@ -105,7 +105,7 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
       <div class="word-container" id="vocabulary-word-container">
         {% for item in vocabularies %}
 
-        <button type="button" class="vocab-pill" data-word="{{ item.word }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
+        <button type="button" class="vocab-pill" data-word="{{ item.word }}" data-subcategory="{{ item.subcategory }}" data-bs-toggle="modal" data-bs-target="#vocabModal{{ item.id }}">
           {{ item.word }}
           {% if item.level != 'unclassified' %}
           <span class="fw-semibold">
@@ -447,16 +447,38 @@ document.addEventListener('DOMContentLoaded', function () {
   // Assign each word to exactly one group. Previously, a word matching
   // multiple definitions was counted in each, but its DOM button was moved
   // to the last group, leaving earlier groups visibly empty.
+  // A word's saved subcategory (managed on the manager dashboard) takes
+  // priority: it joins the curated group whose title it matches, and a
+  // saved subcategory with no matching curated title forms its own group
+  // below, so subcategories created on the dashboard always show here.
+  // Words without a saved subcategory keep the legacy word-list grouping.
   const remaining = new Set(buttons);
   const groups = definitions.map(def => {
-    const matched = buttons.filter(button =>
-      remaining.has(button) && def.words.includes(button.dataset.word.trim())
-    );
+    const matched = buttons.filter(button => {
+      if (!remaining.has(button)) return false;
+      const saved = (button.dataset.subcategory || '').trim();
+      if (saved) {
+        const title = def.title.toLowerCase();
+        const name = saved.toLowerCase();
+        return title === name || title.startsWith(name + ' ');
+      }
+      return def.words.includes(button.dataset.word.trim());
+    });
     matched.forEach(button => remaining.delete(button));
     return { title: def.title, buttons: matched };
+  }).filter(group => group.buttons.length);
+  const extraGroups = new Map();
+  buttons.forEach(button => {
+    if (!remaining.has(button)) return;
+    const saved = (button.dataset.subcategory || '').trim();
+    if (!saved) return;
+    if (!extraGroups.has(saved)) extraGroups.set(saved, []);
+    extraGroups.get(saved).push(button);
+    remaining.delete(button);
   });
+  extraGroups.forEach((groupButtons, title) => groups.push({ title: title, buttons: groupButtons }));
   if (remaining.size) groups.push({ title: 'Other Vocabulary 其他詞彙', buttons: Array.from(remaining) });
-  groups.filter(group => group.buttons.length).forEach((group, index) => {
+  groups.forEach((group, index) => {
     const headingId = 'topic-heading-' + index;
     const collapseId = 'topic-collapse-' + index;
     const section = document.createElement('div');
