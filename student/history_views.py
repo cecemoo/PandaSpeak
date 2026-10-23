@@ -29,7 +29,9 @@ _other_existing_cards = [card for card in EXISTING_HISTORY_CARDS if card['slug']
 _han_index = next((i for i, card in enumerate(_other_existing_cards) if card['slug'] == 'han-silk-road'), len(_other_existing_cards))
 HISTORY_CARDS = (
     EARLY_BEFORE_ORACLE
+    + SHANG_CARDS[:3]
     + [_oracle_card]
+    + SHANG_CARDS[3:]
     + EARLY_AFTER_ORACLE
     + _other_existing_cards[:_han_index]
     + QIN_BEFORE_UNIFICATION
