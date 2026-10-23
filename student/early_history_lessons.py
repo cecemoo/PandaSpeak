@@ -34,6 +34,56 @@ EARLY_HISTORY_LESSONS = {
         ["大禹為什麼受到人民尊敬？", "你覺得治理洪水最需要什麼能力？"],
         "傳說大禹用什麼方法治理洪水？", ["疏通河道", "建造長城", "發明文字", "開闢絲綢之路"], "疏通河道"
     ),
+    "gun-fails-flood-control": lesson(
+        "gun-fails-flood-control", "Xia Tradition", "🌧️",
+        "Gun Fails to Control the Floods", "鯀治水失敗",
+        "Discover the legend of Gun's unsuccessful attempt to stop the floods before Yu the Great.",
+        "傳說古代洪水不斷，人民的生活非常困難。鯀接受治水的任務，希望用堤防阻擋洪水。他努力多年，但洪水仍然沒有停止。後來，他的兒子大禹繼續治水，改用疏通河道的方法。這個傳說提醒我們，遇到問題時，有時需要改變方法。",
+        [vocab("鯀", "Gǔn", "Gun"), vocab("堤防", "dīfáng", "levee"), vocab("阻擋", "zǔdǎng", "to block"), vocab("失敗", "shībài", "to fail"), vocab("方法", "fāngfǎ", "method")],
+        "鯀治水的故事屬於古代傳說，常與大禹治水一起講述。",
+        ["鯀為什麼沒有成功？","遇到困難時，你會改變方法嗎？"],
+        "傳說鯀主要用什麼方法治水？", ["建造堤防阻擋洪水","疏通河道","開鑿運河","種植樹木"], "建造堤防阻擋洪水"
+    ),
+    "taikang-loses-kingdom": lesson(
+        "taikang-loses-kingdom", "Xia Tradition", "🏹",
+        "Taikang Loses His Kingdom", "太康失國",
+        "Learn the traditional account of how Taikang lost control of Xia.",
+        "傳統記載中，太康繼承夏朝王位後，喜歡打獵，沒有好好管理國家。他長時間離開都城，人民漸漸不滿。這時，有窮氏的后羿掌握了機會，阻止太康回到都城。太康因此失去權力。這個故事常用來提醒統治者要重視自己的責任。",
+        [vocab("太康", "Tài Kāng", "Taikang"), vocab("打獵", "dǎliè", "to hunt"), vocab("都城", "dūchéng", "capital"), vocab("權力", "quánlì", "power"), vocab("責任", "zérèn", "responsibility")],
+        "太康失國是後世文獻保存的夏朝傳統敘事，細節難以獨立證實。",
+        ["太康為什麼失去權力？","一位領導者應該負起哪些責任？"],
+        "傳統故事中，太康經常離開都城做什麼？", ["打獵","讀書","治水","經商"], "打獵"
+    ),
+    "houyi-takes-xia": lesson(
+        "houyi-takes-xia", "Xia Tradition", "🏹",
+        "Hou Yi Takes Control of Xia", "后羿代夏",
+        "Explore the traditional story of Hou Yi taking power during the Xia dynasty.",
+        "傳統記載中，太康失去政權後，有窮氏的后羿控制了夏朝的政治。他善於射箭，也有很大的軍事力量。后羿雖然掌握權力，卻沒有建立穩定的統治。後來，他身邊的寒浞逐漸取得信任，最後奪走了他的權力。這個故事描述了夏朝早期的權力鬥爭。",
+        [vocab("后羿", "Hòu Yì", "Hou Yi"), vocab("射箭", "shèjiàn", "archery"), vocab("政權", "zhèngquán", "political power"), vocab("軍事", "jūnshì", "military affairs"), vocab("鬥爭", "dòuzhēng", "struggle")],
+        "這裡的后羿是夏朝傳統記載中的有窮氏首領，不應直接與射日神話混為一談。",
+        ["后羿如何取得權力？","有權力就一定能管理好國家嗎？"],
+        "傳統記載中，后羿以什麼本領聞名？", ["射箭","造船","寫詩","製陶"], "射箭"
+    ),
+    "han-zhuo-seizes-power": lesson(
+        "han-zhuo-seizes-power", "Xia Tradition", "⚔️",
+        "Han Zhuo Seizes Power", "寒浞奪權",
+        "Follow the traditional account of Han Zhuo's rise and seizure of power.",
+        "傳統記載中，寒浞原本受到后羿信任，後來卻想自己掌握政權。他趁后羿失去警覺時發動政變，奪取權力。寒浞和他的兒子繼續攻擊夏朝王室的勢力。多年以後，少康得到支持，重新建立夏朝的統治。這段故事也成為少康中興的背景。",
+        [vocab("寒浞", "Hán Zhuó", "Han Zhuo"), vocab("奪權", "duóquán", "to seize power"), vocab("信任", "xìnrèn", "trust"), vocab("政變", "zhèngbiàn", "coup"), vocab("王室", "wángshì", "royal family")],
+        "寒浞奪權與少康中興相連，主要見於後世對夏朝的傳統敘述。",
+        ["寒浞如何取得權力？","為什麼信任對領導者很重要？"],
+        "故事中，寒浞從誰手中奪取權力？", ["后羿","大禹","商湯","周公"], "后羿"
+    ),
+    "jie-and-mo-xi": lesson(
+        "jie-and-mo-xi", "Xia Tradition", "👑",
+        "King Jie and Mo Xi", "夏桀與妹喜",
+        "Read the traditional tale of the last Xia ruler and Mo Xi.",
+        "傳統故事中，夏桀是夏朝最後一位君主，妹喜是與他有關的著名人物。後世記載常說夏桀生活奢侈，不重視人民的困難，也把他的失德與妹喜聯繫在一起。可是，這些細節多來自後世傳說，不能全部當作確定的史實。最後，商湯起兵反抗夏桀，夏朝走向滅亡。",
+        [vocab("夏桀", "Xià Jié", "King Jie of Xia"), vocab("妹喜", "Mò Xǐ", "Mo Xi"), vocab("奢侈", "shēchǐ", "extravagant"), vocab("失德", "shīdé", "to lose virtue"), vocab("滅亡", "mièwáng", "to fall")],
+        "古代史書常把王朝滅亡歸咎於君主與女性人物；閱讀妹喜的故事時，應分辨歷史證據與後世的道德敘事。",
+        ["後世如何描述夏桀？","為什麼閱讀古代故事需要分辨史實和傳說？"],
+        "傳統記載中，夏桀是哪個朝代的最後一位君主？", ["夏朝","商朝","周朝","秦朝"], "夏朝"
+    ),
     "shao-kang-revival": lesson(
         "shao-kang-revival", "Xia Tradition", "🌱",
         "The Revival under Shao Kang", "少康中興",
@@ -89,8 +139,13 @@ EARLY_HISTORY_LESSONS = {
 
 # Placement relative to the existing Oracle Bones lesson.
 EARLY_BEFORE_ORACLE = [
+    EARLY_HISTORY_LESSONS["gun-fails-flood-control"],
     EARLY_HISTORY_LESSONS["yu-controls-floods"],
+    EARLY_HISTORY_LESSONS["taikang-loses-kingdom"],
+    EARLY_HISTORY_LESSONS["houyi-takes-xia"],
+    EARLY_HISTORY_LESSONS["han-zhuo-seizes-power"],
     EARLY_HISTORY_LESSONS["shao-kang-revival"],
+    EARLY_HISTORY_LESSONS["jie-and-mo-xi"],
     EARLY_HISTORY_LESSONS["shang-tang-overthrows-xia"],
 ]
 
