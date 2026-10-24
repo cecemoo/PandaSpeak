@@ -96,12 +96,10 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
         </a>
       </div>
 
-      {% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' or category.category_name|lower == 'learning & communication' or category.category_name|lower == 'numbers' or category.category_name|lower == 'adverb' or category.category_name|lower == 'abstract ideas / concepts' or category.category_name|lower == 'people' or category.category_name|lower == 'work & career' or category.category_name|lower == 'relationships & social interaction' or category.category_name|lower == 'entertainment & events' or category.category_name|lower == 'society & culture' %}
       <div id="topic-vocab-groups" class="mb-4">
         <p class="text-center text-muted">Choose a topic to explore vocabulary.</p>
         <div class="accordion" id="topicVocabularyAccordion"></div>
       </div>
-      {% endif %}
       <div class="word-container" id="vocabulary-word-container">
         {% for item in vocabularies %}
 
@@ -222,7 +220,6 @@ style="background-image: url('{% static 'assets/img/education/showcase-1.webp' %
 </script>
 
 
-{% if category.category_name|lower == 'weather' or category.category_name|lower == 'family' or 'food' in category.category_name|lower or category.category_name|lower == 'animals' or category.category_name|lower == 'colors' or category.category_name|lower == 'colours' or category.category_name|lower == 'body parts' or category.category_name|lower == 'greetings' or category.category_name|lower == 'time and dates' or category.category_name|lower == 'shopping' or category.category_name|lower == 'daily life' or category.category_name|lower == 'emotions' or category.category_name|lower == 'pronouns' or category.category_name|lower == 'possessives' or category.category_name|lower == 'places & location' or category.category_name|lower == 'demonstratives' or category.category_name|lower == 'adjectives' or category.category_name|lower == 'verbs' or category.category_name|lower == 'learning & communication' or category.category_name|lower == 'numbers' or category.category_name|lower == 'adverb' or category.category_name|lower == 'abstract ideas / concepts' or category.category_name|lower == 'people' or category.category_name|lower == 'work & career' or category.category_name|lower == 'relationships & social interaction' or category.category_name|lower == 'entertainment & events' or category.category_name|lower == 'society & culture' %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const container = document.getElementById('vocabulary-word-container');
@@ -232,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isFood = '{{ category.category_name|lower|escapejs }}'.includes('food');
   const isAnimals = '{{ category.category_name|lower|escapejs }}' === 'animals';
   const isColors = ['colors', 'colours'].includes('{{ category.category_name|lower|escapejs }}');
-  const isBodyParts = '{{ category.category_name|lower|escapejs }}' === 'body parts';
+  const isBodyParts = '{{ category.category_name|lower|escapejs }}'.includes('body parts');
   const isGreetings = '{{ category.category_name|lower|escapejs }}' === 'greetings';
   const isTimeAndDates = '{{ category.category_name|lower|escapejs }}' === 'time and dates';
   const isShopping = '{{ category.category_name|lower|escapejs }}' === 'shopping';
@@ -434,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Education & Social Institutions 教育與社會制度', words: ['教育','學校','大學','學院','老師','教師','學生','課程','學習','知識','學歷','文憑','證書','考試','圖書館','醫院','醫療','機構','組織','非營利組織','基金會','家庭','婚姻','社會制度','規範'] },
     { title: 'Environment & Social Issues 環境與社會議題', words: ['環境','環保','污染','垃圾','回收','資源','能源','氣候','氣候變遷','全球暖化','永續','永續發展','自然','保護','節約','貧窮','失業','歧視','偏見','不平等','人口老化','移民','移居','人權','公共衛生','安全'] }
   ];
-  const definitions = isSocietyCulture ? societyCultureDefinitions : isEntertainmentEvents ? entertainmentEventDefinitions : isRelationshipsSocial ? relationshipsSocialDefinitions : isWorkCareer ? workCareerDefinitions : isPeople ? peopleDefinitions : isAbstractConcepts ? abstractConceptDefinitions : isAdverb ? adverbDefinitions : isNumbers ? numberDefinitions : isLearningCommunication ? learningCommunicationDefinitions : isVerbs ? verbDefinitions : isAdjectives ? adjectiveDefinitions : isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
+  const curatedDefinitions = isSocietyCulture ? societyCultureDefinitions : isEntertainmentEvents ? entertainmentEventDefinitions : isRelationshipsSocial ? relationshipsSocialDefinitions : isWorkCareer ? workCareerDefinitions : isPeople ? peopleDefinitions : isAbstractConcepts ? abstractConceptDefinitions : isAdverb ? adverbDefinitions : isNumbers ? numberDefinitions : isLearningCommunication ? learningCommunicationDefinitions : isVerbs ? verbDefinitions : isAdjectives ? adjectiveDefinitions : isDemonstratives ? demonstrativeDefinitions : isPlaces ? placeDefinitions : isPossessives ? possessiveDefinitions : isPronouns ? pronounDefinitions : isEmotions ? emotionDefinitions : isDailyLife ? dailyLifeDefinitions : isShopping ? shoppingDefinitions : isTimeAndDates ? timeDateDefinitions : isGreetings ? greetingDefinitions : isBodyParts ? bodyPartDefinitions : isColors ? colorDefinitions : isAnimals ? animalDefinitions : isFood ? foodDefinitions : isFamily ? [
     { title: 'Immediate Family 直系家庭成員', words: ['爸爸','媽媽','父親','母親','哥哥','姐姐','姊姊','弟弟','妹妹','兄弟','姐妹','姊妹','兒子','女兒','孩子','小孩','寶寶','丈夫','妻子','老公','老婆','先生','太太','父母','爸媽','家人'] },
     { title: 'Extended Family 大家庭成員', words: ['爺爺','奶奶','外公','外婆','祖父','祖母','外祖父','外祖母','伯伯','伯父','伯母','叔叔','嬸嬸','姑姑','姑媽','姑丈','舅舅','舅媽','阿姨','姨丈','堂哥','堂姐','堂姊','堂弟','堂妹','表哥','表姐','表姊','表弟','表妹','孫子','孫女','外孫','外孫女'] },
     { title: 'Family Relationships 家庭關係', words: ['家','家庭','親戚','親人','親屬','夫妻','夫婦','兄弟姐妹','兄弟姊妹','結婚','婚姻','離婚','單身','男朋友','女朋友','男友','女友','未婚夫','未婚妻','公公','婆婆','岳父','岳母','女婿','媳婦'] }
@@ -443,7 +440,18 @@ document.addEventListener('DOMContentLoaded', function () {
     { title: 'Temperature & Feelings 氣溫與感受', words: ['太陽','熱','冷','涼快','溫度','悶熱','寒流'] },
     { title: 'Seasons 季節', words: ['春天','夏天','秋天','冬天'] }
   ];
+  const isWeatherName = '{{ category.category_name|lower|escapejs }}' === 'weather';
+  const anyCuratedFlag = isSocietyCulture || isEntertainmentEvents || isRelationshipsSocial || isWorkCareer || isPeople || isAbstractConcepts || isAdverb || isNumbers || isLearningCommunication || isVerbs || isAdjectives || isDemonstratives || isPlaces || isPossessives || isPronouns || isEmotions || isDailyLife || isShopping || isTimeAndDates || isGreetings || isBodyParts || isColors || isAnimals || isFood || isFamily;
+  // Categories without a curated word list (e.g. 'Body Parts & Health')
+  // group by the subcategories saved on the manager dashboard alone.
+  const definitions = (anyCuratedFlag || isWeatherName) ? curatedDefinitions : [];
   const buttons = Array.from(container.querySelectorAll(':scope > .vocab-pill'));
+  const hasSavedSubcategory = buttons.some(button => (button.dataset.subcategory || '').trim());
+  if (!definitions.length && !hasSavedSubcategory) {
+    const intro = document.getElementById('topic-vocab-groups');
+    if (intro) intro.remove();
+    return;
+  }
   // Assign each word to exactly one group. Previously, a word matching
   // multiple definitions was counted in each, but its DOM button was moved
   // to the last group, leaving earlier groups visibly empty.
@@ -521,6 +529,5 @@ document.addEventListener('DOMContentLoaded', function () {
   container.style.display = 'none';
 });
 </script>
-{% endif %}
 
 {% endblock %}
