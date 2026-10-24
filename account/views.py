@@ -1218,14 +1218,19 @@ def manage_learning_subcategory(request):
                 if LearningSubcategory.objects.filter(material_type=kind,category_id_value=category.pk,name=name).exclude(pk=item.pk).exists():
                     messages.error(request,'Name already exists.')
                 else:
-                    if kind == 'expression':
-                        Idiom.objects.filter(category=category,subcategory=item.name).update(subcategory=name)
+                    # Keep the items in sync: a rename must also move every
+                    # vocabulary word / sentence / expression still carrying
+                    # the old name, not just the registry record.
+                    model = {'vocabulary': Vocabulary, 'sentence': Sentence, 'expression': Idiom}[kind]
+                    model.objects.filter(category=category,subcategory=item.name).update(subcategory=name)
                     item.name=name
                     item.save(update_fields=['name'])
                     messages.success(request,'Subcategory renamed.')
             elif action == 'delete':
-                if kind == 'expression' and Idiom.objects.filter(category=category,subcategory=item.name).exists():
-                    messages.error(request,'Move expressions before deleting this subcategory.')
+                model = {'vocabulary': Vocabulary, 'sentence': Sentence, 'expression': Idiom}[kind]
+                label = {'vocabulary': 'vocabulary words', 'sentence': 'sentences', 'expression': 'expressions'}[kind]
+                if model.objects.filter(category=category,subcategory=item.name).exists():
+                    messages.error(request,f'Move {label} before deleting this subcategory.')
                 else:
                     item.delete()
                     messages.success(request,'Subcategory deleted.')
