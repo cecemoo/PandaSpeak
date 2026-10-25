@@ -459,7 +459,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // priority: it joins the curated group whose title it matches, and a
   // saved subcategory with no matching curated title forms its own group
   // below, so subcategories created on the dashboard always show here.
-  // Words without a saved subcategory keep the legacy word-list grouping.
+  // Once a category is managed by assignment (any word carries a saved
+  // subcategory), words that are not assigned go to 'Other Vocabulary'
+  // instead of being guessed into a curated group by their word list.
+  // Only categories with no saved subcategories at all keep the legacy
+  // word-list grouping.
   const remaining = new Set(buttons);
   const groups = definitions.map(def => {
     const matched = buttons.filter(button => {
@@ -470,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const name = saved.toLowerCase();
         return title === name || title.startsWith(name + ' ');
       }
-      return def.words.includes(button.dataset.word.trim());
+      return !hasSavedSubcategory && def.words.includes(button.dataset.word.trim());
     });
     matched.forEach(button => remaining.delete(button));
     return { title: def.title, buttons: matched };
