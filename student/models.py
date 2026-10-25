@@ -62,6 +62,21 @@ class CulturalInsightCompletion(models.Model):
         return f'{self.student} - {self.lesson_slug}'
 
 
+class AchievementCelebration(models.Model):
+    """Server-side record that an achievement has already been celebrated
+    with the dashboard popup, so the popup fires once per achievement
+    instead of relying on browser storage (which resets on a new
+    browser/device or in private browsing). The sentinel name
+    '__baseline__' marks that a student's pre-existing achievements were
+    recorded without a popup when the tracking started for them."""
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='achievement_celebrations')
+    achievement_name = models.CharField(max_length=100)
+    celebrated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'achievement_name'], name='unique_student_achievement_celebration')]
+
+
 class HistoryLessonCompletion(models.Model):
     """Tracks completion of built-in Chinese History lessons independently from culture lessons."""
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='history_lesson_completions')

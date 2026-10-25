@@ -5,6 +5,7 @@ from student.culture_views import CULTURE_PREVIEW_CARDS
 from student.history_lessons import HISTORY_CARDS
 from student.models import (
     AIConversationUsage,
+    AchievementCelebration,
     CulturalInsightCompletion,
     HistoryLessonCompletion,
     LearnedItem,
@@ -31,6 +32,7 @@ def my_achievements(context):
         return {
             'request': request,
             'achievements': [],
+            'fresh_achievement': None,
             'earned_count': 0,
             'total_count': 0,
             'next_goal': None,
@@ -84,6 +86,35 @@ def my_achievements(context):
             f"{remaining} more to unlock {next_goal['name']}."
         )
 
+    # Decide whether the celebration popup should fire. The popup is for
+    # NEWLY earned achievements only, tracked server-side per student:
+    # browser storage reset on every new browser/device (and in private
+    # browsing), which made the old popup re-fire on every login.
+    BASELINE = '__baseline__'
+    earned_names = [a['name'] for a in achievements if a['earned']]
+    celebrated = set(
+        AchievementCelebration.objects.filter(student=user).values_list('achievement_name', flat=True)
+    )
+    fresh_achievement = None
+    if BASELINE not in celebrated:
+        # First time we see this student: record everything already
+        # earned as the baseline WITHOUT a popup — those achievements
+        # were not earned just now.
+        AchievementCelebration.objects.bulk_create(
+            [AchievementCelebration(student=user, achievement_name=name)
+             for name in [BASELINE, *earned_names]],
+            ignore_conflicts=True,
+        )
+    else:
+        fresh_names = [name for name in earned_names if name not in celebrated]
+        if fresh_names:
+            fresh_achievement = next(a for a in achievements if a['name'] == fresh_names[0])
+            AchievementCelebration.objects.bulk_create(
+                [AchievementCelebration(student=user, achievement_name=name)
+                 for name in fresh_names],
+                ignore_conflicts=True,
+            )
+
     referral_code = referral_code_for(user)
     referral_path = reverse('register') + f'?ref={referral_code}'
     referral_url = request.build_absolute_uri(referral_path)
@@ -94,6 +125,7 @@ def my_achievements(context):
     return {
         'request': request,
         'achievements': achievements,
+        'fresh_achievement': fresh_achievement,
         'earned_count': sum(1 for item in achievements if item['earned']),
         'total_count': len(achievements),
         'next_goal': next_goal,
