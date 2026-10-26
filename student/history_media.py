@@ -5,17 +5,37 @@ stories only require one entry when their video/audio is uploaded.
 """
 
 HISTORY_MEDIA = {
+    'gun-fails-flood-control': {
+        'audio': 'student/history/Xia/gun-fails-flood-control-discovery-narration.m4a',
+        'video': 'student/history/Xia/gun-fails-flood-control-1min.mp4',
+    },
     'yu-controls-floods': {
-        'audio': 'student/history/yu-floods-discovery-narration.m4a',
-        'video': 'student/history/yu-floods-1min.mp4',
+        'audio': 'student/history/Xia/yu-controls-floods-discovery-narration.m4a',
+        'video': 'student/history/Xia/yu-controls-floods-1min.mp4',
+    },
+    'taikang-loses-kingdom': {
+        'audio': 'student/history/Xia/taikang-loses-kingdom-discovery-narration.m4a',
+        'video': 'student/history/Xia/taikang-loses-kingdom-1min.mp4',
+    },
+    'houyi-takes-xia': {
+        'audio': 'student/history/Xia/houyi-takes-xia-discovery-narration.m4a',
+        'video': 'student/history/Xia/houyi-takes-xia-1min.mp4',
+    },
+    'han-zhuo-seizes-power': {
+        'audio': 'student/history/Xia/han-zhuo-seizes-power-discovery-narration.m4a',
+        'video': 'student/history/Xia/han-zhuo-seizes-power-1min.mp4',
     },
     'shao-kang-revival': {
-        'audio': 'student/history/shao-kang-discovery-narration.m4a',
-        'video': 'student/history/shao-kang-1min.mp4',
+        'audio': 'student/history/Xia/shao-kang-revival-discovery-narration.m4a',
+        'video': 'student/history/Xia/shao-kang-revival-1min.mp4',
+    },
+    'jie-and-mo-xi': {
+        'audio': 'student/history/Xia/jie-and-mo-xi-discovery-narration.m4a',
+        'video': 'student/history/Xia/jie-and-mo-xi-1min.mp4',
     },
     'shang-tang-overthrows-xia': {
-        'audio': 'student/history/tang-xia-discovery-narration.m4a',
-        'video': 'student/history/tang-xia-1min.mp4',
+        'audio': 'student/history/Xia/shang-tang-overthrows-xia-discovery-narration.m4a',
+        'video': 'student/history/Xia/shang-tang-overthrows-xia-1min.mp4',
     },
     'oracle-bones': {
         'audio': 'student/history/oracle-bones.m4a',
