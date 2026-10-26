@@ -11,7 +11,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run meeting-room tests
+        env:
+          DJANGO_SECRET_KEY: ci-test-secret
+        run: python manage.py test course.test_session_room
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
