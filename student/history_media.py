@@ -930,5 +930,19 @@ HISTORY_MEDIA = {
 
 
 def media_for_lesson(slug):
-    """Return a copy so views/templates cannot mutate the shared mapping."""
-    return HISTORY_MEDIA.get(slug, {})
+    """Return a copy so views/templates cannot mutate the shared mapping.
+
+    English subtitles are a sidecar convention (added 2026-10-26): when a
+    WebVTT file exists next to the lesson's video with the video's stem plus
+    '-en.vtt' (e.g. 'mawei-slope-1min-en.vtt'), it is exposed as
+    media['subtitles_en'] and the lesson template renders it as a toggleable
+    <track> on the video player. No mapping entry is needed per lesson.
+    """
+    media = dict(HISTORY_MEDIA.get(slug, {}))
+    video = media.get('video')
+    if video and video.endswith('.mp4') and 'subtitles_en' not in media:
+        candidate = video[:-len('.mp4')] + '-en.vtt'
+        from django.contrib.staticfiles import finders
+        if finders.find(candidate):
+            media['subtitles_en'] = candidate
+    return media
