@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from subscription import manager_views as purchase_manager_views
 from . import views
+from . import internal_views
 from . import managers
 from . import announcement_views
 from . import contact_views
@@ -9,6 +10,7 @@ from . import email_verification_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    path('internal/cron/lead-followups/', internal_views.lead_followups_trigger, name='lead_followups_trigger'),
     path('manager/subcategories/', views.manage_learning_subcategory, name='manage_learning_subcategory'),
     path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
     path('email-preferences/', announcement_views.preferences, name='email_preferences'),
