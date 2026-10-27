@@ -185,6 +185,8 @@ class LeadMagnetSignup(models.Model):
     """Email captured via a free lead magnet (e.g. the BoPoMoFo chart)."""
     email = models.EmailField(unique=True)
     source = models.CharField(max_length=64, default='bopomofo-chart')
+    traffic_source = models.CharField(max_length=64, default='', blank=True)
+    referrer = models.CharField(max_length=500, default='', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     unsubscribed = models.BooleanField(default=False)
     followup_day2_sent = models.BooleanField(default=False)

@@ -1118,6 +1118,8 @@ def _send_lead_email(signup, subject, body):
 
 def bopomofo_chart_lead(request):
     from .models import LeadMagnetSignup
+    from .lead_attribution import attribution_for_signup, capture_lead_attribution
+    capture_lead_attribution(request)
     error = None
     if request.method == 'POST':
         email = (request.POST.get('email') or '').strip().lower()
@@ -1128,7 +1130,7 @@ def bopomofo_chart_lead(request):
             error = 'Please tick the consent box so we can email you the chart.'
         else:
             signup, created = LeadMagnetSignup.objects.get_or_create(
-                email=email, defaults={'source': 'bopomofo-chart'})
+                email=email, defaults={'source': 'bopomofo-chart', **attribution_for_signup(request)})
             if created and not signup.unsubscribed:
                 _send_lead_email(
                     signup,
@@ -1147,6 +1149,8 @@ IDIOMS_PDF_URL = 'https://pandaspeak.org/static/student/lead_magnet/everyday-chi
 
 def chinese_idioms_lead(request):
     from .models import LeadMagnetSignup
+    from .lead_attribution import attribution_for_signup, capture_lead_attribution
+    capture_lead_attribution(request)
     error = None
     if request.method == 'POST':
         email = (request.POST.get('email') or '').strip().lower()
@@ -1157,7 +1161,7 @@ def chinese_idioms_lead(request):
             error = 'Please tick the consent box so we can email you the PDF.'
         else:
             signup, created = LeadMagnetSignup.objects.get_or_create(
-                email=email, defaults={'source': 'idioms'})
+                email=email, defaults={'source': 'idioms', **attribution_for_signup(request)})
             if created and not signup.unsubscribed:
                 _send_lead_email(
                     signup,
