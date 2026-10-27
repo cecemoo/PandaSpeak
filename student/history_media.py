@@ -38,12 +38,12 @@ HISTORY_MEDIA = {
         'video': 'student/history/Xia/shang-tang-overthrows-xia-1min.mp4',
     },
     'oracle-bones': {
-        'audio': 'student/history/oracle-bones.m4a',
-        'video': 'student/history/oracle-bones.mp4',
+        'audio': 'student/history/Shang/oracle-bones-discovery-narration.m4a',
+        'video': 'student/history/Shang/oracle-bones-1min.mp4',
     },
     'king-wu-overthrows-shang': {
-        'audio': 'student/history/king-wu-discovery-narration.m4a',
-        'video': 'student/history/king-wu-1min.mp4',
+        'audio': 'student/history/Shang/king-wu-overthrows-shang-discovery-narration.m4a',
+        'video': 'student/history/Shang/king-wu-overthrows-shang-1min.mp4',
     },
     'duke-of-zhou': {
         'audio': 'student/history/duke-zhou-discovery-narration.m4a',
@@ -945,6 +945,30 @@ HISTORY_MEDIA = {
     'chinese-world-today': {
         'audio': 'student/history/Modern/chinese-world-today-discovery-narration.m4a',
         'video': 'student/history/Modern/chinese-world-today-1min.mp4',
+    },
+    'yi-yin-assists-tang': {
+        'audio': 'student/history/Shang/yi-yin-assists-tang-discovery-narration.m4a',
+        'video': 'student/history/Shang/yi-yin-assists-tang-1min.mp4',
+    },
+    'pan-geng-moves-capital': {
+        'audio': 'student/history/Shang/pan-geng-moves-capital-discovery-narration.m4a',
+        'video': 'student/history/Shang/pan-geng-moves-capital-1min.mp4',
+    },
+    'wu-ding-fu-yue': {
+        'audio': 'student/history/Shang/wu-ding-fu-yue-discovery-narration.m4a',
+        'video': 'student/history/Shang/wu-ding-fu-yue-1min.mp4',
+    },
+    'shang-bronze-civilization': {
+        'audio': 'student/history/Shang/shang-bronze-civilization-discovery-narration.m4a',
+        'video': 'student/history/Shang/shang-bronze-civilization-1min.mp4',
+    },
+    'bi-gan-tragic-death': {
+        'audio': 'student/history/Shang/bi-gan-tragic-death-discovery-narration.m4a',
+        'video': 'student/history/Shang/bi-gan-tragic-death-1min.mp4',
+    },
+    'king-zhou-and-daji': {
+        'audio': 'student/history/Shang/king-zhou-and-daji-discovery-narration.m4a',
+        'video': 'student/history/Shang/king-zhou-and-daji-1min.mp4',
     },
 }
 
