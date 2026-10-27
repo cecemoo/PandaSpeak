@@ -8,11 +8,11 @@ from .models import Subscription, SubscriptionConsentEvent
 TERMS_VERSION = "2026-10-10"
 
 
-def require_checkout_consent(request):
+def require_checkout_consent(request, redirect_to="subscribe"):
     if (request.POST.get("accept_subscription_terms") != "yes"
             or request.POST.get("accept_subscription_faq") != "yes"):
         messages.error(request, "Please review and acknowledge the Terms of Service and FAQ before checkout.")
-        return redirect("subscribe")
+        return redirect(redirect_to)
     # Record an audit timestamp before sending the student to the payment provider.
     subscription, _ = Subscription.objects.get_or_create(
         user=request.user,

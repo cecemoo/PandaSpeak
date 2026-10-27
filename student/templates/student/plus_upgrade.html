@@ -11,6 +11,79 @@
 <div class="plan-grid"><section class="plan-card"><div class="plan-name">PandaSpeak Standard</div><div class="plan-price">$15 <small>/ year</small></div><div class="plan-sub">Your core PandaSpeak membership.</div><ul class="feature-list"><li><span class="check">✓</span>Vocabulary, sentences & Chinese expressions</li><li><span class="check">✓</span>Pronunciation and Four Tones practice</li><li><span class="check">✓</span>Cultural Insights for Levels II & III</li><li><span class="check">✓</span>Games, challenges, tests & flash cards</li><li><span class="check">✓</span>10 AI conversation sessions each month</li></ul><div class="plan-button standard-button">✓ Annual Membership Active</div></section>
 <section class="plan-card plus"><span class="recommended">OPTIONAL ADD-ON</span><div class="plan-name">✨ PandaSpeak Plus</div><div class="plan-price">$4.99 <small>/ month</small></div><div class="plan-sub">More speaking practice plus premium learning journeys.</div><ul class="feature-list"><li><span class="plus-check">★</span><strong>50 AI conversation sessions each month</strong></li><li><span class="plus-check">★</span><strong>Chinese History Journey 🏯</strong></li><li><span class="plus-check">★</span>History lessons for Level II & III learners</li><li><span class="plus-check">★</span>Future Plus learning journeys and premium content</li></ul>
 {% if plan_features.is_plus %}<div class="plan-button standard-button">✓ PandaSpeak Plus Active</div><div class="policy-box">Your $15 annual membership remains separate. You can manage Plus and annual renewal independently from Subscription Management.</div>
-{% else %}<div class="policy-box"><strong>Separate billing:</strong> PandaSpeak Plus starts a separate $4.99/month Stripe subscription. Your existing $15 annual Stripe or PayPal subscription stays active and keeps its own automatic renewal. The annual fee is nonrefundable. If you later cancel Plus, there is no refund for the paid Plus month; Plus remains available through that paid period and then you return to Standard.</div><form method="post" action="{% url 'stripe_plus_upgrade' %}" onsubmit="return confirm('Add PandaSpeak Plus for $4.99/month? Your $15 annual PandaSpeak membership will remain active separately.');">{% csrf_token %}<button class="plan-button upgrade-button">Add PandaSpeak Plus</button></form>{% endif %}</section></div>
+{% else %}<div class="policy-box"><strong>Separate billing:</strong> PandaSpeak Plus starts a separate $4.99/month Stripe subscription. Your existing $15 annual Stripe or PayPal subscription stays active and keeps its own automatic renewal. The annual fee is nonrefundable. If you later cancel Plus, there is no refund for the paid Plus month; Plus remains available through that paid period and then you return to Standard.</div><form class="plus-checkout-form" method="post" action="{% url 'stripe_plus_upgrade' %}">{% csrf_token %}<input type="hidden" name="accept_subscription_terms" value=""><input type="hidden" name="accept_subscription_faq" value=""><button class="plan-button upgrade-button">Add PandaSpeak Plus</button></form>{% endif %}</section></div>
+<style>
+.terms-dialog{border:1px solid #d1d5db;border-radius:16px;width:min(94vw,850px);max-height:90vh;padding:0;color:#172033;background:#fff}
+.terms-dialog::backdrop{background:rgba(0,0,0,.72)}
+.terms-dialog-inner{padding:20px}
+.terms-dialog iframe{width:100%;height:min(47vh,460px);border:1px solid #ddd;border-radius:8px}
+.terms-dialog .terms-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+.terms-dialog label{display:flex;gap:10px;text-align:left;align-items:flex-start;margin-top:14px;color:#172033}
+</style>
+<dialog id="subscription-terms-dialog" class="terms-dialog" aria-labelledby="terms-dialog-title">
+  <div class="terms-dialog-inner">
+    <h3 id="terms-dialog-title">Before you add PandaSpeak Plus</h3>
+    <p>Please review our Terms of Service and FAQ before proceeding. PandaSpeak Plus costs $4.99/month and renews automatically until canceled. Your $15 annual PandaSpeak membership remains active separately.</p>
+    <div role="group" aria-label="Review documents" class="mb-2">
+      <button type="button" class="btn btn-outline-primary btn-sm" id="show-terms">Terms of Service</button>
+      <button type="button" class="btn btn-outline-primary btn-sm" id="show-faq">FAQ</button>
+    </div>
+    <iframe id="subscription-document" title="PandaSpeak Terms of Service" src="{% url 'terms' %}" loading="lazy"></iframe>
+    <p class="small mt-2">You can also <a href="{% url 'terms' %}" target="_blank" rel="noopener">open the full Terms</a> or <a href="{% url 'faq' %}" target="_blank" rel="noopener">open the FAQ</a> in another tab.</p>
+    <label for="confirm-subscription-terms">
+      <input type="checkbox" id="confirm-subscription-terms">
+      <span>I've read and understand the <a href="{% url 'terms' %}" target="_blank" rel="noopener">Terms of Service</a>, including monthly renewal, cancellation, refunds, and disputes.</span>
+    </label>
+    <label for="confirm-subscription-faq">
+      <input type="checkbox" id="confirm-subscription-faq">
+      <span>I've read and understand the <a href="{% url 'faq' %}" target="_blank" rel="noopener">FAQ</a>, and I want to proceed with the Plus upgrade.</span>
+    </label>
+    <div class="terms-actions">
+      <button type="button" class="btn btn-outline-secondary" id="cancel-subscription-checkout">Cancel</button>
+      <button type="button" class="btn btn-primary" id="confirm-subscription-checkout" disabled>Agree &amp; Continue to Payment</button>
+    </div>
+  </div>
+</dialog>
+<script>
+  (() => {
+    const dialog = document.getElementById('subscription-terms-dialog');
+    const documentFrame = document.getElementById('subscription-document');
+    const checkbox = document.getElementById('confirm-subscription-terms');
+    const faqCheckbox = document.getElementById('confirm-subscription-faq');
+    const bothAccepted = () => checkbox.checked && faqCheckbox.checked;
+    const confirm = document.getElementById('confirm-subscription-checkout');
+    let pendingForm = null;
+    document.querySelectorAll('.plus-checkout-form').forEach(form => {
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        pendingForm = form;
+        checkbox.checked = false;
+        faqCheckbox.checked = false;
+        confirm.disabled = true;
+        dialog.showModal();
+      });
+    });
+    document.getElementById('show-terms').addEventListener('click', () => {
+      documentFrame.src = "{% url 'terms' %}";
+      documentFrame.title = "PandaSpeak Terms of Service";
+    });
+    document.getElementById('show-faq').addEventListener('click', () => {
+      documentFrame.src = "{% url 'faq' %}";
+      documentFrame.title = "PandaSpeak FAQ";
+    });
+    [checkbox, faqCheckbox].forEach(input => input.addEventListener('change', () => { confirm.disabled = !bothAccepted(); }));
+    document.getElementById('cancel-subscription-checkout').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { pendingForm = null; });
+    confirm.addEventListener('click', () => {
+      if (!bothAccepted() || !pendingForm) return;
+      pendingForm.querySelector('[name="accept_subscription_terms"]').value = 'yes';
+      pendingForm.querySelector('[name="accept_subscription_faq"]').value = 'yes';
+      const form = pendingForm;
+      pendingForm = null;
+      confirm.disabled = true;
+      form.submit();
+    });
+  })();
+</script>
 <div class="history-note"><div style="font-size:2.8rem">🏯</div><div><h3>Chinese History Journey begins at Level II</h3><p>Level I Plus learners receive the expanded AI practice while working toward Level II. At Levels II and III, Plus unlocks the Chinese History Journey.</p>{% if plan_features.history.requires_level2 %}<div class="level-message">🐼 Your History Journey will unlock when you reach Level II.</div>{% endif %}</div></div></div></main>
 {% endblock %}

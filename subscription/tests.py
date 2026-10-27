@@ -163,6 +163,45 @@ class SubscriptionTermsAcknowledgementTests(TestCase):
         self.assertFalse(Subscription.objects.filter(user=self.user, checkout_terms_accepted_at__isnull=False).exists())
 
 
+class PlusUpgradeConsentTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="plus-terms-test@example.com", password="<redacted>"
+        )
+        Subscription.objects.create(
+            user=self.user, subscription_plan="standard", subscription_cost=15,
+            is_active=True,
+        )
+        self.client.force_login(self.user)
+
+    def test_plus_checkout_requires_both_acknowledgements(self):
+        from unittest.mock import patch
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            response = self.client.post(reverse("stripe_plus_upgrade"))
+            self.assertRedirects(response, reverse("plus_upgrade"), fetch_redirect_response=False)
+            create.assert_not_called()
+        self.assertFalse(SubscriptionConsentEvent.objects.filter(user=self.user).exists())
+
+    def test_plus_checkout_terms_without_faq_does_not_record_consent(self):
+        from unittest.mock import patch
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            response = self.client.post(reverse("stripe_plus_upgrade"), {"accept_subscription_terms": "yes"})
+            self.assertRedirects(response, reverse("plus_upgrade"), fetch_redirect_response=False)
+            create.assert_not_called()
+        self.assertFalse(SubscriptionConsentEvent.objects.filter(user=self.user).exists())
+
+    def test_plus_checkout_with_both_acknowledgements_records_consent(self):
+        from unittest.mock import patch, Mock
+        with patch("subscription.stripe_subscription_views.stripe.checkout.Session.create") as create:
+            create.return_value = Mock(id="cs_plus_terms", url="https://checkout.stripe.com/plus-terms")
+            response = self.client.post(reverse("stripe_plus_upgrade"), {
+                "accept_subscription_terms": "yes", "accept_subscription_faq": "yes"
+            })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "https://checkout.stripe.com/plus-terms")
+        self.assertEqual(SubscriptionConsentEvent.objects.filter(user=self.user).count(), 1)
+
+
 class CheckoutConsentHistoryTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="history-test@example.com", password="password")

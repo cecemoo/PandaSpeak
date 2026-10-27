@@ -349,6 +349,9 @@ def stripe_plus_upgrade(request):
     blocked = purchase_blocked_response(request)
     if blocked is not None:
         return blocked
+    consent_response = require_checkout_consent(request, redirect_to="plus_upgrade")
+    if consent_response is not None:
+        return consent_response
     local = Subscription.objects.filter(user=request.user).first()
     if local and local.is_disputed:
         return redirect("dispute_restricted")
