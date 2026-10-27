@@ -46,12 +46,12 @@ HISTORY_MEDIA = {
         'video': 'student/history/Shang/king-wu-overthrows-shang-1min.mp4',
     },
     'duke-of-zhou': {
-        'audio': 'student/history/duke-zhou-discovery-narration.m4a',
-        'video': 'student/history/duke-zhou-1min.mp4',
+        'audio': 'student/history/Zhou/duke-of-zhou-discovery-narration.m4a',
+        'video': 'student/history/Zhou/duke-of-zhou-1min.mp4',
     },
     'beacon-fires': {
-        'audio': 'student/history/beacon-fires-discovery-narration.m4a',
-        'video': 'student/history/beacon-fires-1min.mp4',
+        'audio': 'student/history/Zhou/beacon-fires-discovery-narration.m4a',
+        'video': 'student/history/Zhou/beacon-fires-1min.mp4',
     },
     'jing-ke-assassination': {
         'audio': 'student/history/Qin/jing-ke-discover-narration.m4a',
@@ -969,6 +969,54 @@ HISTORY_MEDIA = {
     'king-zhou-and-daji': {
         'audio': 'student/history/Shang/king-zhou-and-daji-discovery-narration.m4a',
         'video': 'student/history/Shang/king-zhou-and-daji-1min.mp4',
+    },
+    'jiang-taigong-fishing': {
+        'audio': 'student/history/Zhou/jiang-taigong-fishing-discovery-narration.m4a',
+        'video': 'student/history/Zhou/jiang-taigong-fishing-1min.mp4',
+    },
+    'duke-huan-qi-hegemon': {
+        'audio': 'student/history/Zhou/duke-huan-qi-hegemon-discovery-narration.m4a',
+        'video': 'student/history/Zhou/duke-huan-qi-hegemon-1min.mp4',
+    },
+    'retreat-three-she': {
+        'audio': 'student/history/Zhou/retreat-three-she-discovery-narration.m4a',
+        'video': 'student/history/Zhou/retreat-three-she-1min.mp4',
+    },
+    'one-cry-amazes': {
+        'audio': 'student/history/Zhou/one-cry-amazes-discovery-narration.m4a',
+        'video': 'student/history/Zhou/one-cry-amazes-1min.mp4',
+    },
+    'goujian-endures-hardship': {
+        'audio': 'student/history/Zhou/goujian-endures-hardship-discovery-narration.m4a',
+        'video': 'student/history/Zhou/goujian-endures-hardship-1min.mp4',
+    },
+    'confucius-travels-states': {
+        'audio': 'student/history/Zhou/confucius-travels-states-discovery-narration.m4a',
+        'video': 'student/history/Zhou/confucius-travels-states-1min.mp4',
+    },
+    'laozi-leaves-pass': {
+        'audio': 'student/history/Zhou/laozi-leaves-pass-discovery-narration.m4a',
+        'video': 'student/history/Zhou/laozi-leaves-pass-1min.mp4',
+    },
+    'shang-yang-reforms': {
+        'audio': 'student/history/Zhou/shang-yang-reforms-discovery-narration.m4a',
+        'video': 'student/history/Zhou/shang-yang-reforms-1min.mp4',
+    },
+    'sun-bin-pang-juan': {
+        'audio': 'student/history/Zhou/sun-bin-pang-juan-discovery-narration.m4a',
+        'video': 'student/history/Zhou/sun-bin-pang-juan-1min.mp4',
+    },
+    'return-jade-zhao': {
+        'audio': 'student/history/Zhou/return-jade-zhao-discovery-narration.m4a',
+        'video': 'student/history/Zhou/return-jade-zhao-1min.mp4',
+    },
+    'carry-thorns-apology': {
+        'audio': 'student/history/Zhou/carry-thorns-apology-discovery-narration.m4a',
+        'video': 'student/history/Zhou/carry-thorns-apology-1min.mp4',
+    },
+    'jing-ke-assassinates-qin': {
+        'audio': 'student/history/Zhou/jing-ke-assassinates-qin-discovery-narration.m4a',
+        'video': 'student/history/Zhou/jing-ke-assassinates-qin-1min.mp4',
     },
 }
 
