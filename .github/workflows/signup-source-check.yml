@@ -28,6 +28,8 @@ jobs:
             qs = LeadMagnetSignup.objects.filter(created_at__gte=start)
             result = {
                 'total': qs.count(),
+                'total_all_time': LeadMagnetSignup.objects.count(),
+                'latest_created_at': str(LeadMagnetSignup.objects.order_by('-created_at').values_list('created_at', flat=True).first()),
                 'by_traffic_source': list(qs.values('traffic_source').annotate(n=Count('id')).order_by('-n', 'traffic_source')),
                 'by_freebie': list(qs.values('source').annotate(n=Count('id')).order_by('-n', 'source')),
                 'by_both': list(qs.values('traffic_source', 'source').annotate(n=Count('id')).order_by('-n')),
