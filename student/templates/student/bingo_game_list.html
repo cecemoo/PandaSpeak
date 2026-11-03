@@ -10,14 +10,14 @@
   </div>
 
   <section class="section">
-    <div class="container" data-aos="fade-up">
+    <div class="container bingo-list" data-aos="fade-up">
       <div class="mb-4">
         <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
       </div>
 
-      <div class="card p-4 mb-4">
-        <h2 class="h4">Create Your Own Bingo</h2>
-        <p class="text-muted">Build a Bingo game from the materials you want to practice.</p>
+      <div class="card bingo-create-card p-4 mb-4">
+        <h2 class="h4">🎲 Create Your Own Bingo</h2>
+        <p class="bingo-create-sub">Build a Bingo game from the materials you want to practice.</p>
         <form method="post" action="{% url 'create_personal_bingo' %}">
           {% csrf_token %}
           <div class="row g-3">
@@ -48,7 +48,7 @@
               </select>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary rounded-pill mt-3">Create Bingo</button>
+          <button type="submit" class="btn bingo-create-btn rounded-pill mt-3">Create Bingo</button>
         </form>
       </div>
       {{ bingo_options|json_script:"bingo-options" }}
@@ -99,7 +99,7 @@
       <div class="row g-4">
         {% for game in games %}
           <div class="col-md-6 col-lg-4">
-            <div class="card h-100 p-4">
+            <div class="card bingo-game-card bingo-type-{{ game.content_type }} h-100 p-4">
               <h3 class="h5">{{ game.title }}</h3>
               {% if game.audience == 'personal' and game.teacher_id == user.id %}
                 <p class="mb-2"><span class="badge text-bg-success">Created by you</span></p>
@@ -107,7 +107,7 @@
               <p class="mb-2"><strong>Content:</strong> {{ game.get_content_type_display }}</p>
               <p class="mb-2"><strong>Starting Level:</strong> {{ game.get_level_display }}</p>
               <p class="mb-3"><strong>Choose Your Card:</strong> 3 × 3, 4 × 4, or 5 × 5</p>
-              <a href="{% url 'play_bingo' game.id %}" class="btn btn-primary rounded-pill mt-auto">Play Bingo</a>
+              <a href="{% url 'play_bingo' game.id %}" class="btn bingo-play-btn rounded-pill mt-auto">Play Bingo</a>
               {% if game.audience == 'personal' and game.teacher_id == user.id %}
                 <form method="post" action="{% url 'delete_personal_bingo' game.id %}" class="mt-2" onsubmit="return confirm('Delete this Bingo game?');">
                   {% csrf_token %}
@@ -125,4 +125,22 @@
     </div>
   </section>
 </main>
+<style>
+.bingo-list .bingo-create-card{background:linear-gradient(135deg,#0a4a34 0%,#08915e 125%);border:none;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.35);color:#fff}
+.bingo-list .bingo-create-card h2{color:#fff;font-weight:700}
+.bingo-list .bingo-create-sub{color:rgba(255,255,255,.85)}
+.bingo-list .bingo-create-card .form-label{color:rgba(255,255,255,.92);font-weight:600;font-size:.85rem;letter-spacing:.02em}
+.bingo-list .bingo-create-card .form-select{border:none;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.bingo-list .bingo-create-btn{background:linear-gradient(135deg,#f0b64a,#d9930d);border:none;color:#fff;font-weight:700;padding:.55rem 1.9rem;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.bingo-list .bingo-create-btn:hover,.bingo-list .bingo-create-btn:focus{background:linear-gradient(135deg,#f5c15e,#e29e12);color:#fff}
+.bingo-list .bingo-game-card{background:#fffdf6;border:1px solid #eee5cf;border-top:6px solid #08915e;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.28);transition:transform .15s ease,box-shadow .15s ease}
+.bingo-list .bingo-game-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(0,0,0,.38)}
+.bingo-list .bingo-type-sentence{border-top-color:#d9930d}
+.bingo-list .bingo-type-expression{border-top-color:#b23a2f}
+.bingo-list .bingo-game-card h3{color:#17352a;font-weight:700}
+.bingo-list .bingo-game-card p{color:#4a554e}
+.bingo-list .bingo-game-card p strong{color:#0b5138}
+.bingo-list .bingo-play-btn{background:linear-gradient(135deg,#0aa76a,#065f43);border:none;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(8,145,94,.35)}
+.bingo-list .bingo-play-btn:hover,.bingo-list .bingo-play-btn:focus{background:linear-gradient(135deg,#0bb673,#07543c);color:#fff}
+</style>
 {% endblock %}
