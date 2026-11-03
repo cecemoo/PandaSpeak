@@ -17,7 +17,8 @@ jobs:
             set -e
             cd ~/PandaSpeak
             cat > /tmp/check_signup_sources.py <<'PYEOF'
-            import os, django, datetime, json
+            import os, sys, django, datetime, json
+            sys.path.insert(0, os.getcwd())
             os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChineseRun.settings')
             django.setup()
             from django.utils import timezone
