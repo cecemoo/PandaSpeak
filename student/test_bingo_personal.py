@@ -15,7 +15,7 @@ from subscription.models import Subscription
 from teacher.bingo_models import BingoGame
 from teacher.models import Vocabulary, VocabularyCategory
 
-from .bingo_views import _eligible_materials
+from .bingo_views import _bingo_creation_options, _eligible_materials
 
 
 def _subscriber(email, first_name='Pat'):
@@ -130,6 +130,31 @@ class PersonalBingoTests(TestCase):
 
         probe.subcategory = ''
         self.assertEqual(_eligible_materials(probe, 'level1').count(), 18)
+
+    def test_creation_options_include_level_counts(self):
+        # 'everyday' fixture, designed so every expected count is unambiguous:
+        # 8 level1 items with no subcategory, 2 level3 items under 'colors',
+        # and 1 'all'-level item with no subcategory (counts toward all three
+        # level buckets at category level, but toward no subcategory).
+        category = VocabularyCategory.objects.create(category_name='everyday')
+        for i in range(8):
+            _vocabulary(category, f'base-{i}', level='level1')
+        for i in range(2):
+            _vocabulary(category, f'color-{i}', subcategory='colors', level='level3')
+        _vocabulary(category, 'any-level', level='all')
+
+        options = _bingo_creation_options()
+        entry = next(c for c in options['vocabulary'] if c['name'] == 'everyday')
+        self.assertEqual(entry['id'], category.id)
+        self.assertEqual(entry['counts'], {'level1': 9, 'level2': 1, 'level3': 3})
+        self.assertEqual(entry['subcategories'], [
+            {'name': 'colors', 'counts': {'level1': 0, 'level2': 0, 'level3': 2}},
+        ])
+
+        # The setUp 'numbers' category: 9 level1 items, no subcategories.
+        numbers = next(c for c in options['vocabulary'] if c['name'] == 'numbers')
+        self.assertEqual(numbers['counts'], {'level1': 9, 'level2': 0, 'level3': 0})
+        self.assertEqual(numbers['subcategories'], [])
 
     def test_delete_removes_own_game_but_not_for_non_owner(self):
         self._create_via_view(self.creator)

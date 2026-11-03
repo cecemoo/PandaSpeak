@@ -270,12 +270,28 @@ def _create_round(game, student, card_size):
     )
 
 
+def _empty_level_counts():
+    return {'level1': 0, 'level2': 0, 'level3': 0}
+
+
+def _add_to_level_counts(counts, level):
+    if level == 'all':
+        for bucket in counts:
+            counts[bucket] += 1
+    elif level in counts:
+        counts[level] += 1
+
+
 def _bingo_creation_options():
     """Categories a student can build a personal Bingo game from.
 
     Keyed by content type; each category has at least one material that is
-    visible to everyone and carries the audio the play page needs, plus the
-    sorted subcategory names found on those materials.
+    visible to everyone and carries the audio the play page needs. Each
+    category (and each of its subcategories) carries per-level counts of its
+    eligible materials, where a material counts toward its own level and an
+    'all'-level material counts toward every level — the same rule
+    _eligible_materials uses — so the create form can only offer level
+    combinations that can actually fill a Bingo card.
     """
     specs = [
         ('vocabulary', Vocabulary, 'audio_file'),
@@ -290,12 +306,25 @@ def _bingo_creation_options():
             .exclude(category__isnull=True)
         )
         by_category = {}
-        for category_id, category_name, subcategory in materials.values_list('category_id', 'category__category_name', 'subcategory'):
-            entry = by_category.setdefault(category_id, {'id': category_id, 'name': category_name, 'subcategories': set()})
+        for category_id, category_name, subcategory, level in materials.values_list('category_id', 'category__category_name', 'subcategory', 'level'):
+            entry = by_category.setdefault(category_id, {
+                'id': category_id,
+                'name': category_name,
+                'counts': _empty_level_counts(),
+                'subcategories': {},
+            })
+            _add_to_level_counts(entry['counts'], level)
             if subcategory:
-                entry['subcategories'].add(subcategory)
+                sub_entry = entry['subcategories'].setdefault(
+                    subcategory, {'name': subcategory, 'counts': _empty_level_counts()})
+                _add_to_level_counts(sub_entry['counts'], level)
         options[content_type] = [
-            {'id': entry['id'], 'name': entry['name'], 'subcategories': sorted(entry['subcategories'])}
+            {
+                'id': entry['id'],
+                'name': entry['name'],
+                'counts': entry['counts'],
+                'subcategories': [entry['subcategories'][name] for name in sorted(entry['subcategories'])],
+            }
             for entry in sorted(by_category.values(), key=lambda entry: entry['name'])
         ]
     return options

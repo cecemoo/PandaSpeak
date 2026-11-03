@@ -48,7 +48,8 @@
               </select>
             </div>
           </div>
-          <button type="submit" class="btn bingo-create-btn rounded-pill mt-3">Create Bingo</button>
+          <button type="submit" id="bingo-create-submit" class="btn bingo-create-btn rounded-pill mt-3">Create Bingo</button>
+          <p id="bingo-create-hint" class="bingo-create-hint mb-0 mt-2"></p>
         </form>
       </div>
       {{ bingo_options|json_script:"bingo-options" }}
@@ -58,24 +59,70 @@
           var typeSelect = document.getElementById('bingo-content-type');
           var categorySelect = document.getElementById('bingo-category');
           var subcategorySelect = document.getElementById('bingo-subcategory');
+          var levelSelect = document.getElementById('bingo-level');
+          var submitButton = document.getElementById('bingo-create-submit');
+          var hint = document.getElementById('bingo-create-hint');
+          var MIN_MATERIALS = 8;
 
-          function fillSubcategories() {
+          function selectedCategory() {
             var categories = options[typeSelect.value] || [];
             var selected = null;
             categories.forEach(function (category) {
               if (String(category.id) === categorySelect.value) { selected = category; }
             });
+            return selected;
+          }
+
+          function currentCounts() {
+            var category = selectedCategory();
+            if (!category) { return null; }
+            if (subcategorySelect.value) {
+              var found = null;
+              (category.subcategories || []).forEach(function (sub) {
+                if (sub.name === subcategorySelect.value) { found = sub; }
+              });
+              return found ? found.counts : category.counts;
+            }
+            return category.counts;
+          }
+
+          function refreshAvailability() {
+            var counts = currentCounts();
+            var firstEnabled = null;
+            Array.prototype.forEach.call(levelSelect.options, function (option) {
+              var available = counts ? (counts[option.value] || 0) : 0;
+              option.disabled = available < MIN_MATERIALS;
+              if (!option.disabled && firstEnabled === null) { firstEnabled = option.value; }
+            });
+            var selectedOption = levelSelect.options[levelSelect.selectedIndex];
+            if (selectedOption && selectedOption.disabled && firstEnabled !== null) {
+              levelSelect.value = firstEnabled;
+            }
+            if (firstEnabled === null) {
+              hint.textContent = 'Not enough materials in this selection yet (a card needs at least 8) — try another subcategory or category.';
+              submitButton.disabled = true;
+            } else {
+              var selected = levelSelect.options[levelSelect.selectedIndex];
+              var availableNow = counts[levelSelect.value] || 0;
+              hint.textContent = availableNow + ' materials available at ' + selected.textContent + ' — enough for a Bingo card.';
+              submitButton.disabled = false;
+            }
+          }
+
+          function fillSubcategories() {
+            var category = selectedCategory();
             subcategorySelect.innerHTML = '';
             var allOption = document.createElement('option');
             allOption.value = '';
             allOption.textContent = 'All subcategories';
             subcategorySelect.appendChild(allOption);
-            (selected ? selected.subcategories : []).forEach(function (name) {
+            (category ? category.subcategories : []).forEach(function (sub) {
               var option = document.createElement('option');
-              option.value = name;
-              option.textContent = name;
+              option.value = sub.name;
+              option.textContent = sub.name;
               subcategorySelect.appendChild(option);
             });
+            refreshAvailability();
           }
 
           function fillCategories() {
@@ -92,6 +139,8 @@
 
           typeSelect.addEventListener('change', fillCategories);
           categorySelect.addEventListener('change', fillSubcategories);
+          subcategorySelect.addEventListener('change', refreshAvailability);
+          levelSelect.addEventListener('change', refreshAvailability);
           fillCategories();
         });
       </script>
@@ -133,6 +182,7 @@
 .bingo-list .bingo-create-card .form-select{border:none;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .bingo-list .bingo-create-btn{background:linear-gradient(135deg,#f0b64a,#d9930d);border:none;color:#fff;font-weight:700;padding:.55rem 1.9rem;box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .bingo-list .bingo-create-btn:hover,.bingo-list .bingo-create-btn:focus{background:linear-gradient(135deg,#f5c15e,#e29e12);color:#fff}
+.bingo-list .bingo-create-hint{color:rgba(255,255,255,.85);font-size:.9rem}
 .bingo-list .bingo-game-card{background:#fffdf6;border:1px solid #eee5cf;border-top:6px solid #08915e;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.28);transition:transform .15s ease,box-shadow .15s ease}
 .bingo-list .bingo-game-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(0,0,0,.38)}
 .bingo-list .bingo-type-sentence{border-top-color:#d9930d}
