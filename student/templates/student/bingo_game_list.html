@@ -15,15 +15,105 @@
         <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Student Dashboard</a>
       </div>
 
+      <div class="card p-4 mb-4">
+        <h2 class="h4">Create Your Own Bingo</h2>
+        <p class="text-muted">Build a Bingo game from the materials you want to practice.</p>
+        <form method="post" action="{% url 'create_personal_bingo' %}">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label" for="bingo-content-type">Content</label>
+              <select class="form-select" id="bingo-content-type" name="content_type">
+                <option value="vocabulary">Vocabulary</option>
+                <option value="sentence">Sentences</option>
+                <option value="expression">Chinese Expressions</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="bingo-category">Category</label>
+              <select class="form-select" id="bingo-category" name="category_id"></select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="bingo-subcategory">Subcategory</label>
+              <select class="form-select" id="bingo-subcategory" name="subcategory">
+                <option value="">All subcategories</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="bingo-level">Level</label>
+              <select class="form-select" id="bingo-level" name="level">
+                <option value="level1">Level I</option>
+                <option value="level2">Level II</option>
+                <option value="level3">Level III</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary rounded-pill mt-3">Create Bingo</button>
+        </form>
+      </div>
+      {{ bingo_options|json_script:"bingo-options" }}
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          var options = JSON.parse(document.getElementById('bingo-options').textContent);
+          var typeSelect = document.getElementById('bingo-content-type');
+          var categorySelect = document.getElementById('bingo-category');
+          var subcategorySelect = document.getElementById('bingo-subcategory');
+
+          function fillSubcategories() {
+            var categories = options[typeSelect.value] || [];
+            var selected = null;
+            categories.forEach(function (category) {
+              if (String(category.id) === categorySelect.value) { selected = category; }
+            });
+            subcategorySelect.innerHTML = '';
+            var allOption = document.createElement('option');
+            allOption.value = '';
+            allOption.textContent = 'All subcategories';
+            subcategorySelect.appendChild(allOption);
+            (selected ? selected.subcategories : []).forEach(function (name) {
+              var option = document.createElement('option');
+              option.value = name;
+              option.textContent = name;
+              subcategorySelect.appendChild(option);
+            });
+          }
+
+          function fillCategories() {
+            var categories = options[typeSelect.value] || [];
+            categorySelect.innerHTML = '';
+            categories.forEach(function (category) {
+              var option = document.createElement('option');
+              option.value = category.id;
+              option.textContent = category.name;
+              categorySelect.appendChild(option);
+            });
+            fillSubcategories();
+          }
+
+          typeSelect.addEventListener('change', fillCategories);
+          categorySelect.addEventListener('change', fillSubcategories);
+          fillCategories();
+        });
+      </script>
+
       <div class="row g-4">
         {% for game in games %}
           <div class="col-md-6 col-lg-4">
             <div class="card h-100 p-4">
               <h3 class="h5">{{ game.title }}</h3>
+              {% if game.audience == 'personal' and game.teacher_id == user.id %}
+                <p class="mb-2"><span class="badge text-bg-success">Created by you</span></p>
+              {% endif %}
               <p class="mb-2"><strong>Content:</strong> {{ game.get_content_type_display }}</p>
               <p class="mb-2"><strong>Starting Level:</strong> {{ game.get_level_display }}</p>
               <p class="mb-3"><strong>Choose Your Card:</strong> 3 × 3, 4 × 4, or 5 × 5</p>
               <a href="{% url 'play_bingo' game.id %}" class="btn btn-primary rounded-pill mt-auto">Play Bingo</a>
+              {% if game.audience == 'personal' and game.teacher_id == user.id %}
+                <form method="post" action="{% url 'delete_personal_bingo' game.id %}" class="mt-2" onsubmit="return confirm('Delete this Bingo game?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Delete</button>
+                </form>
+              {% endif %}
             </div>
           </div>
         {% empty %}

@@ -15,7 +15,7 @@ from course.models import StudentGroup
 from student.models import LearnedItem
 from subscription.models import Subscription
 from teacher.bingo_models import BingoCard, BingoGame
-from teacher.models import Idiom, Sentence, Vocabulary
+from teacher.models import Idiom, IdiomCategory, Sentence, SentenceCategory, Vocabulary, VocabularyCategory
 
 LEVEL_ORDER = ['level1', 'level2', 'level3']
 CARD_SIZES = (3, 4, 5)
@@ -23,6 +23,8 @@ PUNCTUATION = set("，。！？；：,.!?;:、（）()「」『』“”\"' ")
 
 
 def _student_can_play(game, student):
+    if game.audience == 'personal':
+        return game.teacher_id == student.id
     if game.audience == 'subscribers':
         return not student.is_teacher and not student.is_staff and Subscription.objects.filter(user=student, is_active=True).exists()
     if game.audience == 'my_students':
@@ -31,6 +33,8 @@ def _student_can_play(game, student):
 
 
 def _visibility_filter_for_game(game):
+    if game.audience == 'personal':
+        return Q(visibility='all')
     if game.audience == 'subscribers':
         return Q(visibility='all')
     if game.audience == 'my_students':
@@ -66,6 +70,8 @@ def _eligible_materials(game, level=None):
         category_ids = _category_ids_for_game(game, 'sentence')
         if category_ids:
             queryset = queryset.filter(category_id__in=category_ids)
+        if game.subcategory:
+            queryset = queryset.filter(subcategory=game.subcategory)
         return queryset.distinct()
 
     if game.content_type == 'sentence':
@@ -73,6 +79,8 @@ def _eligible_materials(game, level=None):
         category_ids = _category_ids_for_game(game, 'sentence')
         if category_ids:
             queryset = queryset.filter(category_id__in=category_ids)
+        if game.subcategory:
+            queryset = queryset.filter(subcategory=game.subcategory)
         return queryset.distinct()
 
     if game.content_type == 'expression':
@@ -80,12 +88,16 @@ def _eligible_materials(game, level=None):
         category_ids = _category_ids_for_game(game, 'expression')
         if category_ids:
             queryset = queryset.filter(category_id__in=category_ids)
+        if game.subcategory:
+            queryset = queryset.filter(subcategory=game.subcategory)
         return queryset.distinct()
 
     queryset = Vocabulary.objects.filter(visibility_filter, level_filter, audio_file__isnull=False).exclude(audio_file='')
     category_ids = _category_ids_for_game(game, 'vocabulary')
     if category_ids:
         queryset = queryset.filter(category_id__in=category_ids)
+    if game.subcategory:
+        queryset = queryset.filter(subcategory=game.subcategory)
     return queryset.distinct()
 
 
@@ -209,6 +221,8 @@ def _has_bingo(card):
 
 
 def _notify_teacher_of_bingo(card):
+    if card.game.audience == 'personal':
+        return
     teacher = card.game.teacher
     student_name = card.student.get_full_name() or card.student.email or card.student.username
     teacher_link = reverse('teacher_bingo_list')
@@ -256,6 +270,37 @@ def _create_round(game, student, card_size):
     )
 
 
+def _bingo_creation_options():
+    """Categories a student can build a personal Bingo game from.
+
+    Keyed by content type; each category has at least one material that is
+    visible to everyone and carries the audio the play page needs, plus the
+    sorted subcategory names found on those materials.
+    """
+    specs = [
+        ('vocabulary', Vocabulary, 'audio_file'),
+        ('sentence', Sentence, 'audio_file'),
+        ('expression', Idiom, 'audio_scenario_file'),
+    ]
+    options = {}
+    for content_type, model, audio_field in specs:
+        materials = (
+            model.objects.filter(visibility='all', **{f'{audio_field}__isnull': False})
+            .exclude(**{audio_field: ''})
+            .exclude(category__isnull=True)
+        )
+        by_category = {}
+        for category_id, category_name, subcategory in materials.values_list('category_id', 'category__category_name', 'subcategory'):
+            entry = by_category.setdefault(category_id, {'id': category_id, 'name': category_name, 'subcategories': set()})
+            if subcategory:
+                entry['subcategories'].add(subcategory)
+        options[content_type] = [
+            {'id': entry['id'], 'name': entry['name'], 'subcategories': sorted(entry['subcategories'])}
+            for entry in sorted(by_category.values(), key=lambda entry: entry['name'])
+        ]
+    return options
+
+
 @login_required
 def bingo_game_list(request):
     games = [game for game in BingoGame.objects.filter(is_active=True).select_related('student_group', 'teacher') if _student_can_play(game, request.user)]
@@ -264,7 +309,73 @@ def bingo_game_list(request):
         latest = BingoCard.objects.filter(student=request.user, game=game).order_by('-round_number').first()
         if latest:
             cards[game.id] = latest
-    return render(request, 'student/bingo_game_list.html', {'games': games, 'cards': cards})
+    return render(request, 'student/bingo_game_list.html', {'games': games, 'cards': cards, 'bingo_options': _bingo_creation_options()})
+
+
+@login_required
+def create_personal_bingo(request):
+    if request.method != 'POST':
+        return redirect('student_bingo_list')
+
+    content_type = request.POST.get('content_type', '')
+    level = request.POST.get('level', '')
+    subcategory = (request.POST.get('subcategory') or '').strip()
+    try:
+        category_id = int(request.POST.get('category_id', ''))
+    except (TypeError, ValueError):
+        category_id = None
+
+    category_models = {
+        'vocabulary': VocabularyCategory,
+        'sentence': SentenceCategory,
+        'expression': IdiomCategory,
+    }
+    category = None
+    if content_type in category_models and level in ('level1', 'level2', 'level3') and category_id is not None:
+        category = category_models[content_type].objects.filter(pk=category_id).first()
+    if category is None:
+        messages.error(request, 'Please choose a content type, a category, and a level to create your Bingo game.')
+        return redirect('student_bingo_list')
+
+    category_key = f'{content_type}:{category.id}'
+    probe = BingoGame(
+        teacher=request.user,
+        title='',
+        audience='personal',
+        content_type=content_type,
+        category_key=category_key,
+        subcategory=subcategory,
+        level=level,
+    )
+    if _eligible_materials(probe, level).count() < 8:
+        messages.error(request, 'There are not enough learning materials in that selection yet to fill a Bingo card. Please try another category, subcategory, or level.')
+        return redirect('student_bingo_list')
+
+    game = BingoGame.objects.create(
+        teacher=request.user,
+        title=category.category_name + (f' — {subcategory}' if subcategory else ''),
+        audience='personal',
+        student_group=None,
+        game_mode='listening',
+        content_type=content_type,
+        category_key=category_key,
+        subcategory=subcategory,
+        level=level,
+        adaptive_difficulty=False,
+        use_free_center=True,
+        is_active=True,
+    )
+    return redirect('play_bingo', game_id=game.id)
+
+
+@login_required
+def delete_personal_bingo(request, game_id):
+    if request.method != 'POST':
+        return redirect('student_bingo_list')
+    game = get_object_or_404(BingoGame, id=game_id, audience='personal', teacher=request.user)
+    game.delete()
+    messages.success(request, 'Your Bingo game was deleted.')
+    return redirect('student_bingo_list')
 
 
 @login_required

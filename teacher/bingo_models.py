@@ -27,6 +27,7 @@ class BingoGame(models.Model):
         ("group", "One Student Group"),
         ("my_students", "All My Students"),
         ("subscribers", "All PandaSpeak Subscribers"),
+        ("personal", "Just Me"),
     ]
 
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_bingo_games")
@@ -38,6 +39,9 @@ class BingoGame(models.Model):
     # Comma-separated category keys such as "vocabulary:2,vocabulary:5".
     # A blank value means all categories for the selected content type.
     category_key = models.CharField(max_length=500, blank=True, default="")
+    # Optional single subcategory name shared by all three material models;
+    # blank means every subcategory in the chosen categories.
+    subcategory = models.CharField(max_length=100, blank=True, default="")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="level1")
     card_size = models.PositiveSmallIntegerField(choices=CARD_SIZE_CHOICES, default=5)
     use_free_center = models.BooleanField(default=True)
