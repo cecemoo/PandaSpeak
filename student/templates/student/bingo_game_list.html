@@ -106,6 +106,15 @@
             refreshAvailability();
           }
 
+          Array.prototype.forEach.call(typeSelect.options, function (option) {
+            if (!(options[option.value] || []).length) { option.disabled = true; }
+          });
+          if (typeSelect.options[typeSelect.selectedIndex].disabled) {
+            for (var i = 0; i < typeSelect.options.length; i++) {
+              if (!typeSelect.options[i].disabled) { typeSelect.selectedIndex = i; break; }
+            }
+          }
+
           typeSelect.addEventListener('change', fillCategories);
           categorySelect.addEventListener('change', refreshAvailability);
           levelSelect.addEventListener('change', refreshAvailability);

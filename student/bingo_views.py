@@ -285,10 +285,11 @@ def _add_to_level_counts(counts, level):
 def _bingo_creation_options():
     """Categories a student can build a personal Bingo game from.
 
-    Keyed by content type; each category has at least one material that is
-    visible to everyone and carries the audio the play page needs. Each
-    category (and each of its subcategories) carries per-level counts of its
-    eligible materials, where a material counts toward its own level and an
+    Keyed by content type; only categories that can actually fill a Bingo
+    card (at least 8 eligible materials at some level) are listed, so the
+    dropdowns never offer a category that cannot form a game. Each category
+    (and each of its subcategories) carries per-level counts of its eligible
+    materials, where a material counts toward its own level and an
     'all'-level material counts toward every level — the same rule
     _eligible_materials uses — so the create form can only offer level
     combinations that can actually fill a Bingo card.
@@ -326,6 +327,7 @@ def _bingo_creation_options():
                 'subcategories': [entry['subcategories'][name] for name in sorted(entry['subcategories'])],
             }
             for entry in sorted(by_category.values(), key=lambda entry: entry['name'])
+            if max(entry['counts'].values(), default=0) >= 8
         ]
     return options
 

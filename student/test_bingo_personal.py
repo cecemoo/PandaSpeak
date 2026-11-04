@@ -158,6 +158,22 @@ class PersonalBingoTests(TestCase):
         self.assertEqual(numbers['counts'], {'level1': 9, 'level2': 0, 'level3': 0})
         self.assertEqual(numbers['subcategories'], [])
 
+    def test_creation_options_only_list_categories_that_can_fill_a_card(self):
+        # A category with fewer than 8 eligible materials at every level can
+        # never form a Bingo card, so it must not appear in the dropdowns.
+        tiny = VocabularyCategory.objects.create(category_name='tiny')
+        for i in range(7):
+            _vocabulary(tiny, f'tiny-{i}', level='level1')
+
+        options = _bingo_creation_options()
+        names = [c['name'] for c in options['vocabulary']]
+        self.assertIn('numbers', names)
+        self.assertNotIn('tiny', names)
+        # No sentence or idiom fixtures exist in this test case, so those
+        # content types list no categories at all.
+        self.assertEqual(options['sentence'], [])
+        self.assertEqual(options['expression'], [])
+
     def test_delete_removes_own_game_but_not_for_non_owner(self):
         self._create_via_view(self.creator)
         game = BingoGame.objects.get(audience='personal')
