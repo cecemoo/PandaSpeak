@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
-from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite
+from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite, AssessmentRequest
 from .models import LearnedItem
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
@@ -525,6 +525,22 @@ def subscription_locked(request):
 
 
 
+def _visible_to_student_q(user):
+    """Visibility rule for student-facing LanguageTest querysets.
+
+    A test assigned to a specific student is visible only to that student;
+    an unassigned test keeps the group rule (visible when the student is in
+    its student group, or when it has no group).
+    """
+    return (
+        Q(assigned_student=user)
+        | (
+            Q(assigned_student__isnull=True)
+            & (Q(student_group__students=user) | Q(student_group__isnull=True))
+        )
+    )
+
+
 @login_required(login_url='my_login')
 def test_list(request):
     now = timezone.now()
@@ -535,7 +551,7 @@ def test_list(request):
         is_active=True,
         is_published=True
     ).filter(
-        Q(student_group__students=request.user) | Q(student_group__isnull=True)
+        _visible_to_student_q(request.user)
     ).filter(
         Q(available_from__isnull=True) | Q(available_from__lte=now)
     ).filter(
@@ -543,7 +559,10 @@ def test_list(request):
     ).exclude(id__in=completed_test_ids).distinct()
 
     context = {
-        'tests': tests
+        'tests': tests,
+        'assessment_requests': AssessmentRequest.objects.filter(
+            student=request.user
+        ).order_by('-created_at'),
     }
     return render(request, 'student/test_list.html', context)
 
@@ -560,8 +579,7 @@ def take_test(request, test_id):
         test = get_object_or_404(
 
         LanguageTest.objects.filter(
-            Q(student_group__students=request.user) |
-            Q(student_group__isnull=True)
+            _visible_to_student_q(request.user)
         ).filter(
             Q(available_from__isnull=True) |
             Q(available_from__lte=now)

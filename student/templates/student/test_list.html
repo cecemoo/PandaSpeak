@@ -9,6 +9,69 @@
   <section id="register-section" class="register-section section">
     <div class="container section-title" data-aos="fade-up"><h2>Chinese Speaking & Listening Tests</h2><p>Here are the available tests.</p></div>
     <div class="container" data-aos="fade-up">
+      <div class="assessment-request">
+        <div class="card assess-card p-4 mb-4">
+          <h2 class="h4">📋 Request a Comprehensive Assessment</h2>
+          <p class="assess-sub">Choose your level and the kind of test you want. A listening assessment is generated instantly from your level's materials; speaking and combined assessments are prepared for you by the PandaSpeak team.</p>
+          <form method="post" action="{% url 'request_assessment' %}">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="assess-level">Level</label>
+                <select class="form-select" id="assess-level" name="level">
+                  <option value="level1">Level I</option>
+                  <option value="level2">Level II</option>
+                  <option value="level3">Level III</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="assess-type">Test Type</label>
+                <select class="form-select" id="assess-type" name="test_type">
+                  <option value="listening">Listening</option>
+                  <option value="speaking">Speaking</option>
+                  <option value="mixed">Speaking &amp; Listening</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn assess-btn rounded-pill mt-3">Request Assessment</button>
+          </form>
+          {% if assessment_requests %}
+          <h3 class="h6 mt-4 mb-2" style="color:#fff;">Your assessment requests</h3>
+          <ul class="list-unstyled mb-0">
+            {% for req in assessment_requests %}
+            <li class="assess-request-row d-flex flex-wrap align-items-center gap-2 py-2">
+              <span><strong>{{ req.get_level_display }}</strong> — {{ req.get_test_type_display }}</span>
+              {% if req.status == 'pending' %}
+                <span class="badge text-bg-warning">Pending</span>
+              {% elif req.status == 'fulfilled' %}
+                <span class="badge text-bg-success">Fulfilled</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Cancelled</span>
+              {% endif %}
+              <span class="assess-date">{{ req.created_at|date:"M j, Y" }}</span>
+              {% if req.status == 'pending' %}
+              <form method="post" action="{% url 'cancel_assessment_request' req.id %}" class="ms-auto">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-light rounded-pill">Cancel</button>
+              </form>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <style>
+          .assessment-request .assess-card{background:linear-gradient(135deg,#0a4a34 0%,#08915e 125%);border:none;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.35);color:#fff}
+          .assessment-request .assess-card h2{color:#fff;font-weight:700}
+          .assessment-request .assess-sub{color:rgba(255,255,255,.88)}
+          .assessment-request .form-label{color:rgba(255,255,255,.92);font-weight:600;font-size:.85rem;letter-spacing:.02em}
+          .assessment-request .form-select{border:none;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+          .assessment-request .assess-btn{background:linear-gradient(135deg,#f0b64a,#d9930d);border:none;color:#fff;font-weight:700;padding:.55rem 1.9rem;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+          .assessment-request .assess-btn:hover,.assessment-request .assess-btn:focus{background:linear-gradient(135deg,#f5c15e,#e29e12);color:#fff}
+          .assessment-request .assess-request-row{border-top:1px solid rgba(255,255,255,.25)}
+          .assessment-request .assess-date{color:rgba(255,255,255,.75);font-size:.85rem}
+        </style>
+      </div>
       {% if tests %}
       <div class="alert alert-warning" role="alert">
         <strong>Important:</strong> Each test is available only during the time window set by your instructor. Please complete it before the deadline. After the availability window ends, the test will no longer appear on this page.

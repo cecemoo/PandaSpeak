@@ -130,7 +130,28 @@ class LanguageTest(models.Model):
     notification_sent = models.BooleanField(default=False)
     time_limit_minutes = models.PositiveIntegerField(null=True, blank=True, help_text='Optional time limit per student in minutes')
     student_group = models.ForeignKey(StudentGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='language_tests')
+    assigned_student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assigned_tests', null=True, blank=True)
     def __str__(self): return self.title
+
+class AssessmentRequest(models.Model):
+    """A student's request for a comprehensive assessment test.
+
+    Listening-only assessments are generated instantly and never create one
+    of these; speaking and speaking & listening requests are prepared by a
+    PandaSpeak manager, who creates the test, assigns it to the student
+    (LanguageTest.assigned_student) and marks this request fulfilled.
+    """
+    LEVEL_CHOICES = [('level1', 'Level I'), ('level2', 'Level II'), ('level3', 'Level III')]
+    TEST_TYPE_CHOICES = [('speaking', 'Speaking'), ('mixed', 'Speaking & Listening')]
+    STATUS_CHOICES = [('pending', 'Pending'), ('fulfilled', 'Fulfilled'), ('cancelled', 'Cancelled')]
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assessment_requests')
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    test_type = models.CharField(max_length=20, choices=TEST_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    fulfilled_test = models.ForeignKey(LanguageTest, on_delete=models.SET_NULL, null=True, blank=True, related_name='assessment_requests')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self): return f"{self.student.email} - {self.get_level_display()} {self.get_test_type_display()} ({self.get_status_display()})"
 
 class TestQuestion(models.Model):
     QUESTION_TYPES = [('listen_mc', 'Listening - Multiple Choice'), ('speak_read', 'Speaking - Read Aloud')]

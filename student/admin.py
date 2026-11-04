@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (
-    CulturalInsight, CulturalInsightUnlock, LanguageTest,
+    AssessmentRequest, CulturalInsight, CulturalInsightUnlock, LanguageTest,
     StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer,
 )
 
@@ -25,6 +25,14 @@ class CulturalInsightUnlockAdmin(admin.ModelAdmin):
 
 admin.site.register(LanguageTest)
 admin.site.register(StudentSpeakingAnswer)
+
+
+@admin.register(AssessmentRequest)
+class AssessmentRequestAdmin(admin.ModelAdmin):
+    list_display = ('student', 'level', 'test_type', 'status', 'created_at')
+    list_filter = ('status', 'level', 'test_type')
+    search_fields = ('student__email',)
+    ordering = ('-created_at',)
 
 
 class StudentListeningAnswerInline(admin.TabularInline):

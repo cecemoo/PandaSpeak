@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import assessment
 from . import bingo_views
 from . import flashcard_views
 from . import subscription_guard_views
@@ -36,6 +37,8 @@ urlpatterns = [
     path('flashcards/my-cards/', subscription_required(flashcard_views.manage_personal_flashcards), name='student_personal_flashcards'),
     path('flashcards/my-cards/<int:pk>/delete/', subscription_required(flashcard_views.delete_personal_flashcard), name='delete_personal_flashcard'),
     path('tests/', subscription_required(views.test_list), name='test_list'),
+    path('tests/request-assessment/', subscription_required(assessment.request_assessment), name='request_assessment'),
+    path('tests/requests/<int:request_id>/cancel/', subscription_required(assessment.cancel_assessment_request), name='cancel_assessment_request'),
     path('tests/<int:test_id>/', subscription_required(views.take_test), name='take_test'),
     path('tests/question/<int:question_id>/submit-speaking/', subscription_required(views.submit_speaking_answer), name='submit_speaking_answer'),
     path('tests/results/<int:submission_id>/', subscription_required(views.test_result), name='test_result'),
