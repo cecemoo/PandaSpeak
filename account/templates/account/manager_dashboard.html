@@ -37,7 +37,7 @@
 
 
                 <!-- right side content -->
-                <div class="col-md-9"><p><a class="btn btn-outline-primary" href="/subscription/manager/acknowledgements/">View Subscription &amp; Stripe Connect Acknowledgments</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_purchase_blocklist' %}">Blocked Purchase Emails</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_school_subscriptions' %}">School / Group Subscriptions</a></p>
+                <div class="col-md-9"><p><a class="btn btn-outline-primary" href="/subscription/manager/acknowledgements/">View Subscription &amp; Stripe Connect Acknowledgments</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_purchase_blocklist' %}">Blocked Purchase Emails</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_school_subscriptions' %}">School / Group Subscriptions</a> <a class="btn btn-outline-primary ms-2" href="{% url 'manager_test_list' %}">Assessment Tests{% if pending_assessment_request_count %} <span class="badge bg-danger">{{ pending_assessment_request_count }}</span>{% endif %}</a></p>
                     <!-- Search -->
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-body">

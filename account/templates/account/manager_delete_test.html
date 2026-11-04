@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Delete Test</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+                    <li><a href="{% url 'manager_test_list' %}">Assessment Tests</a></li>
+                    <li class="current">Delete Test</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <section id="manager-delete-test-section" class="section">
+        <div class="container" data-aos="fade-up">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Delete “{{ test.title }}”?</h5>
+                    <p>
+                        This will permanently delete the test
+                        <strong>{{ test.title }}</strong>
+                        ({{ test.level }} · {{ test.get_test_type_display }})
+                        and its {{ question_count }} question{{ question_count|pluralize }}.
+                        This cannot be undone.
+                    </p>
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger rounded-pill">Yes, delete this test</button>
+                    </form>
+                    <a href="{% url 'manager_test_list' %}" class="btn btn-secondary rounded-pill">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

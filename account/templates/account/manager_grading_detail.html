@@ -1,0 +1,85 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Grade Speaking Answers</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+                    <li><a href="{% url 'manager_test_list' %}">Assessment Tests</a></li>
+                    <li><a href="{% url 'manager_grading_list' %}">Speaking Grading</a></li>
+                    <li class="current">Grade</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <section id="manager-grading-detail-section" class="section">
+        <div class="container" data-aos="fade-up">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-2">{{ submission.test.title }}</h5>
+                    <p class="mb-1"><strong>Student:</strong> {{ submission.student.get_full_name|default:submission.student.email }} ({{ submission.student.email }})</p>
+                    <p class="mb-1"><strong>Submitted:</strong> {{ submission.submitted_at|date:"M j, Y, g:i A" }}</p>
+                    <p class="mb-0">
+                        <strong>Listening score:</strong> {{ submission.listening_score|default:"—" }} ·
+                        <strong>Speaking score:</strong> {{ submission.speaking_score|default:"—" }} ·
+                        <strong>Total:</strong> {{ submission.total_score|default:"—" }}
+                        {% if submission.is_graded %}<span class="badge bg-success ms-2">Graded</span>{% else %}<span class="badge bg-warning text-dark ms-2">Awaiting grading</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {% for answer in speaking_answers %}
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold">Question {{ answer.question.order }} <small class="text-muted">({{ answer.question.points }} point{{ answer.question.points|pluralize }})</small></h6>
+                    <p>{{ answer.question.prompt }}</p>
+
+                    {% if answer.audio_file %}
+                    <audio controls src="{{ answer.audio_file.url }}" class="mb-3"></audio>
+                    {% else %}
+                    <p class="text-muted"><em>No recording available{% if answer.score is not None %} (removed after grading){% endif %}.</em></p>
+                    {% endif %}
+
+                    {% if answer.score is not None %}
+                    <p class="mb-3"><span class="badge bg-success">Graded: {{ answer.score }} / {{ answer.question.points }}</span>
+                    {% if answer.teacher_feedback %}<br><strong>Feedback given:</strong> {{ answer.teacher_feedback }}{% endif %}</p>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'manager_grade_speaking_answer' answer.id %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label" for="score-{{ answer.id }}">Score (0–{{ answer.question.points }})</label>
+                                <input type="number" step="any" min="0" max="{{ answer.question.points }}" class="form-control" id="score-{{ answer.id }}" name="score" value="{{ answer.score|default_if_none:'' }}" required>
+                            </div>
+                            <div class="col-12 col-md-9">
+                                <label class="form-label" for="feedback-{{ answer.id }}">Feedback</label>
+                                <textarea class="form-control" id="feedback-{{ answer.id }}" name="teacher_feedback" rows="2">{{ answer.teacher_feedback|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill mt-3">Save grade</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">This submission has no speaking answers.</div>
+            {% endfor %}
+
+            <a class="btn btn-outline-secondary rounded-pill" href="{% url 'manager_grading_list' %}">Back to Speaking Grading</a>
+
+        </div>
+    </section>
+
+</main>
+{% endblock %}

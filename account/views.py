@@ -26,7 +26,7 @@ import stripe
 from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.mail import send_mail
-from student.models import LanguageTest, StudentTestSubmission
+from student.models import AssessmentRequest, LanguageTest, StudentTestSubmission
 from teacher.models import SurveyResponse
 from django.urls import resolve, reverse
 from django.db.models import Q
@@ -265,6 +265,8 @@ def manager_dashboard(request):
     from teacher.models import LearningSubcategory
     subcategory_groups = [{'kind': kind, 'category': c, 'items': LearningSubcategory.objects.filter(material_type=kind, category_id_value=c.pk)} for kind, cls in [('vocabulary', VocabularyCategory), ('sentence', SentenceCategory), ('expression', IdiomCategory)] for c in cls.objects.order_by('category_name')]
     context = {
+        'pending_assessment_request_count': AssessmentRequest.objects.filter(status='pending').count(),
+
         'subcategory_groups': subcategory_groups,
 
         'vocabulary_category_count': vocabulary_category_count,

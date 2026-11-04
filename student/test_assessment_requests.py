@@ -57,7 +57,7 @@ class ListeningAssessmentGenerationTests(TestCase):
 
     def test_listening_request_generates_assigned_test(self):
         response = self._request(self.student)
-        test = LanguageTest.objects.get(assigned_student=self.student)
+        test = LanguageTest.objects.get(assigned_students=self.student)
         self.assertEqual(test.test_type, 'listening')
         self.assertEqual(test.level, 'Level I')
         self.assertEqual(test.title, 'Level I Listening Assessment')
@@ -85,7 +85,7 @@ class ListeningAssessmentGenerationTests(TestCase):
 
     def test_generated_test_visible_only_to_its_student(self):
         self._request(self.student)
-        test = LanguageTest.objects.get(assigned_student=self.student)
+        test = LanguageTest.objects.get(assigned_students=self.student)
 
         self.client.force_login(self.student)
         response = self.client.get(reverse('test_list'))
@@ -101,7 +101,7 @@ class ListeningAssessmentGenerationTests(TestCase):
 
     def test_second_listening_request_reuses_open_test(self):
         first = self._request(self.student)
-        test = LanguageTest.objects.get(assigned_student=self.student)
+        test = LanguageTest.objects.get(assigned_students=self.student)
         second = self._request(self.student)
         self.assertEqual(LanguageTest.objects.count(), 1)
         self.assertRedirects(first, reverse('take_test', args=[test.id]))
@@ -224,5 +224,5 @@ class AllTestsTimedTests(TestCase):
         self.client.force_login(self.student)
         self.client.post(reverse('request_assessment'),
                          {'level': 'level1', 'test_type': 'listening'})
-        test = LanguageTest.objects.get(assigned_student=self.student)
+        test = LanguageTest.objects.get(assigned_students=self.student)
         self.assertEqual(test.time_limit_minutes, DEFAULT_TEST_TIME_LIMIT_MINUTES)

@@ -7,9 +7,10 @@ Two paths (Cece's spec, 2026-11-03):
   listen-and-choose-the-English-meaning multiple-choice questions, assigned
   to that student only, and scored by the existing test flow.
 - Speaking or Speaking & Listening: recorded as an AssessmentRequest for
-  the PandaSpeak team. A manager creates the test, assigns it to the
-  student, and marks the request fulfilled in the admin; the manager scores
-  the speaking part while any listening part is auto-scored as usual.
+  the PandaSpeak team. A manager creates the test from the manager
+  dashboard's Assessment Tests page (the requester is preselected as the
+  audience); publishing the test marks the request fulfilled. The manager
+  scores the speaking part while any listening part is auto-scored as usual.
 """
 import random
 
@@ -77,7 +78,7 @@ def _existing_open_listening_test(user, level_label):
         student=user).values_list('test_id', flat=True)
     return (
         LanguageTest.objects.filter(
-            assigned_student=user, test_type='listening', level=level_label,
+            assigned_students=user, test_type='listening', level=level_label,
             is_active=True, is_published=True)
         .exclude(id__in=completed_ids)
         .order_by('id')
@@ -139,9 +140,9 @@ def generate_listening_assessment(user, level):
             is_active=True,
             is_published=True,
             teacher=None,
-            assigned_student=user,
             time_limit_minutes=DEFAULT_TEST_TIME_LIMIT_MINUTES,
         )
+        test.assigned_students.add(user)
         for question in questions:
             question.test = test
         TestQuestion.objects.bulk_create(questions)
@@ -188,10 +189,11 @@ def request_assessment(request):
                 f'Email: {request.user.email}\n'
                 f'Level: {level_label}\n'
                 f'Test type: {type_label}\n\n'
-                f'Please create the test, assign it to this student '
-                f'(set the test\'s "assigned student" to them), publish it, '
-                f'and then mark this assessment request as fulfilled in the '
-                f'admin, linking the test you created.'
+                f'Please open the Manager Dashboard, go to Assessment '
+                f'Tests, and use "Create test" next to this request — the '
+                f'student is preselected as the audience. Add the questions '
+                f'and publish the test; publishing marks this request '
+                f'fulfilled automatically.'
             ),
             from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
             recipient_list=[SUPPORT_EMAIL],

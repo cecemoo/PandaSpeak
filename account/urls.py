@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from subscription import manager_views as purchase_manager_views
 from . import views
 from . import internal_views
+from . import manager_tests
 from . import managers
 from . import announcement_views
 from . import contact_views
@@ -13,6 +14,16 @@ urlpatterns = [
     path('internal/cron/lead-followups/', internal_views.lead_followups_trigger, name='lead_followups_trigger'),
     path('manager/subcategories/', views.manage_learning_subcategory, name='manage_learning_subcategory'),
     path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
+    path('manager_dashboard/tests/', manager_tests.manager_test_list, name='manager_test_list'),
+    path('manager_dashboard/tests/create/', manager_tests.manager_create_test, name='manager_create_test'),
+    path('manager_dashboard/tests/grading/', manager_tests.manager_grading_list, name='manager_grading_list'),
+    path('manager_dashboard/tests/grading/<int:submission_id>/', manager_tests.manager_grading_detail, name='manager_grading_detail'),
+    path('manager_dashboard/tests/grading/answer/<int:answer_id>/', manager_tests.manager_grade_speaking_answer, name='manager_grade_speaking_answer'),
+    path('manager_dashboard/tests/<int:test_id>/edit/', manager_tests.manager_edit_test, name='manager_edit_test'),
+    path('manager_dashboard/tests/<int:test_id>/questions/', manager_tests.manager_test_questions, name='manager_test_questions'),
+    path('manager_dashboard/tests/<int:test_id>/questions/<int:question_id>/delete/', manager_tests.manager_delete_test_question, name='manager_delete_test_question'),
+    path('manager_dashboard/tests/<int:test_id>/publish/', manager_tests.manager_publish_test, name='manager_publish_test'),
+    path('manager_dashboard/tests/<int:test_id>/delete/', manager_tests.manager_delete_test, name='manager_delete_test'),
     path('email-preferences/', announcement_views.preferences, name='email_preferences'),
     path('news/unsubscribe/<str:token>/', announcement_views.unsubscribe, name='news_unsubscribe'),
     path('announcements/', announcement_views.compose, name='announcements'),

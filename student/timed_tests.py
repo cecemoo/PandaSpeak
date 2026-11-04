@@ -1,10 +1,61 @@
 """Timed test completion shared by requests and scheduled expiry processing."""
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
-from account.models import Notification
+from account.models import CustomUser, Notification
 from django.urls import reverse
 from .models import (TimedTestAttempt, StudentTestSubmission, StudentListeningAnswer,
                      StudentSpeakingAnswer)
+
+SUPPORT_EMAIL = 'pandaspeaksupport@gmail.com'
+SITE_ORIGIN = 'https://pandaspeak.org'
+
+
+def notify_managers_speaking_submission(submission):
+    """Alert PandaSpeak managers that a manager test's speaking part is
+    ready to score (Cece, 2026-11-03).
+
+    No-op unless the submission's test is a manager test
+    (is_manager_test=True) with at least one speaking answer. Callers call
+    this exactly once, when the submission is created, so no duplicate
+    alerts go out: one email to the support inbox plus one Notification
+    for every active staff/superuser user, both linking to the manager
+    grading page for the submission.
+    """
+    test = submission.test
+    if not test.is_manager_test:
+        return
+    if not StudentSpeakingAnswer.objects.filter(submission=submission).exists():
+        return
+    student = submission.student
+    student_name = student.get_full_name() or student.email
+    grading_path = reverse('manager_grading_detail', args=[submission.id])
+    send_mail(
+        subject='Speaking test completed — ready to score',
+        message=(
+            f'{student_name} ({student.email}) has completed the test '
+            f'"{test.title}".\n\n'
+            f'The speaking part is ready to score:\n'
+            f'{SITE_ORIGIN}{grading_path}\n'
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[SUPPORT_EMAIL],
+        fail_silently=False,
+    )
+    managers = CustomUser.objects.filter(is_active=True).filter(
+        Q(is_staff=True) | Q(is_superuser=True))
+    for manager_user in managers:
+        Notification.objects.create(
+            user=manager_user,
+            title='Speaking Test Ready to Score',
+            message=(
+                f'{student_name} completed "{test.title}". '
+                f'The speaking part is ready to score.'
+            ),
+            link=grading_path,
+        )
 
 
 def finalize_attempt(attempt_id, auto=False):
@@ -47,4 +98,5 @@ def finalize_attempt(attempt_id, auto=False):
                 message=f'{attempt.student.get_full_name() or attempt.student.email} submitted {attempt.test.title}.',
                 link=reverse('teacher_student_test_results'),
             )
+        notify_managers_speaking_submission(submission)
         return submission

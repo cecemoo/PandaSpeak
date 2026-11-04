@@ -21,7 +21,7 @@ from django.conf import settings
 from datetime import timedelta
 from django.db import transaction
 from .models import TimedTestAttempt
-from .timed_tests import finalize_attempt
+from .timed_tests import finalize_attempt, notify_managers_speaking_submission
 
 
 
@@ -528,14 +528,14 @@ def subscription_locked(request):
 def _visible_to_student_q(user):
     """Visibility rule for student-facing LanguageTest querysets.
 
-    A test assigned to a specific student is visible only to that student;
+    A test assigned to specific students is visible only to those students;
     an unassigned test keeps the group rule (visible when the student is in
     its student group, or when it has no group).
     """
     return (
-        Q(assigned_student=user)
+        Q(assigned_students=user)
         | (
-            Q(assigned_student__isnull=True)
+            Q(assigned_students__isnull=True)
             & (Q(student_group__students=user) | Q(student_group__isnull=True))
         )
     )
@@ -738,6 +738,9 @@ def take_test(request, test_id):
             submission.save(
                     update_fields=['listening_score']
             )
+            # Manager tests: alert the PandaSpeak managers that the
+            # speaking part is ready to score (no-op for other tests).
+            notify_managers_speaking_submission(submission)
                 # -------------------------
                 # EMAIL SPEAKING RECORDINGS
                 # -------------------------

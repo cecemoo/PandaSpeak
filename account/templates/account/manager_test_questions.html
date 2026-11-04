@@ -1,0 +1,191 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+    <div class="container position-relative">
+      <h1>Test Questions</h1>
+      <p>Hello, {{ user.first_name }}!</p>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+          <li><a href="{% url 'manager_test_list' %}">Assessment Tests</a></li>
+          <li class="current">Questions</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
+
+  <section id="manager-test-questions-section" class="section">
+    <div class="container section-title" data-aos="fade-up">
+      <h2>{{ test.title }}</h2>
+      <p>{{ test.level }} · {{ test.get_test_type_display }}{% if test.is_published %} · <span class="badge bg-success">Published</span>{% else %} · <span class="badge bg-secondary">Draft</span>{% endif %}</p>
+      {% if linked_requests %}
+      <p class="small text-muted">
+        Linked assessment request{{ linked_requests|length|pluralize }}:
+        {% for req in linked_requests %}{{ req.student.get_full_name|default:req.student.email }} — {{ req.get_level_display }} {{ req.get_test_type_display }} ({{ req.get_status_display }}){% if not forloop.last %}; {% endif %}{% endfor %}
+      </p>
+      {% endif %}
+    </div><!-- End Section Title -->
+
+    <div class="container" data-aos="fade-up">
+
+      {% if questions %}
+      <h5 class="fw-bold">Existing Questions</h5>
+      <div class="table-responsive mb-4">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Type</th>
+              <th>Prompt</th>
+              <th>Points</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for question in questions %}
+            <tr>
+              <td>{{ question.order }}</td>
+              <td>{{ question.get_question_type_display }}</td>
+              <td>{{ question.prompt|truncatechars:120 }}</td>
+              <td>{{ question.points }}</td>
+              <td class="text-end">
+                <form method="post" action="{% url 'manager_delete_test_question' test.id question.id %}" class="d-inline" onsubmit="return confirm('Delete this question?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      <h5 class="fw-bold">Add a Question</h5>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          {{ form.question_type.label_tag }}
+          {{ form.question_type }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.prompt.label_tag }}
+          {{ form.prompt }}
+        </div>
+
+        <div id="audio-field" class="mb-3">
+          <label for="id_audio">Audio <span id="audio-required-star" class="text-danger" aria-label="required">*</span></label>
+          {{ form.audio }}
+        </div>
+
+        <div id="multiple-choice-fields">
+          <div class="mb-3">
+            {{ form.choice_a.label_tag }}
+            {{ form.choice_a }}
+          </div>
+          <div class="mb-3">
+            {{ form.choice_b.label_tag }}
+            {{ form.choice_b }}
+          </div>
+          <div class="mb-3">
+            {{ form.choice_c.label_tag }}
+            {{ form.choice_c }}
+          </div>
+          <div class="mb-3">
+            {{ form.choice_d.label_tag }}
+            {{ form.choice_d }}
+          </div>
+        </div>
+
+        <div id="correct-choice-field" class="mb-3">
+          {{ form.correct_choice.label_tag }}
+          {{ form.correct_choice }}
+        </div>
+        <div id="correct-answer-field" class="mb-3">
+          {{ form.correct_answer.label_tag }}
+          {{ form.correct_answer }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.points.label_tag }}
+          {{ form.points }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.order.label_tag }}
+          {{ form.order }}
+        </div>
+
+        {{ form.non_field_errors }}
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary rounded-pill">Add Test Question</button>
+          <a href="{% url 'manager_test_list' %}" class="btn btn-secondary rounded-pill">Back to Assessment Tests</a>
+        </div>
+      </form>
+
+      {% if questions %}
+      <hr class="my-4">
+      {% if not test.is_published %}
+      <form method="post" action="{% url 'manager_publish_test' test.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success rounded-pill">Publish Test</button>
+      </form>
+      {% else %}
+      <div class="alert alert-success">✓ This test has been published.</div>
+      {% endif %}
+      {% endif %}
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const questionType = document.getElementById("id_question_type");
+    const multipleChoiceFields = document.getElementById("multiple-choice-fields");
+    const correctChoiceField = document.getElementById("correct-choice-field");
+    const correctAnswerField = document.getElementById("correct-answer-field");
+    const audioField = document.getElementById("audio-field");
+    const audioInput = document.getElementById("id_audio");
+
+    function updateFields() {
+      const selectedType = questionType.value;
+      audioInput.required = selectedType === "listen_mc" || selectedType === "listen_text";
+      document.getElementById("audio-required-star").style.display = audioInput.required ? "inline" : "none";
+
+      if (selectedType === "listen_mc") {
+        multipleChoiceFields.style.display = "block";
+        correctChoiceField.style.display = "block";
+        correctAnswerField.style.display = "none";
+        audioField.style.display = "block";
+      } else if (selectedType === "listen_text") {
+        multipleChoiceFields.style.display = "none";
+        correctChoiceField.style.display = "none";
+        correctAnswerField.style.display = "block";
+        audioField.style.display = "block";
+      } else {
+        multipleChoiceFields.style.display = "none";
+        correctChoiceField.style.display = "none";
+        correctAnswerField.style.display = "none";
+        audioField.style.display = "none";
+      }
+    }
+
+    questionType.addEventListener("change", updateFields);
+    updateFields();
+  });
+</script>
+
+{% endblock %}

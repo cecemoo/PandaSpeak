@@ -134,7 +134,8 @@ class LanguageTest(models.Model):
     notification_sent = models.BooleanField(default=False)
     time_limit_minutes = models.PositiveIntegerField(null=True, blank=True, help_text='Optional time limit per student in minutes')
     student_group = models.ForeignKey(StudentGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='language_tests')
-    assigned_student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assigned_tests', null=True, blank=True)
+    assigned_students = models.ManyToManyField(CustomUser, blank=True, related_name='assigned_tests')
+    is_manager_test = models.BooleanField(default=False)
     def __str__(self): return self.title
 
 class AssessmentRequest(models.Model):
@@ -142,8 +143,9 @@ class AssessmentRequest(models.Model):
 
     Listening-only assessments are generated instantly and never create one
     of these; speaking and speaking & listening requests are prepared by a
-    PandaSpeak manager, who creates the test, assigns it to the student
-    (LanguageTest.assigned_student) and marks this request fulfilled.
+    PandaSpeak manager, who creates the test from the manager dashboard,
+    assigns it to the student (LanguageTest.assigned_students), and the
+    request is marked fulfilled when the test is published.
     """
     LEVEL_CHOICES = [('level1', 'Level I'), ('level2', 'Level II'), ('level3', 'Level III')]
     TEST_TYPE_CHOICES = [('speaking', 'Speaking'), ('mixed', 'Speaking & Listening')]

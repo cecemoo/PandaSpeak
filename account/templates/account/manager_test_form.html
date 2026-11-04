@@ -1,0 +1,139 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>{{ heading }}</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+                    <li><a href="{% url 'manager_test_list' %}">Assessment Tests</a></li>
+                    <li class="current">{{ heading }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <section id="manager-test-form-section" class="section">
+        <div class="container" data-aos="fade-up">
+
+            {% if assessment_request %}
+            <div class="alert alert-info">
+                Creating a test for the assessment request from
+                <strong>{{ assessment_request.student.get_full_name|default:assessment_request.student.email }}</strong>
+                ({{ assessment_request.student.email }}) —
+                {{ assessment_request.get_level_display }} {{ assessment_request.get_test_type_display }},
+                requested {{ assessment_request.created_at|date:"M j, Y, g:i A" }}.
+                The request will be marked fulfilled when you publish the test.
+            </div>
+            {% endif %}
+
+            {% if linked_requests %}
+            <div class="alert alert-info">
+                Linked assessment request{{ linked_requests|length|pluralize }}:
+                {% for req in linked_requests %}
+                {{ req.student.get_full_name|default:req.student.email }} — {{ req.get_level_display }} {{ req.get_test_type_display }} ({{ req.get_status_display }}){% if not forloop.last %}; {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.request_id }}
+
+                <div class="mb-3">
+                    {{ form.title.label_tag }}
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        {{ form.level.label_tag }}
+                        {{ form.level }}
+                        {{ form.level.errors }}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        {{ form.test_type.label_tag }}
+                        {{ form.test_type }}
+                        {{ form.test_type.errors }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                    {{ form.description.errors }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.time_limit_minutes.label_tag }}
+                    {{ form.time_limit_minutes }}
+                    {% if form.time_limit_minutes.help_text %}<div class="form-text">{{ form.time_limit_minutes.help_text }}</div>{% endif %}
+                    {{ form.time_limit_minutes.errors }}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        {{ form.available_from.label_tag }}
+                        {{ form.available_from }}
+                        {{ form.available_from.errors }}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        {{ form.available_until.label_tag }}
+                        {{ form.available_until }}
+                        {{ form.available_until.errors }}
+                    </div>
+                </div>
+
+                {% if form.audience %}
+                <div class="mb-3">
+                    {{ form.audience.label_tag }}
+                    {{ form.audience }}
+                    {% if form.audience.help_text %}<div class="form-text">{{ form.audience.help_text }}</div>{% endif %}
+                    {{ form.audience.errors }}
+                </div>
+                {% endif %}
+
+                {% if form.students %}
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.audience_all }}
+                        <label class="form-check-label" for="{{ form.audience_all.id_for_label }}">{{ form.audience_all.label }}</label>
+                    </div>
+                    {% if form.audience_all.help_text %}<div class="form-text">{{ form.audience_all.help_text }}</div>{% endif %}
+                    {{ form.audience_all.errors }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form.students.label }}</label>
+                    {{ form.students }}
+                    {% if form.students.help_text %}<div class="form-text">{{ form.students.help_text }}</div>{% endif %}
+                    {{ form.students.errors }}
+                </div>
+                {% endif %}
+
+                <div class="mb-3 form-check">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                    {{ form.is_active.errors }}
+                </div>
+
+                {{ form.non_field_errors }}
+
+                <button type="submit" class="btn btn-primary rounded-pill">{{ submit_label }}</button>
+                <a href="{% url 'manager_test_list' %}" class="btn btn-secondary rounded-pill">Back to Assessment Tests</a>
+            </form>
+
+        </div>
+    </section>
+
+</main>
+{% endblock %}

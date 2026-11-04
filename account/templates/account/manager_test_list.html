@@ -1,0 +1,147 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Assessment Tests</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+                    <li class="current">Assessment Tests</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <section id="manager-tests-section" class="section">
+        <div class="container" data-aos="fade-up">
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a class="btn btn-primary rounded-pill" href="{% url 'manager_create_test' %}">Create New Test</a>
+                <a class="btn btn-outline-primary rounded-pill" href="{% url 'manager_grading_list' %}">
+                    Speaking Grading{% if grading_waiting %} <span class="badge bg-danger">{{ grading_waiting }} waiting</span>{% endif %}
+                </a>
+                <a class="btn btn-outline-secondary rounded-pill" href="{% url 'manager_dashboard' %}">Back to Manager Dashboard</a>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Pending Assessment Requests</h5>
+                    {% if pending_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Level</th>
+                                    <th>Type</th>
+                                    <th>Requested</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in pending_requests %}
+                                <tr>
+                                    <td>{{ req.student.get_full_name|default:req.student.email }}<br><small class="text-muted">{{ req.student.email }}</small></td>
+                                    <td>{{ req.get_level_display }}</td>
+                                    <td>{{ req.get_test_type_display }}</td>
+                                    <td>{{ req.created_at|date:"M j, Y, g:i A" }}</td>
+                                    <td class="text-end">
+                                        {% if req.fulfilled_test %}
+                                        <a class="btn btn-sm btn-success rounded-pill" href="{% url 'manager_test_questions' req.fulfilled_test.id %}">Open linked test: {{ req.fulfilled_test.title }}</a>
+                                        <div class="small text-muted mt-1">Publish it to fulfil this request.</div>
+                                        {% else %}
+                                        <a class="btn btn-sm btn-primary rounded-pill" href="{% url 'manager_create_test' %}?request={{ req.id }}">Create test</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No pending assessment requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Manager Tests</h5>
+                    {% if tests %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Level</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Assigned to</th>
+                                    <th>Questions</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in tests %}
+                                <tr>
+                                    <td>
+                                        {{ test.title }}
+                                        {% for req in test.assessment_requests.all %}
+                                        <div class="small text-muted">For request: {{ req.student.get_full_name|default:req.student.email }} — {{ req.get_level_display }} {{ req.get_test_type_display }} ({{ req.get_status_display }})</div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ test.level }}</td>
+                                    <td>{{ test.get_test_type_display }}</td>
+                                    <td>
+                                        {% if test.is_published %}
+                                        <span class="badge bg-success">Published</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Draft</span>
+                                        {% endif %}
+                                        {% if not test.is_active %}<span class="badge bg-warning text-dark">Inactive</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if test.assigned_students.all %}
+                                            {% for student in test.assigned_students.all %}
+                                            <div>{{ student.get_full_name|default:student.email }} <small class="text-muted">({{ student.email }})</small></div>
+                                            {% endfor %}
+                                        {% else %}
+                                        All users
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ test.question_count }}</td>
+                                    <td class="text-end text-nowrap">
+                                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'manager_edit_test' test.id %}">Edit</a>
+                                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'manager_test_questions' test.id %}">Questions</a>
+                                        {% if not test.is_published %}
+                                        <form method="post" action="{% url 'manager_publish_test' test.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill">Publish</button>
+                                        </form>
+                                        {% endif %}
+                                        <a class="btn btn-sm btn-outline-danger rounded-pill" href="{% url 'manager_delete_test' test.id %}">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No manager tests yet. Create one above, or start from a pending request.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+{% endblock %}
