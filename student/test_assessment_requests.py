@@ -16,7 +16,10 @@ from account.models import CustomUser
 from subscription.models import Subscription
 from teacher.models import Vocabulary
 
-from .models import AssessmentRequest, LanguageTest
+from django.utils import timezone
+
+from .models import (AssessmentRequest, DEFAULT_TEST_TIME_LIMIT_MINUTES,
+                     LanguageTest, TimedTestAttempt)
 
 
 def _subscriber(email, first_name='Pat'):
@@ -183,3 +186,43 @@ class SpeakingAssessmentRequestTests(TestCase):
         self.assertEqual(response.status_code, 404)
         assessment_request.refresh_from_db()
         self.assertEqual(assessment_request.status, 'pending')
+
+
+class AllTestsTimedTests(TestCase):
+    """Cece (2026-11-03): all tests should be timed. Tests without an
+    instructor-set limit fall back to the 30-minute default."""
+
+    def setUp(self):
+        self.student = _subscriber('timed@example.com', 'Tia')
+
+    def _plain_test(self, **kwargs):
+        defaults = dict(
+            title='Plain Test', level='Level I', test_type='listening',
+            is_active=True, is_published=True)
+        defaults.update(kwargs)
+        return LanguageTest.objects.create(**defaults)
+
+    def _deadline_minutes(self, test):
+        self.client.force_login(self.student)
+        self.client.get(reverse('take_test', args=[test.id]))
+        attempt = TimedTestAttempt.objects.get(student=self.student, test=test)
+        return (attempt.deadline - timezone.now()).total_seconds() / 60
+
+    def test_test_without_limit_uses_default_deadline(self):
+        test = self._plain_test(time_limit_minutes=None)
+        minutes = self._deadline_minutes(test)
+        self.assertAlmostEqual(minutes, DEFAULT_TEST_TIME_LIMIT_MINUTES, delta=1)
+
+    def test_instructor_set_limit_is_respected(self):
+        test = self._plain_test(time_limit_minutes=45)
+        minutes = self._deadline_minutes(test)
+        self.assertAlmostEqual(minutes, 45, delta=1)
+
+    def test_generated_listening_assessment_is_timed(self):
+        for i in range(12):
+            _vocabulary(f'timed-word-{i}', f'timed translation {i}')
+        self.client.force_login(self.student)
+        self.client.post(reverse('request_assessment'),
+                         {'level': 'level1', 'test_type': 'listening'})
+        test = LanguageTest.objects.get(assigned_student=self.student)
+        self.assertEqual(test.time_limit_minutes, DEFAULT_TEST_TIME_LIMIT_MINUTES)

@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
-from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite, AssessmentRequest
+from .models import LanguageTest, TestQuestion, StudentSpeakingAnswer, StudentTestSubmission, StudentListeningAnswer, StudentSpeakingAnswer, Favorite, AssessmentRequest, DEFAULT_TEST_TIME_LIMIT_MINUTES
 from .models import LearnedItem
 from teacher.models import LearningSurvey, SurveyResponse, SurveyAnswer
 from django.contrib import messages
@@ -558,6 +558,11 @@ def test_list(request):
         Q(available_until__isnull=True) | Q(available_until__gte=now)
     ).exclude(id__in=completed_test_ids).distinct()
 
+    tests = list(tests)
+    for visible_test in tests:
+        if not visible_test.time_limit_minutes:
+            visible_test.time_limit_minutes = DEFAULT_TEST_TIME_LIMIT_MINUTES
+
     context = {
         'tests': tests,
         'assessment_requests': AssessmentRequest.objects.filter(
@@ -596,11 +601,12 @@ def take_test(request, test_id):
                 test=test
         ).order_by('order')
         attempt = None
-        if test.time_limit_minutes:
+        effective_time_limit = test.time_limit_minutes or DEFAULT_TEST_TIME_LIMIT_MINUTES
+        if effective_time_limit:
             with transaction.atomic():
                 attempt, created = TimedTestAttempt.objects.get_or_create(
                     student=request.user, test=test,
-                    defaults={'deadline': timezone.now() + timedelta(minutes=test.time_limit_minutes)}
+                    defaults={'deadline': timezone.now() + timedelta(minutes=effective_time_limit)}
                 )
             if attempt.completed_at:
                 submission = StudentTestSubmission.objects.filter(student=request.user, test=test).first()

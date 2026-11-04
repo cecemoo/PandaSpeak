@@ -116,6 +116,10 @@ class AICachedSpeech(models.Model):
     last_used_at = models.DateTimeField(auto_now=True)
 
 
+# Every test is timed; a test without an instructor-set limit uses this default.
+DEFAULT_TEST_TIME_LIMIT_MINUTES = 30
+
+
 class LanguageTest(models.Model):
     TEST_TYPES = [('speaking', 'Speaking'), ('listening', 'Listening'), ('mixed', 'Speaking & Listening')]
     title = models.CharField(max_length=200)

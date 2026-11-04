@@ -23,7 +23,8 @@ from django.views.decorators.http import require_POST
 
 from teacher.models import Idiom, Sentence, Vocabulary
 
-from .models import AssessmentRequest, LanguageTest, StudentTestSubmission, TestQuestion
+from .models import (AssessmentRequest, DEFAULT_TEST_TIME_LIMIT_MINUTES,
+                     LanguageTest, StudentTestSubmission, TestQuestion)
 
 LEVEL_LABELS = {'level1': 'Level I', 'level2': 'Level II', 'level3': 'Level III'}
 MAX_QUESTIONS = 20
@@ -139,6 +140,7 @@ def generate_listening_assessment(user, level):
             is_published=True,
             teacher=None,
             assigned_student=user,
+            time_limit_minutes=DEFAULT_TEST_TIME_LIMIT_MINUTES,
         )
         for question in questions:
             question.test = test
