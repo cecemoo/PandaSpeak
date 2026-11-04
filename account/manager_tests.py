@@ -13,11 +13,15 @@ sender "PandaSpeak") and additionally fulfils any pending
 AssessmentRequest linked to the test (the link is stored on the request
 as fulfilled_test when the test is created from a request).
 
-When a student completes a manager test that has speaking answers, the
-managers are notified (see student.timed_tests
-.notify_managers_speaking_submission) and score the speaking part on the
-grading pages at the bottom of this module, mirroring the teacher
-grading flow.
+When a student completes a manager-scored test that has speaking
+answers, the managers are notified (see student.timed_tests
+.notify_managers_speaking_submission) and score the speaking part on
+the grading pages at the bottom of this module, mirroring the teacher
+grading flow. "Manager-scored" (student.timed_tests.is_manager_scored)
+covers the tests created here plus auto-generated assessment tests
+(student.assessment); only the create/edit/publish/delete pages above
+are limited to the tests created here — generated tests appear solely
+through their submissions on the grading pages.
 """
 from functools import wraps
 
@@ -34,6 +38,7 @@ from django.views.decorators.http import require_POST
 from student.models import (DEFAULT_TEST_TIME_LIMIT_MINUTES, AssessmentRequest,
                             LanguageTest, StudentSpeakingAnswer,
                             StudentTestSubmission, TestQuestion)
+from student.timed_tests import manager_scored_q
 from teacher.forms import TestQuestionForm
 
 from .announcement_views import manager
@@ -160,7 +165,7 @@ def manager_test_list(request):
         .annotate(question_count=Count('questions'))
     )
     grading_waiting = StudentTestSubmission.objects.filter(
-        test__is_manager_test=True,
+        manager_scored_q(),
         speaking_answers__score__isnull=True,
     ).distinct().count()
     context = {
@@ -360,14 +365,15 @@ def manager_delete_test(request, test_id):
 # Speaking grading (Cece, 2026-11-03: when a student completes a speaking
 # test, the manager is notified and scores the speaking part). Mirrors the
 # teacher grading flow (teacher.views.grade_speaking_answer), scoped to
-# manager tests.
+# manager-scored tests: manager-created tests and auto-generated
+# assessment tests (see student.timed_tests.is_manager_scored).
 # ---------------------------------------------------------------------------
 
 @manager_required
 def manager_grading_list(request):
     submissions = (
         StudentTestSubmission.objects.filter(
-            test__is_manager_test=True, speaking_answers__isnull=False)
+            manager_scored_q(), speaking_answers__isnull=False)
         .select_related('student', 'test')
         .annotate(
             speaking_total=Count('speaking_answers', distinct=True),
@@ -386,7 +392,8 @@ def manager_grading_list(request):
 @manager_required
 def manager_grading_detail(request, submission_id):
     submission = get_object_or_404(
-        StudentTestSubmission, id=submission_id, test__is_manager_test=True)
+        StudentTestSubmission.objects.filter(manager_scored_q()).distinct(),
+        id=submission_id)
     speaking_answers = (
         submission.speaking_answers.select_related('question')
         .order_by('question__order')
@@ -402,10 +409,11 @@ def manager_grading_detail(request, submission_id):
 @require_POST
 def manager_grade_speaking_answer(request, answer_id):
     answer = get_object_or_404(
-        StudentSpeakingAnswer,
+        StudentSpeakingAnswer.objects.filter(
+            manager_scored_q('question__test__'),
+            submission__isnull=False,
+        ).distinct(),
         id=answer_id,
-        question__test__is_manager_test=True,
-        submission__isnull=False,
     )
     submission = answer.submission
     score = request.POST.get('score')

@@ -141,11 +141,16 @@ class LanguageTest(models.Model):
 class AssessmentRequest(models.Model):
     """A student's request for a comprehensive assessment test.
 
-    Listening-only assessments are generated instantly and never create one
-    of these; speaking and speaking & listening requests are prepared by a
-    PandaSpeak manager, who creates the test from the manager dashboard,
-    assigns it to the student (LanguageTest.assigned_students), and the
-    request is marked fulfilled when the test is published.
+    Assessments are generated instantly from the level's materials.
+    Listening-only tests never create one of these; a generated speaking
+    or speaking & listening test records one already fulfilled, linked to
+    the test (fulfilled_test) — that link is what makes the test show up
+    in the manager grading pages, where a manager scores the speaking
+    part. Only when a level lacks the material for instant generation is
+    a request left pending: the PandaSpeak team then prepares the test by
+    hand from the manager dashboard (assigned to the student via
+    LanguageTest.assigned_students) and the request is marked fulfilled
+    when that test is published.
     """
     LEVEL_CHOICES = [('level1', 'Level I'), ('level2', 'Level II'), ('level3', 'Level III')]
     TEST_TYPE_CHOICES = [('speaking', 'Speaking'), ('mixed', 'Speaking & Listening')]

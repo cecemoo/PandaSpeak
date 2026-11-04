@@ -12,7 +12,7 @@
       <div class="assessment-request">
         <div class="card assess-card p-4 mb-4">
           <h2 class="h4">📋 Request a Comprehensive Assessment</h2>
-          <p class="assess-sub">Choose your level and the kind of test you want. A listening assessment is generated instantly from your level's materials; speaking and combined assessments are prepared for you by the PandaSpeak team.</p>
+          <p class="assess-sub">Choose your level and the kind of test you want. Every assessment is generated instantly from your level's materials. Listening answers are scored automatically; if your test includes speaking, the PandaSpeak team scores that part after you submit it.</p>
           <form method="post" action="{% url 'request_assessment' %}">
             {% csrf_token %}
             <div class="row g-3">
@@ -54,6 +54,8 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-outline-light rounded-pill">Cancel</button>
               </form>
+              {% elif req.status == 'fulfilled' and req.fulfilled_test %}
+              <a href="{% url 'take_test' req.fulfilled_test.id %}" class="btn btn-sm btn-outline-light rounded-pill ms-auto">Open test</a>
               {% endif %}
             </li>
             {% endfor %}

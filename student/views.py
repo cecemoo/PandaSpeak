@@ -567,7 +567,7 @@ def test_list(request):
         'tests': tests,
         'assessment_requests': AssessmentRequest.objects.filter(
             student=request.user
-        ).order_by('-created_at'),
+        ).select_related('fulfilled_test').order_by('-created_at'),
     }
     return render(request, 'student/test_list.html', context)
 

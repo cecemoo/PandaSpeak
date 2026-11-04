@@ -6,26 +6,50 @@ from django.db.models import Q
 from django.utils import timezone
 from account.models import CustomUser, Notification
 from django.urls import reverse
-from .models import (TimedTestAttempt, StudentTestSubmission, StudentListeningAnswer,
-                     StudentSpeakingAnswer)
+from .models import (AssessmentRequest, TimedTestAttempt, StudentTestSubmission,
+                     StudentListeningAnswer, StudentSpeakingAnswer)
 
 SUPPORT_EMAIL = 'pandaspeaksupport@gmail.com'
 SITE_ORIGIN = 'https://pandaspeak.org'
 
 
-def notify_managers_speaking_submission(submission):
-    """Alert PandaSpeak managers that a manager test's speaking part is
-    ready to score (Cece, 2026-11-03).
+def is_manager_scored(test):
+    """Whether a test's speaking part is scored by PandaSpeak managers.
 
-    No-op unless the submission's test is a manager test
-    (is_manager_test=True) with at least one speaking answer. Callers call
+    True for tests a manager created on the dashboard (is_manager_test)
+    and for auto-generated assessment tests, which are linked from the
+    fulfilled AssessmentRequest recorded when they were generated (see
+    student.assessment).
+    """
+    return test.is_manager_test or AssessmentRequest.objects.filter(
+        fulfilled_test=test).exists()
+
+
+def manager_scored_q(prefix='test__'):
+    """Q matching manager-scored tests (see is_manager_scored) inside a
+    queryset filter; `prefix` is the lookup path to the LanguageTest
+    (e.g. 'test__' from a submission, 'question__test__' from an answer).
+    """
+    return (
+        Q(**{f'{prefix}is_manager_test': True})
+        | Q(**{f'{prefix}assessment_requests__isnull': False})
+    )
+
+
+def notify_managers_speaking_submission(submission):
+    """Alert PandaSpeak managers that a manager-scored test's speaking
+    part is ready to score (Cece, 2026-11-03).
+
+    No-op unless the submission's test is manager-scored (see
+    is_manager_scored: manager-created tests and auto-generated
+    assessment tests) with at least one speaking answer. Callers call
     this exactly once, when the submission is created, so no duplicate
     alerts go out: one email to the support inbox plus one Notification
     for every active staff/superuser user, both linking to the manager
     grading page for the submission.
     """
     test = submission.test
-    if not test.is_manager_test:
+    if not is_manager_scored(test):
         return
     if not StudentSpeakingAnswer.objects.filter(submission=submission).exists():
         return

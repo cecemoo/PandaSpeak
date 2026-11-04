@@ -1,16 +1,27 @@
 """Comprehensive assessment tests requested from the student Test List page.
 
-Two paths (Cece's spec, 2026-11-03):
+Cece's spec (2026-11-03, revised later the same day): every assessment —
+listening, speaking, or speaking & listening — is generated instantly
+from the student's chosen level's learning materials (vocabulary /
+sentences / expressions) and assigned to that student only:
 
-- Listening-only: generated instantly from the student's chosen level's
-  learning materials (vocabulary / sentences / expressions with audio) as
-  listen-and-choose-the-English-meaning multiple-choice questions, assigned
-  to that student only, and scored by the existing test flow.
-- Speaking or Speaking & Listening: recorded as an AssessmentRequest for
-  the PandaSpeak team. A manager creates the test from the manager
-  dashboard's Assessment Tests page (the requester is preselected as the
-  audience); publishing the test marks the request fulfilled. The manager
-  scores the speaking part while any listening part is auto-scored as usual.
+- Listening: listen-and-choose-the-English-meaning multiple choice,
+  scored by the existing test flow.
+- Speaking: read-aloud questions (the material's Chinese text); the
+  student records their own voice. Once the test is submitted, it shows
+  up on the manager dashboard and a manager scores the speaking part —
+  managers are alerted when a submission is waiting (see
+  student.timed_tests.notify_managers_speaking_submission).
+- Mixed: a listening part followed by a speaking part.
+
+A generated speaking or mixed test also records an AssessmentRequest,
+already fulfilled and linked to the test: it is the paper trail the
+manager grading pages use to recognise the test as manager-scored.
+
+Fallback: when a level does not have enough material to generate a
+speaking or mixed test, the request is instead recorded as a pending
+AssessmentRequest and the support inbox is emailed, so the PandaSpeak
+team can prepare the test by hand from the manager dashboard.
 """
 import random
 
@@ -30,6 +41,9 @@ from .models import (AssessmentRequest, DEFAULT_TEST_TIME_LIMIT_MINUTES,
 LEVEL_LABELS = {'level1': 'Level I', 'level2': 'Level II', 'level3': 'Level III'}
 MAX_QUESTIONS = 20
 MIN_QUESTIONS = 10
+SPEAKING_QUESTION_COUNT = 10
+MIXED_LISTENING_QUESTION_COUNT = 10
+MIXED_SPEAKING_QUESTION_COUNT = 10
 CHOICE_LETTERS = ('A', 'B', 'C', 'D')
 LISTENING_PROMPT = 'Listen to the audio and choose the correct English meaning.'
 SUPPORT_EMAIL = 'pandaspeaksupport@gmail.com'
@@ -73,33 +87,15 @@ def _level_pools(level):
     ]
 
 
-def _existing_open_listening_test(user, level_label):
-    completed_ids = StudentTestSubmission.objects.filter(
-        student=user).values_list('test_id', flat=True)
-    return (
-        LanguageTest.objects.filter(
-            assigned_students=user, test_type='listening', level=level_label,
-            is_active=True, is_published=True)
-        .exclude(id__in=completed_ids)
-        .order_by('id')
-        .first()
-    )
+def _build_listening_questions(level, limit, start_order=1):
+    """Up to `limit` listen_mc questions sampled across the content types.
 
-
-def generate_listening_assessment(user, level):
-    """Return the student's open listening assessment for the level.
-
-    Reuses the existing uncompleted one when there is one; otherwise builds
-    a new test from the level's materials. Returns None when fewer than
-    MIN_QUESTIONS questions can be built (nothing is created then).
+    Only a content type with at least 4 distinct answer texts can supply a
+    correct answer plus 3 distinct distractors from its own pool, so
+    smaller pools are skipped. The returned list may be shorter than
+    `limit` when the level does not have enough usable material — callers
+    check the length against their minimum.
     """
-    level_label = LEVEL_LABELS[level]
-    existing = _existing_open_listening_test(user, level_label)
-    if existing is not None:
-        return existing
-
-    # Only a content type with at least 4 distinct answer texts can supply a
-    # correct answer plus 3 distinct distractors from its own pool.
     pools = [pool for pool in _level_pools(level) if len(pool) >= 4]
     combined = [
         (pool, answer, audio_name)
@@ -107,12 +103,10 @@ def generate_listening_assessment(user, level):
         for answer, audio_name in pool.items()
     ]
     random.shuffle(combined)
-    combined = combined[:MAX_QUESTIONS]
-    if len(combined) < MIN_QUESTIONS:
-        return None
+    combined = combined[:limit]
 
     questions = []
-    for order, (pool, answer, audio_name) in enumerate(combined, start=1):
+    for offset, (pool, answer, audio_name) in enumerate(combined):
         distractors = random.sample(
             [text for text in pool if text != answer], 3)
         choices = distractors + [answer]
@@ -126,17 +120,72 @@ def generate_listening_assessment(user, level):
             choice_d=choices[3],
             correct_answer=CHOICE_LETTERS[choices.index(answer)],
             points=1,
-            order=order,
+            order=start_order + offset,
         )
         question.audio = audio_name
         questions.append(question)
+    return questions
 
+
+def _speaking_texts(level):
+    """Distinct Chinese texts at the level that a student can read aloud.
+
+    Speaking needs no recorded audio — the student records their own
+    voice — so any visible material with a non-empty Chinese text counts.
+    """
+    levels = [level, 'all']
+    texts = []
+    seen = set()
+    for model, field in ((Vocabulary, 'word'), (Sentence, 'text'), (Idiom, 'idiom')):
+        values = model.objects.filter(
+            visibility='all', level__in=levels).values_list(field, flat=True)
+        for value in values:
+            text = (value or '').strip()
+            if text and text not in seen:
+                seen.add(text)
+                texts.append(text)
+    return texts
+
+
+def _build_speaking_questions(level, count, start_order=1):
+    """Up to `count` speak_read questions sampled across the content types.
+
+    The returned list may be shorter than `count` when the level does not
+    have enough distinct texts — callers check the length.
+    """
+    texts = _speaking_texts(level)
+    random.shuffle(texts)
+    return [
+        TestQuestion(
+            question_type='speak_read',
+            prompt=text,
+            points=1,
+            order=start_order + offset,
+        )
+        for offset, text in enumerate(texts[:count])
+    ]
+
+
+def _existing_open_test(user, level_label, test_type):
+    completed_ids = StudentTestSubmission.objects.filter(
+        student=user).values_list('test_id', flat=True)
+    return (
+        LanguageTest.objects.filter(
+            assigned_students=user, test_type=test_type, level=level_label,
+            is_active=True, is_published=True)
+        .exclude(id__in=completed_ids)
+        .order_by('id')
+        .first()
+    )
+
+
+def _create_generated_test(user, level_label, test_type, title, description, questions):
     with transaction.atomic():
         test = LanguageTest.objects.create(
-            title=f'{level_label} Listening Assessment',
+            title=title,
             level=level_label,
-            test_type='listening',
-            description="Auto-generated listening assessment built from your level's learning materials.",
+            test_type=test_type,
+            description=description,
             is_active=True,
             is_published=True,
             teacher=None,
@@ -149,26 +198,85 @@ def generate_listening_assessment(user, level):
     return test
 
 
-@login_required(login_url='my_login')
-@require_POST
-def request_assessment(request):
-    level = request.POST.get('level', '')
-    test_type = request.POST.get('test_type', '')
-    if level not in LEVEL_LABELS or test_type not in ('listening', 'speaking', 'mixed'):
-        messages.error(request, 'Please choose a level and a test type.')
-        return redirect('test_list')
+def generate_listening_assessment(user, level):
+    """Return the student's open listening assessment for the level.
 
-    if test_type == 'listening':
-        test = generate_listening_assessment(request.user, level)
-        if test is None:
-            messages.error(
-                request,
-                'There is not enough listening material at that level yet '
-                'to build an assessment. Please try another level.')
-            return redirect('test_list')
-        messages.success(request, 'Your listening assessment is ready.')
-        return redirect('take_test', test_id=test.id)
+    Reuses the existing uncompleted one when there is one; otherwise builds
+    a new test from the level's materials. Returns None when fewer than
+    MIN_QUESTIONS questions can be built (nothing is created then).
+    """
+    level_label = LEVEL_LABELS[level]
+    existing = _existing_open_test(user, level_label, 'listening')
+    if existing is not None:
+        return existing
 
+    questions = _build_listening_questions(level, MAX_QUESTIONS)
+    if len(questions) < MIN_QUESTIONS:
+        return None
+
+    return _create_generated_test(
+        user, level_label, 'listening',
+        title=f'{level_label} Listening Assessment',
+        description="Auto-generated listening assessment built from your level's learning materials.",
+        questions=questions,
+    )
+
+
+def generate_speaking_assessment(user, level, test_type):
+    """Return the student's open speaking or mixed assessment for the level.
+
+    `test_type` is 'speaking' or 'mixed'. Like the listening path, an
+    uncompleted test of the same level and type is reused. A newly created
+    test also records its AssessmentRequest as fulfilled, linked to the
+    test. Returns None when the level lacks the material for the minimum
+    question counts (nothing is created then, and the caller falls back
+    to the pending-request flow).
+    """
+    level_label = LEVEL_LABELS[level]
+    existing = _existing_open_test(user, level_label, test_type)
+    if existing is not None:
+        return existing
+
+    if test_type == 'speaking':
+        questions = _build_speaking_questions(level, SPEAKING_QUESTION_COUNT)
+        if len(questions) < SPEAKING_QUESTION_COUNT:
+            return None
+        title = f'{level_label} Speaking Assessment'
+        description = (
+            "Auto-generated speaking assessment built from your level's "
+            "learning materials. Read each item aloud and record yourself "
+            "— the PandaSpeak team will score your recordings.")
+    else:  # mixed: listening questions first, then speaking ones.
+        listening_questions = _build_listening_questions(
+            level, MIXED_LISTENING_QUESTION_COUNT)
+        speaking_questions = _build_speaking_questions(
+            level, MIXED_SPEAKING_QUESTION_COUNT,
+            start_order=len(listening_questions) + 1)
+        if (len(listening_questions) < MIXED_LISTENING_QUESTION_COUNT
+                or len(speaking_questions) < MIXED_SPEAKING_QUESTION_COUNT):
+            return None
+        questions = listening_questions + speaking_questions
+        title = f'{level_label} Speaking & Listening Assessment'
+        description = (
+            "Auto-generated speaking & listening assessment built from "
+            "your level's learning materials. The listening questions are "
+            "scored automatically; the PandaSpeak team will score your "
+            "speaking recordings.")
+
+    with transaction.atomic():
+        test = _create_generated_test(
+            user, level_label, test_type,
+            title=title, description=description, questions=questions)
+        AssessmentRequest.objects.create(
+            student=user, level=level, test_type=test_type,
+            status='fulfilled', fulfilled_test=test)
+    return test
+
+
+def _record_pending_request(request, level, test_type):
+    """Fallback for speaking/mixed when instant generation is impossible:
+    record a pending request and alert the support inbox so the PandaSpeak
+    team can prepare the test by hand from the manager dashboard."""
     if AssessmentRequest.objects.filter(
             student=request.user, level=level, test_type=test_type,
             status='pending').exists():
@@ -206,6 +314,38 @@ def request_assessment(request):
         'Your request has been sent to PandaSpeak. A manager will prepare '
         'your assessment test and it will appear here when it is ready.')
     return redirect('test_list')
+
+
+@login_required(login_url='my_login')
+@require_POST
+def request_assessment(request):
+    level = request.POST.get('level', '')
+    test_type = request.POST.get('test_type', '')
+    if level not in LEVEL_LABELS or test_type not in ('listening', 'speaking', 'mixed'):
+        messages.error(request, 'Please choose a level and a test type.')
+        return redirect('test_list')
+
+    if test_type == 'listening':
+        test = generate_listening_assessment(request.user, level)
+        if test is None:
+            messages.error(
+                request,
+                'There is not enough listening material at that level yet '
+                'to build an assessment. Please try another level.')
+            return redirect('test_list')
+        messages.success(request, 'Your listening assessment is ready.')
+        return redirect('take_test', test_id=test.id)
+
+    # Speaking and mixed assessments are generated instantly too; the
+    # student's speaking recordings are scored by a manager afterwards.
+    test = generate_speaking_assessment(request.user, level, test_type)
+    if test is not None:
+        messages.success(
+            request,
+            'Your assessment is ready. After you submit it, the speaking '
+            'part will be scored by the PandaSpeak team.')
+        return redirect('take_test', test_id=test.id)
+    return _record_pending_request(request, level, test_type)
 
 
 @login_required(login_url='my_login')

@@ -8,6 +8,10 @@ Covers Cece's 2026-11-03 specs:
 - When a student completes a manager speaking test, the managers are
   notified (support email + staff Notification) and a manager scores the
   speaking part on the manager grading pages.
+- Auto-generated assessment tests (Cece's revised 2026-11-03 flow) are
+  manager-scored through their fulfilled AssessmentRequest link: their
+  submissions notify managers and appear on the grading pages, but the
+  tests themselves never appear on the manager test list.
 """
 import tempfile
 from datetime import timedelta
@@ -481,3 +485,153 @@ class ManagerGradingTests(TestCase):
         self.assertEqual(response.status_code, 404)
         answer.refresh_from_db()
         self.assertIsNone(answer.score)
+
+
+def _generated_assessment_test(student, **kwargs):
+    """An auto-generated assessment test: NOT manager-created, so it is
+    manager-scored only through the fulfilled AssessmentRequest that was
+    recorded with it (see student.assessment)."""
+    defaults = dict(
+        title='Level II Speaking Assessment', level='Level II',
+        test_type='speaking', is_active=True, is_published=True,
+        is_manager_test=False)
+    defaults.update(kwargs)
+    test = LanguageTest.objects.create(**defaults)
+    test.assigned_students.set([student])
+    AssessmentRequest.objects.create(
+        student=student, level='level2', test_type='speaking',
+        status='fulfilled', fulfilled_test=test)
+    return test
+
+
+class GeneratedAssessmentNotificationTests(TestCase):
+    """A submission on an auto-generated assessment test alerts the
+    managers exactly like a manager-created test does."""
+
+    def setUp(self):
+        self.manager = _manager()
+        self.student = _subscriber('gen-speaker@example.com', 'Gwen')
+        self.test = _generated_assessment_test(self.student)
+        self.question = _speak_question(self.test)
+
+    def test_finalize_attempt_notifies_managers_for_generated_test(self):
+        StudentSpeakingAnswer.objects.create(
+            student=self.student, question=self.question,
+            audio_file='speaking_answers/recording.webm')
+        attempt = TimedTestAttempt.objects.create(
+            student=self.student, test=self.test,
+            deadline=timezone.now() + timedelta(minutes=30))
+
+        submission = finalize_attempt(attempt.id)
+        self.assertIsNotNone(submission)
+        support = _support_emails()
+        self.assertEqual(len(support), 1)
+        self.assertEqual(support[0].subject, 'Speaking test completed — ready to score')
+        self.assertIn(self.student.email, support[0].body)
+        self.assertIn(self.test.title, support[0].body)
+        self.assertIn(
+            reverse('manager_grading_detail', args=[submission.id]),
+            support[0].body)
+        notifications = Notification.objects.filter(
+            user=self.manager, title='Speaking Test Ready to Score')
+        self.assertEqual(notifications.count(), 1)
+
+        # Idempotent: finalizing again sends no further alerts.
+        again = finalize_attempt(attempt.id)
+        self.assertEqual(again, submission)
+        self.assertEqual(len(_support_emails()), 1)
+        self.assertEqual(
+            Notification.objects.filter(
+                user=self.manager, title='Speaking Test Ready to Score').count(),
+            1)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class GeneratedAssessmentGradingTests(TestCase):
+    """Submissions on auto-generated assessment tests appear on the
+    manager grading pages even though the tests are not manager-created,
+    and grading them works end to end."""
+
+    def setUp(self):
+        self.manager = _manager()
+        self.student = _subscriber('gen-graded@example.com', 'Gail')
+        self.test = _generated_assessment_test(self.student)
+        self.question1 = _speak_question(self.test, 'Read sentence one.', points=5, order=1)
+        self.question2 = _speak_question(self.test, 'Read sentence two.', points=3, order=2)
+        self.submission = StudentTestSubmission.objects.create(
+            student=self.student, test=self.test, listening_score=0)
+        self.answer1 = StudentSpeakingAnswer.objects.create(
+            student=self.student, question=self.question1,
+            submission=self.submission,
+            audio_file=SimpleUploadedFile('one.webm', b'fake-audio-1'))
+        self.answer2 = StudentSpeakingAnswer.objects.create(
+            student=self.student, question=self.question2,
+            submission=self.submission,
+            audio_file=SimpleUploadedFile('two.webm', b'fake-audio-2'))
+
+    def test_grading_list_and_detail_include_generated_submission(self):
+        self.client.force_login(self.manager)
+        response = self.client.get(reverse('manager_grading_list'))
+        self.assertEqual(response.status_code, 200)
+        listed = {s.id: s for s in response.context['submissions']}
+        self.assertIn(self.submission.id, listed)
+        self.assertEqual(listed[self.submission.id].speaking_total, 2)
+        self.assertEqual(listed[self.submission.id].speaking_graded, 0)
+
+        response = self.client.get(
+            reverse('manager_grading_detail', args=[self.submission.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {a.id for a in response.context['speaking_answers']},
+            {self.answer1.id, self.answer2.id})
+
+    def test_grading_generated_submission_flips_is_graded(self):
+        self.client.force_login(self.manager)
+        self.client.post(
+            reverse('manager_grade_speaking_answer', args=[self.answer1.id]),
+            {'score': '5', 'teacher_feedback': 'Perfect.'})
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.speaking_score, 5.0)
+        self.assertFalse(self.submission.is_graded)
+
+        self.client.post(
+            reverse('manager_grade_speaking_answer', args=[self.answer2.id]),
+            {'score': '2', 'teacher_feedback': 'Keep practicing.'})
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.speaking_score, 7.0)
+        self.assertEqual(self.submission.total_score, 7.0)
+        self.assertTrue(self.submission.is_graded)
+        self.assertTrue(
+            Notification.objects.filter(
+                user=self.student, title='Test Graded').exists())
+
+    def test_generated_test_not_in_manager_test_list(self):
+        # Generated tests surface only through grading, never as
+        # editable manager tests.
+        self.client.force_login(self.manager)
+        response = self.client.get(reverse('manager_test_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(self.test, list(response.context['tests']))
+        response = self.client.get(
+            reverse('manager_edit_test', args=[self.test.id]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_grading_detail_404_for_plain_teacher_test(self):
+        teacher = CustomUser.objects.create_user(
+            'teacher@example.com', 'test', is_teacher=True)
+        teacher_test = LanguageTest.objects.create(
+            title='Teacher Speaking Test', level='Level I',
+            test_type='speaking', teacher=teacher, is_manager_test=False)
+        question = _speak_question(teacher_test)
+        submission = StudentTestSubmission.objects.create(
+            student=self.student, test=teacher_test, listening_score=0)
+        StudentSpeakingAnswer.objects.create(
+            student=self.student, question=question, submission=submission,
+            audio_file='speaking_answers/recording.webm')
+        self.client.force_login(self.manager)
+        response = self.client.get(
+            reverse('manager_grading_detail', args=[submission.id]))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse('manager_grading_list'))
+        listed_ids = {s.id for s in response.context['submissions']}
+        self.assertNotIn(submission.id, listed_ids)
