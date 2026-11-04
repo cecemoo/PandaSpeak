@@ -348,7 +348,7 @@ def create_personal_bingo(request):
 
     content_type = request.POST.get('content_type', '')
     level = request.POST.get('level', '')
-    subcategory = (request.POST.get('subcategory') or '').strip()
+    subcategory = ''
     try:
         category_id = int(request.POST.get('category_id', ''))
     except (TypeError, ValueError):
@@ -377,7 +377,7 @@ def create_personal_bingo(request):
         level=level,
     )
     if _eligible_materials(probe, level).count() < 8:
-        messages.error(request, 'There are not enough learning materials in that selection yet to fill a Bingo card. Please try another category, subcategory, or level.')
+        messages.error(request, 'There are not enough learning materials in that selection yet to fill a Bingo card. Please try another category or level.')
         return redirect('student_bingo_list')
 
     game = BingoGame.objects.create(

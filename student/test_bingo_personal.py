@@ -72,13 +72,15 @@ class PersonalBingoTests(TestCase):
         self.assertTrue(game.is_active)
         self.assertRedirects(response, reverse('play_bingo', args=[game.id]))
 
-    def test_create_with_subcategory_in_title(self):
+    def test_create_ignores_posted_subcategory(self):
+        # The create form no longer offers a subcategory (removed 2026-11-03 at
+        # Cece's direction); a posted subcategory must not narrow the game.
         for i in range(9):
             _vocabulary(self.category, f'greeting-{i}', subcategory='greetings')
         response = self._create_via_view(self.creator, subcategory='greetings')
         game = BingoGame.objects.get(audience='personal')
-        self.assertEqual(game.subcategory, 'greetings')
-        self.assertEqual(game.title, 'numbers — greetings')
+        self.assertEqual(game.subcategory, '')
+        self.assertEqual(game.title, 'numbers')
         self.assertRedirects(response, reverse('play_bingo', args=[game.id]))
 
     def test_create_with_too_few_materials_creates_nothing(self):
