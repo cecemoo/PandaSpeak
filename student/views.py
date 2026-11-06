@@ -1,7 +1,8 @@
 from multiprocessing import context
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from subscription.models import Subscription
+from subscription.models import Subscription, RenewalSurveyInvite
+from subscription.renewal_survey import notify_managers_renewal_survey_response
 from subscription.decorators import subscription_required
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory, LearningSurvey, SurveyResponse, LearningSubcategory
 from datetime import date
@@ -134,6 +135,10 @@ def student_dashboard(request):
     available_surveys = LearningSurvey.objects.filter(
         is_active=True,
         published_at__isnull=False
+    ).exclude(
+        # The system renewal survey is invitation-only; it must never
+        # leak to all students here (see student_survey_list).
+        is_system_renewal=True
     ).filter(
         Q(student_group__students=request.user) |
         Q(student_group__isnull=True)
@@ -994,6 +999,21 @@ def take_learning_survey(request, survey_id):
         )
         return redirect("student_survey_list")
 
+    # The system renewal survey is invitation-only: only a student with a
+    # pending 7-days-before-period-end invite may open or submit it.
+    renewal_invite = None
+    if survey.is_system_renewal:
+        renewal_invite = RenewalSurveyInvite.objects.filter(
+            user=request.user,
+            completed_at__isnull=True,
+        ).order_by('-sent_at').first()
+        if renewal_invite is None:
+            messages.warning(
+                request,
+                "This survey is not available to you."
+            )
+            return redirect("student_survey_list")
+
     questions = survey.questions.all().order_by("order")
 
     if request.method == "POST":
@@ -1011,6 +1031,18 @@ def take_learning_survey(request, survey_id):
             question=question,
             answer=answer_value
             )
+        if survey.is_system_renewal:
+            # Renewal survey answers go to the PandaSpeak managers, not
+            # to a teacher: stamp the invite complete and notify them.
+            if renewal_invite is not None:
+                renewal_invite.completed_at = timezone.now()
+                renewal_invite.save(update_fields=['completed_at'])
+            notify_managers_renewal_survey_response(request.user, response)
+            messages.success(
+                request,
+                "Thank you. Your survey has been submitted successfully."
+                )
+            return redirect("student_survey_list")
         teacher = survey.teacher
         if teacher.email:
             send_mail(
@@ -1056,12 +1088,32 @@ def student_survey_list(request):
         is_active=True,
         published_at__isnull=False
     ).exclude(
+        # The system renewal survey is invitation-only (handled below).
+        is_system_renewal=True
+    ).exclude(
         responses__student=request.user
     ).distinct().order_by('-created_at')
     available_surveys = [
         survey for survey in available_surveys
         if now < survey.published_at + timedelta(days=survey.availability_days)
     ][:5]
+
+    # Invitation-only renewal survey: shown first, only to a student with
+    # a pending invite who has not answered yet.
+    pending_invite = RenewalSurveyInvite.objects.filter(
+        user=request.user,
+        completed_at__isnull=True,
+    ).order_by('-sent_at').first()
+    if pending_invite is not None:
+        renewal_survey = LearningSurvey.objects.filter(
+            is_system_renewal=True,
+            is_active=True,
+        ).order_by('id').first()
+        if renewal_survey is not None and not SurveyResponse.objects.filter(
+            survey=renewal_survey,
+            student=request.user,
+        ).exists():
+            available_surveys = [renewal_survey] + available_surveys
 
     return render(
         request,

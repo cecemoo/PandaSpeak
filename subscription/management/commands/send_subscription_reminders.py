@@ -9,6 +9,7 @@ from django.utils import timezone
 from account.models import CustomUser, Notification
 from account.push import send_push_to_user
 from subscription.models import Subscription
+from subscription.renewal_survey import send_renewal_survey_invite
 
 
 class Command(BaseCommand):
@@ -57,6 +58,11 @@ class Command(BaseCommand):
                 greeting = f'Hello {user.first_name or "PandaSpeak learner"},\n\n'
                 footer = '\n\nBest regards,\nPandaSpeak Team\nLearn Chinese. Speak with Confidence.\nhttps://pandaspeak.org'
                 send_mail(title, greeting + email_message + footer, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
+
+            # Same 7-days-before-period-end moment: invite the student to
+            # the renewal feedback survey (deduped per user + period end by
+            # the RenewalSurveyInvite unique constraint).
+            send_renewal_survey_invite(user, subscription)
 
         # Plus has its own monthly cycle. Remind students seven days before that
         # paid period ends/renews without affecting the annual membership.

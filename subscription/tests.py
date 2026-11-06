@@ -323,11 +323,17 @@ class SchoolSubscriptionTests(TestCase):
         self.assertIn("Sunnyvale Chinese School", notification.message)
         self.assertNotIn("renew automatically", notification.message)
 
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.student.email])
-        self.assertIn("Sunnyvale Chinese School", mail.outbox[0].body)
-        self.assertIn("no automatic renewal", mail.outbox[0].body)
-        self.assertNotIn("renew automatically", mail.outbox[0].body)
+        # Since 2026-11-05 the outbox also holds the renewal-survey
+        # invite email; this test is about the reminder email itself.
+        reminder_emails = [
+            m for m in mail.outbox
+            if m.subject == "PandaSpeak Subscription Renewal Reminder"
+        ]
+        self.assertEqual(len(reminder_emails), 1)
+        self.assertEqual(reminder_emails[0].to, [self.student.email])
+        self.assertIn("Sunnyvale Chinese School", reminder_emails[0].body)
+        self.assertIn("no automatic renewal", reminder_emails[0].body)
+        self.assertNotIn("renew automatically", reminder_emails[0].body)
 
     def test_deactivate_turns_access_off_but_keeps_history(self):
         self._activate()

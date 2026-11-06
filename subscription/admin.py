@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StudentActivity, Subscription, TutoringPayment, SubscriptionConsentEvent
+from .models import RenewalSurveyInvite, StudentActivity, Subscription, TutoringPayment, SubscriptionConsentEvent
 
 
 @admin.register(Subscription)
@@ -24,6 +24,14 @@ class StudentActivityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TutoringPayment)
+
+
+@admin.register(RenewalSurveyInvite)
+class RenewalSurveyInviteAdmin(admin.ModelAdmin):
+    list_display = ("user", "period_end", "sent_at", "completed_at")
+    list_filter = ("completed_at",)
+    search_fields = ("user__email", "user__first_name", "user__last_name")
+    readonly_fields = ("user", "subscription", "period_end", "sent_at", "completed_at")
 
 
 @admin.register(SubscriptionConsentEvent)

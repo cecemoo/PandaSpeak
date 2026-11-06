@@ -111,6 +111,33 @@ class StudentActivity(models.Model):
         return f"{self.user} - {self.activity_type} - {self.created_at:%Y-%m-%d %H:%M:%S}"
 
 
+class RenewalSurveyInvite(models.Model):
+    """One automatic renewal-survey invitation for a subscription period.
+
+    Created by send_subscription_reminders when a student's base
+    subscription period ends in 7 days (see subscription.renewal_survey).
+    One invite per (user, period_end); completed_at is stamped when the
+    student submits the system renewal survey.
+    """
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="renewal_survey_invites")
+    subscription = models.ForeignKey(
+        "Subscription", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="renewal_survey_invites",
+    )
+    period_end = models.DateTimeField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "period_end"], name="unique_renewal_survey_invite"),
+        ]
+        ordering = ["-sent_at"]
+
+    def __str__(self):
+        return f"Renewal survey invite for {self.user} (period ends {self.period_end:%Y-%m-%d})"
+
+
 class TutoringPayment(models.Model):
     student_name = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="student_payments")
     teacher_name = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="teacher_payments", blank=True, null=True)

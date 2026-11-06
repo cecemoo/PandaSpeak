@@ -4,6 +4,7 @@ from subscription import manager_views as purchase_manager_views
 from . import views
 from . import internal_views
 from . import manager_tests
+from . import manager_surveys
 from . import managers
 from . import announcement_views
 from . import contact_views
@@ -14,6 +15,7 @@ urlpatterns = [
     path('internal/cron/lead-followups/', internal_views.lead_followups_trigger, name='lead_followups_trigger'),
     path('manager/subcategories/', views.manage_learning_subcategory, name='manage_learning_subcategory'),
     path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
+    path('manager_dashboard/surveys/renewal-responses/', manager_surveys.manager_renewal_survey_responses, name='manager_renewal_survey_responses'),
     path('manager_dashboard/tests/', manager_tests.manager_test_list, name='manager_test_list'),
     path('manager_dashboard/tests/create/', manager_tests.manager_create_test, name='manager_create_test'),
     path('manager_dashboard/tests/grading/', manager_tests.manager_grading_list, name='manager_grading_list'),

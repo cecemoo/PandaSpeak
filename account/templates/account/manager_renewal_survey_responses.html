@@ -1,0 +1,79 @@
+{% extends "account/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" style="background-image: url(assets/img/education/showcase-1.webp);">
+        <div class="container position-relative">
+            <h1>Renewal Survey Responses</h1>
+            <p>Hello, {{ user.first_name }}!</p>
+            <nav class="breadcrumbs">
+                <ol>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+                    <li class="current">Renewal Survey</li>
+                </ol>
+            </nav>
+        </div>
+    </div><!-- End Page Title -->
+
+    <section id="manager-renewal-survey-section" class="section">
+        <div class="container" data-aos="fade-up">
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a class="btn btn-outline-secondary rounded-pill" href="{% url 'manager_dashboard' %}">Back to Manager Dashboard</a>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-2">Subscription Renewal Survey</h5>
+                    <p class="text-muted mb-0">
+                        Students are invited automatically 7 days before their subscription period ends.
+                        {% if survey %}{{ response_count }} response{{ response_count|pluralize }} so far.{% else %}The survey has not been sent yet.{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {% for entry in entries %}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ entry.student_name }}</h5>
+                            <div class="text-muted small">{{ entry.student_email }}</div>
+                        </div>
+                        <div class="text-muted small text-end">
+                            Submitted {{ entry.submitted_at|date:"M j, Y, g:i A" }}
+                            {% if entry.period_end %}<br>Subscription period ended {{ entry.period_end|date:"M j, Y" }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <tbody>
+                                {% for answer in entry.answers %}
+                                <tr>
+                                    <td class="fw-semibold" style="width: 45%;">{{ answer.question.question_text }}</td>
+                                    <td>{{ answer.answer|default:"—" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td class="text-muted">No answers recorded.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-muted">No renewal survey responses yet.</div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </section>
+
+</main>
+{% endblock %}

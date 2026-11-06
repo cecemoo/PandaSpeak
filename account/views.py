@@ -27,7 +27,7 @@ from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.mail import send_mail
 from student.models import AssessmentRequest, LanguageTest, StudentTestSubmission
-from teacher.models import SurveyResponse
+from teacher.models import SurveyResponse, LearningSurvey
 from django.urls import resolve, reverse
 from django.db.models import Q
 import json
@@ -266,6 +266,8 @@ def manager_dashboard(request):
     subcategory_groups = [{'kind': kind, 'category': c, 'items': LearningSubcategory.objects.filter(material_type=kind, category_id_value=c.pk)} for kind, cls in [('vocabulary', VocabularyCategory), ('sentence', SentenceCategory), ('expression', IdiomCategory)] for c in cls.objects.order_by('category_name')]
     context = {
         'pending_assessment_request_count': AssessmentRequest.objects.filter(status='pending').count(),
+
+        'renewal_survey_response_count': SurveyResponse.objects.filter(survey__in=LearningSurvey.objects.filter(is_system_renewal=True)).count(),
 
         'subcategory_groups': subcategory_groups,
 

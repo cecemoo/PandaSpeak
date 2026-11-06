@@ -221,6 +221,10 @@ class LearningSurvey(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=False)
+    # System-managed renewal survey (subscription.renewal_survey): sent
+    # automatically to students 7 days before their subscription period
+    # ends; answers go to the PandaSpeak managers, not a teacher.
+    is_system_renewal = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     availability_days = models.PositiveIntegerField(default=7, help_text="Number of days students can access this survey after it becomes available")
     published_at = models.DateTimeField(blank=True, null=True)
