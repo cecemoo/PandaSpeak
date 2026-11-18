@@ -73,3 +73,5 @@ class HelpWidgetRenderingTests(TestCase):
         self.assertContains(response, 'id="ps-help-bubble"')
         self.assertContains(response, 'Get Help')
         self.assertContains(response, 'id="ps-help-panel"')
+        self.assertContains(response, 'assets/img/panda-assistant.png')
+        self.assertContains(response, 'ps-dots')
