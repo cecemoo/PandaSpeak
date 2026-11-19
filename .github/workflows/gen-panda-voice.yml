@@ -1,0 +1,59 @@
+name: Generate Panda Voice (one-off)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate intro audio on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/PandaSpeak
+            source venv/bin/activate
+            python - <<'PYEOF'
+            import os, requests
+            for line in open('.env', encoding='utf-8'):
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    k, v = line.split('=', 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            key = os.environ['OPENAI_API_KEY']
+            text = ("Hi! I'm your PandaSpeak panda! Here's how to play the 60-Second Chinese Challenge. "
+                    "I'll show you a Chinese word or idiom, and you have 60 seconds to choose its correct "
+                    "meaning from four choices. Get it right, and we'll celebrate! Ready? "
+                    "Press Begin the Challenge, and let's go!")
+            payload = {
+                "model": os.getenv("OPENAI_AI_TTS_MODEL", "gpt-4o-mini-tts"),
+                "voice": "coral",
+                "input": text,
+                "instructions": ("Speak as a cute, cheerful cartoon panda mascot: a young, bright, playful "
+                                 "character voice full of energy and warmth, like a friendly animated panda "
+                                 "welcoming children and language learners. Speak clear American English, "
+                                 "a little bouncy and excited, but easy to understand."),
+                "response_format": "mp3",
+            }
+            r = requests.post("https://api.openai.com/v1/audio/speech",
+                              headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                              json=payload, timeout=60)
+            r.raise_for_status()
+            with open(os.path.expanduser('~/panda-intro.mp3'), 'wb') as f:
+                f.write(r.content)
+            print("BYTES", len(r.content))
+            PYEOF
+      - name: Fetch generated audio
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2key
+          chmod 600 /tmp/ec2key
+          scp -i /tmp/ec2key -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/panda-intro.mp3 ./panda-challenge-intro.mp3
+          ls -la panda-challenge-intro.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: panda-intro
+          path: panda-challenge-intro.mp3
