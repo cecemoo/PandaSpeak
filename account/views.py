@@ -2,6 +2,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.shortcuts import redirect, render, get_object_or_404
 from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm, PlacementResultEmailForm
 from django.contrib.auth.forms import AuthenticationForm
+from . import login_throttle
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
@@ -144,19 +145,27 @@ def register(request):
 def my_login(request):
     form = AuthenticationForm()
     if request.method == 'POST':
+        username = request.POST.get('username', '')
+        if login_throttle.is_blocked(request, username):
+            form = AuthenticationForm(request, data=request.POST)
+            form.add_error(None, 'Too many failed login attempts. Please wait a few minutes and try again.')
+            context = {'LoginForm': form}
+            return render(request, 'account/my_login.html', context)
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = request.POST.get('username')
             password = request.POST.get('password')
             user = authenticate(request, username=username, password=password)
             if user is not None:
+                login_throttle.record_success(request, username)
                 login(request, user)
                 if user.is_staff or user.is_superuser:
                     return redirect('manager_dashboard')
                 elif user.is_teacher:
                     return redirect('teacher_dashboard')
-                else: 
+                else:
                     return redirect('student_dashboard')
+        else:
+            login_throttle.record_failure(request, username)
     context = {'LoginForm': form}
     return render(request, 'account/my_login.html', context)
 

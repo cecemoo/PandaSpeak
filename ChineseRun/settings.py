@@ -30,10 +30,21 @@ DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3','NAME': BASE_DIR
 LOGIN_URL = 'my_login'
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME':'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME':'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME':'django.contrib.auth.password_validation.MinimumLengthValidator','OPTIONS':{'min_length':10}},
     {'NAME':'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME':'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+# Credential & transport hardening (2026-11-19). The site is served over
+# HTTPS with TLS terminated at the proxy, so in production cookies are
+# Secure-only and browsers get an HSTS policy. Gated on DEBUG so local
+# development over plain HTTP keeps working.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 2592000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_REFERRER_POLICY = 'same-origin'
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'America/Chicago'
 USE_I18N = True
