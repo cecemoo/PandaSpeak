@@ -17,6 +17,7 @@ from .models import (
     PushSubscription,
     CustomUser,
     PlacementTestAttempt,
+    DailyVisitor,
 )
 from datetime import date, timedelta
 from course.forms import CourseForm
@@ -217,6 +218,16 @@ def manager_dashboard(request):
 
     tone_count = Tone.objects.all().count()
 
+    visitor_today = timezone.localdate()
+    visitors_today = DailyVisitor.objects.filter(date=visitor_today).count()
+    visitors_7d = DailyVisitor.objects.filter(
+        date__gte=visitor_today - timedelta(days=6)
+    ).values('visitor_key').distinct().count()
+    visitors_30d = DailyVisitor.objects.filter(
+        date__gte=visitor_today - timedelta(days=29)
+    ).values('visitor_key').distinct().count()
+    visitors_total = DailyVisitor.objects.values('visitor_key').distinct().count()
+
     query = request.GET.get('q', '').strip()
 
     vocabulary_results = Vocabulary.objects.none()
@@ -297,6 +308,14 @@ def manager_dashboard(request):
         'pronunciation_count': pronunciation_count,
 
         'tone_count': tone_count,
+
+        'visitors_today': visitors_today,
+
+        'visitors_7d': visitors_7d,
+
+        'visitors_30d': visitors_30d,
+
+        'visitors_total': visitors_total,
 
         'query': query,
 

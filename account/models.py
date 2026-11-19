@@ -209,3 +209,18 @@ class ChallengeServe(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class DailyVisitor(models.Model):
+    """One unique website visitor on one day (added 2026-11-19).
+
+    The visitor key is a SHA-256 hash of IP + user agent — the raw IP is
+    never stored. One row per visitor per day powers the visitor counts
+    on the manager dashboard.
+    """
+    visitor_key = models.CharField(max_length=64, db_index=True)
+    date = models.DateField(db_index=True)
+
+    class Meta:
+        unique_together = ('visitor_key', 'date')
+        ordering = ['-date']
