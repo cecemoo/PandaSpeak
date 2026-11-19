@@ -964,4 +964,176 @@
 
 </main>
 
+<!-- 60-Second Chinese Challenge (homepage) -->
+<style>
+  #ps-ch-bubble{position:fixed;left:24px;bottom:24px;z-index:2900;display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,#f97316,#f59e0b);color:#fff;border:none;border-radius:999px;padding:10px 18px 10px 10px;font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(249,115,22,.45);cursor:pointer;animation:ps-ch-bob 2.6s ease-in-out infinite}
+  #ps-ch-bubble:hover{filter:brightness(1.06)}
+  #ps-ch-bubble img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#fff}
+  @keyframes ps-ch-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  #ps-ch-overlay{position:fixed;inset:0;background:rgba(20,16,8,.55);z-index:3100;display:none;align-items:center;justify-content:center;padding:16px}
+  #ps-ch-overlay.open{display:flex}
+  #ps-ch-modal{background:#fffdf6;width:100%;max-width:460px;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);max-height:92vh;overflow-y:auto}
+  .ps-ch-header{background:linear-gradient(135deg,#f97316,#f59e0b);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+  .ps-ch-header img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#fff}
+  .ps-ch-header .t{font-weight:800;font-size:17px;line-height:1.2}
+  .ps-ch-header .s{font-size:12.5px;opacity:.92}
+  #ps-ch-close{margin-left:auto;background:rgba(255,255,255,.22);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;flex:none}
+  .ps-ch-body{padding:20px}
+  .ps-ch-panda-big{width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin:2px auto 12px;border:3px solid #f59e0b;background:#fff}
+  .ps-ch-speech{background:#fff;border:1.5px solid #f3e3bb;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.55;color:#3d3428;position:relative;margin-bottom:16px}
+  .ps-ch-speech:before{content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%);border:9px solid transparent;border-bottom-color:#f3e3bb;border-top:0}
+  .ps-ch-begin{width:100%;background:linear-gradient(135deg,#f97316,#f59e0b);color:#fff;border:none;border-radius:12px;padding:13px;font-size:16.5px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(249,115,22,.35)}
+  .ps-ch-begin:hover{filter:brightness(1.06)}
+  .ps-ch-timer-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .ps-ch-timer-track{flex:1;height:10px;background:#f1e7d0;border-radius:99px;overflow:hidden}
+  #ps-ch-timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#f59e0b,#f97316);border-radius:99px;transition:width .12s linear}
+  #ps-ch-timer-fill.low{background:#dc2626}
+  #ps-ch-secs{font-weight:800;font-size:18px;color:#b45309;min-width:52px;text-align:right}
+  #ps-ch-secs.low{color:#dc2626}
+  .ps-ch-kind{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b45309;text-align:center}
+  #ps-ch-word{font-size:44px;font-weight:800;text-align:center;color:#292018;margin:4px 0 2px;letter-spacing:.04em}
+  .ps-ch-reading{text-align:center;color:#6b5d43;font-size:15.5px;margin-bottom:16px}
+  #ps-ch-choices{display:grid;gap:9px}
+  .ps-ch-choice{background:#fff;border:1.5px solid #e7dcc0;border-radius:12px;padding:11px 13px;font-size:15px;text-align:left;cursor:pointer;color:#3d3428;line-height:1.4}
+  .ps-ch-choice:hover{border-color:#f59e0b;background:#fff8ea}
+  .ps-ch-choice.right{border-color:#16a34a;background:#eafaf0;font-weight:700}
+  .ps-ch-choice.wrong{border-color:#dc2626;background:#fdeeee}
+  .ps-ch-choice:disabled{cursor:default;opacity:.92}
+  .ps-ch-result-title{font-size:21px;font-weight:800;text-align:center;margin-bottom:10px;color:#292018}
+  .ps-ch-login{display:block;text-align:center;background:#08915e;color:#fff;border-radius:12px;padding:12px;font-weight:800;font-size:16px;text-decoration:none;margin-top:4px}
+  .ps-ch-login:hover{background:#077a4f;color:#fff}
+  .ps-ch-register{text-align:center;margin-top:11px;font-size:14px;color:#6b5d43}
+  .ps-ch-register a{color:#b45309;font-weight:700}
+  .ps-ch-again{display:block;margin:13px auto 0;background:none;border:none;color:#8a7a58;font-size:13.5px;text-decoration:underline;cursor:pointer}
+  #ps-ch-confetti{position:fixed;inset:0;pointer-events:none;z-index:3200;display:none}
+  @media(max-width:560px){#ps-ch-bubble{left:14px;bottom:14px;font-size:13.5px;padding:8px 14px 8px 8px}#ps-ch-word{font-size:36px}}
+</style>
+<button id="ps-ch-bubble" type="button" aria-label="Open the 60-Second Chinese Challenge"><img src="{% static 'assets/img/panda-assistant.png' %}" alt=""> ⏱️ 60-Second Challenge</button>
+<div id="ps-ch-overlay" role="dialog" aria-label="60-Second Chinese Challenge">
+  <div id="ps-ch-modal">
+    <div class="ps-ch-header"><img src="{% static 'assets/img/panda-assistant.png' %}" alt="PandaSpeak panda"><div><div class="t">60-Second Chinese Challenge</div><div class="s">One word or idiom. One minute. Can you get it right?</div></div><button id="ps-ch-close" type="button" aria-label="Close challenge">&times;</button></div>
+    <div class="ps-ch-body">
+      <div id="ps-ch-intro">
+        <img class="ps-ch-panda-big" src="{% static 'assets/img/panda-assistant.png' %}" alt="PandaSpeak panda">
+        <div class="ps-ch-speech">Hi! I'm your PandaSpeak panda. 🐼 Here's how to play: I'll show you a Chinese word or idiom, and you have <strong>60 seconds</strong> to choose its correct meaning from four choices. Get it right and we'll celebrate! Ready?</div>
+        <button id="ps-ch-begin" class="ps-ch-begin" type="button">Begin the Challenge</button>
+      </div>
+      <div id="ps-ch-game" style="display:none">
+        <div class="ps-ch-timer-row"><div class="ps-ch-timer-track"><div id="ps-ch-timer-fill"></div></div><div id="ps-ch-secs">60</div></div>
+        <div class="ps-ch-kind" id="ps-ch-kind">Word</div>
+        <div id="ps-ch-word"></div>
+        <div class="ps-ch-reading" id="ps-ch-reading"></div>
+        <div id="ps-ch-choices"></div>
+      </div>
+      <div id="ps-ch-result" style="display:none">
+        <div class="ps-ch-result-title" id="ps-ch-result-title"></div>
+        <div class="ps-ch-speech" id="ps-ch-result-text"></div>
+        <a class="ps-ch-login" href="{% url 'my_login' %}">Log In to Keep Learning</a>
+        <div class="ps-ch-register">New to PandaSpeak? <a href="{% url 'register' %}">Register an account</a> to begin your Chinese learning journey.</div>
+        <button class="ps-ch-again" id="ps-ch-again" type="button">Play again</button>
+      </div>
+    </div>
+  </div>
+</div>
+<canvas id="ps-ch-confetti"></canvas>
+{{ challenge_items|json_script:"ps-challenge-items" }}
+<script>
+(function(){
+  var bubble=document.getElementById('ps-ch-bubble'),overlay=document.getElementById('ps-ch-overlay'),
+      intro=document.getElementById('ps-ch-intro'),game=document.getElementById('ps-ch-game'),result=document.getElementById('ps-ch-result'),
+      fill=document.getElementById('ps-ch-timer-fill'),secsEl=document.getElementById('ps-ch-secs'),
+      kindEl=document.getElementById('ps-ch-kind'),wordEl=document.getElementById('ps-ch-word'),readEl=document.getElementById('ps-ch-reading'),
+      choicesEl=document.getElementById('ps-ch-choices'),resTitle=document.getElementById('ps-ch-result-title'),resText=document.getElementById('ps-ch-result-text');
+  var items=[];try{items=JSON.parse(document.getElementById('ps-challenge-items').textContent)||[];}catch(e){}
+  var timer=null,current=null,deadline=0;
+  var INTRO_TEXT="Hi! I'm your PandaSpeak panda. Here's how to play the 60-Second Chinese Challenge. I'll show you a Chinese word or idiom, and you have 60 seconds to choose its correct meaning from four choices. Get it right, and we'll celebrate! Ready? Press Begin the Challenge, and let's go!";
+  function speakIntro(){
+    try{
+      if(!('speechSynthesis' in window))return;
+      window.speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(INTRO_TEXT);
+      u.lang='en-US';u.rate=1;
+      var voices=window.speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf('en')===0;});
+      if(voices.length)u.voice=voices[0];
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function stopSpeech(){try{if('speechSynthesis' in window)window.speechSynthesis.cancel();}catch(e){}}
+  function show(el){intro.style.display=el===intro?'block':'none';game.style.display=el===game?'block':'none';result.style.display=el===result?'block':'none';}
+  function openChallenge(){overlay.classList.add('open');show(intro);speakIntro();}
+  function closeChallenge(){overlay.classList.remove('open');stopTimer();stopSpeech();}
+  function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function begin(){
+    stopSpeech();
+    if(!items.length)return;
+    current=items[Math.floor(Math.random()*items.length)];
+    var pool=items.filter(function(it){return it.kind===current.kind&&it.answer!==current.answer;});
+    var opts=shuffle(pool.slice()).slice(0,3).map(function(it){return it.answer;});
+    opts.push(current.answer);shuffle(opts);
+    kindEl.textContent=current.kind==='idiom'?'Idiom 成語':'Word 詞語';
+    wordEl.textContent=current.text;
+    readEl.textContent=current.zhuyin+' · '+current.pinyin;
+    choicesEl.innerHTML='';
+    opts.forEach(function(opt){
+      var b=document.createElement('button');b.type='button';b.className='ps-ch-choice';b.textContent=opt;
+      b.addEventListener('click',function(){answer(b,opt);});
+      choicesEl.appendChild(b);
+    });
+    show(game);
+    deadline=Date.now()+60000;
+    fill.style.width='100%';fill.classList.remove('low');secsEl.textContent='60';secsEl.classList.remove('low');
+    stopTimer();
+    timer=setInterval(function(){
+      var left=Math.max(0,deadline-Date.now());
+      secsEl.textContent=Math.ceil(left/1000);
+      fill.style.width=(left/600)+'%' ;
+      if(left<=10000){fill.classList.add('low');secsEl.classList.add('low');}
+      if(left<=0){stopTimer();finish(false,true);}
+    },100);
+  }
+  function answer(btn,opt){
+    stopTimer();
+    var right=opt===current.answer;
+    Array.prototype.forEach.call(choicesEl.children,function(b){
+      b.disabled=true;
+      if(b.textContent===current.answer)b.classList.add('right');
+      else if(b===btn&&!right)b.classList.add('wrong');
+    });
+    setTimeout(function(){finish(right,false);},right?650:1100);
+  }
+  function finish(right,timeout){
+    show(result);
+    if(right){
+      resTitle.textContent='🎉 Correct!';
+      resText.innerHTML='You got it! <strong>'+escapeHtml(current.text)+'</strong> ('+escapeHtml(current.pinyin)+') means "'+escapeHtml(current.answer)+'". Want to learn more about Chinese? Click below to log in and keep going!';
+      confetti();
+    }else{
+      resTitle.textContent=timeout?"⏰ Time's Up!":'💪 Good Try!';
+      resText.innerHTML=(timeout?'The 60 seconds flew by! ':'Not quite. ')+'The correct meaning of <strong>'+escapeHtml(current.text)+'</strong> ('+escapeHtml(current.pinyin)+') is "'+escapeHtml(current.answer)+'". Strengthen your Chinese today — click below to log in and start learning!';
+    }
+  }
+  function escapeHtml(s){var d=document.createElement('div');d.textContent=String(s);return d.innerHTML;}
+  function confetti(){
+    var cv=document.getElementById('ps-ch-confetti'),ctx=cv.getContext('2d');
+    cv.width=window.innerWidth;cv.height=window.innerHeight;cv.style.display='block';
+    var colors=['#f97316','#f59e0b','#08915e','#ef4444','#3b82f6','#a855f7'],parts=[];
+    for(var i=0;i<160;i++){parts.push({x:cv.width/2+(Math.random()-0.5)*220,y:cv.height/2-40,vx:(Math.random()-0.5)*11,vy:-Math.random()*11-4,g:0.28+Math.random()*0.12,s:5+Math.random()*6,c:colors[i%colors.length],r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,life:1});}
+    var start=Date.now();
+    (function frame(){
+      var t=(Date.now()-start)/1000;ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.r+=p.vr;p.life=1-t/2.2;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.62);ctx.restore();});
+      if(t<2.2)requestAnimationFrame(frame);else{ctx.clearRect(0,0,cv.width,cv.height);cv.style.display='none';}
+    })();
+  }
+  bubble.addEventListener('click',openChallenge);
+  document.getElementById('ps-ch-close').addEventListener('click',closeChallenge);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)closeChallenge();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('open'))closeChallenge();});
+  document.getElementById('ps-ch-begin').addEventListener('click',begin);
+  document.getElementById('ps-ch-again').addEventListener('click',begin);
+  if('speechSynthesis' in window){try{window.speechSynthesis.getVoices();}catch(e){}}
+})();
+</script>
+
 {% endblock %}
