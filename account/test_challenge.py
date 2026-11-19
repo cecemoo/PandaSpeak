@@ -31,6 +31,7 @@ class ChallengeWidgetTests(TestCase):
         self.assertContains(response, '60-Second Challenge')
         self.assertContains(response, 'Begin the Challenge')
         self.assertContains(response, reverse('challenge_next'))
+        self.assertContains(response, 'assets/audio/panda-challenge-intro.mp3')
 
     def test_homepage_widget_links_to_login_and_register(self):
         response = self.client.get(reverse('home'))

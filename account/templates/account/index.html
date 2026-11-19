@@ -1061,9 +1061,19 @@
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
-  function stopSpeech(){try{if('speechSynthesis' in window)window.speechSynthesis.cancel();}catch(e){}}
+  var introAudio=null;
+  function playIntro(){
+    stopSpeech();
+    try{
+      if(!introAudio){introAudio=new Audio("{% static 'assets/audio/panda-challenge-intro.mp3' %}");introAudio.preload='auto';}
+      introAudio.currentTime=0;
+      var p=introAudio.play();
+      if(p&&p.catch)p.catch(function(){speakIntro();});
+    }catch(e){speakIntro();}
+  }
+  function stopSpeech(){try{if('speechSynthesis' in window)window.speechSynthesis.cancel();}catch(e){}if(introAudio){try{introAudio.pause();}catch(e){}}}
   function show(el){intro.style.display=el===intro?'block':'none';game.style.display=el===game?'block':'none';result.style.display=el===result?'block':'none';}
-  function openChallenge(){overlay.classList.add('open');show(intro);speakIntro();}
+  function openChallenge(){overlay.classList.add('open');show(intro);playIntro();}
   function closeChallenge(){overlay.classList.remove('open');stopTimer();stopSpeech();}
   function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
   async function begin(){
