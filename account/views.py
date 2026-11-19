@@ -148,7 +148,7 @@ def my_login(request):
         username = request.POST.get('username', '')
         if login_throttle.is_blocked(request, username):
             form = AuthenticationForm(request, data=request.POST)
-            form.add_error(None, 'Too many failed login attempts. Please wait a few minutes and try again.')
+            form.add_error(None, 'Too many failed login attempts. Please wait a few minutes and try again, or use the "Forgot your password?" link below to reset your password now.')
             context = {'LoginForm': form}
             return render(request, 'account/my_login.html', context)
         form = AuthenticationForm(request, data=request.POST)
