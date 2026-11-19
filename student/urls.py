@@ -6,6 +6,7 @@ from . import flashcard_views
 from . import subscription_guard_views
 from . import tone_views
 from . import challenge_views
+from . import word_drop_views
 from . import ai_conversation_views
 from . import culture_views
 from . import culture_completion_views
@@ -51,6 +52,8 @@ urlpatterns = [
     path('bingo/<int:game_id>/delete/', subscription_required(bingo_views.delete_personal_bingo), name='delete_personal_bingo'),
     path('chinese-challenge/', challenge_views.chinese_challenge, name='chinese_challenge'),
     path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
+    path('word-drop/', subscription_required(word_drop_views.word_drop), name='word_drop'),
+    path('word-drop/items/', subscription_required(word_drop_views.word_drop_items), name='word_drop_items'),
     path('ai-conversation/', ai_conversation_views.ai_conversation, name='ai_conversation'),
     path('ai-conversation/traditionalize/', ai_conversation_views.ai_conversation_traditionalize, name='ai_conversation_traditionalize'),
     path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),

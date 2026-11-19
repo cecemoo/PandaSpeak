@@ -1,0 +1,223 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.wd-wrap{max-width:760px;margin:0 auto}
+.wd-card{background:#fffdf6;border:1px solid #e7e0cd;border-radius:18px;padding:22px;color:#243024;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.wd-hud{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.wd-pill{background:#eef7f1;border:1px solid #cfe6d8;color:#14532d;border-radius:999px;padding:4px 14px;font-weight:700}
+.wd-hearts{font-size:1.15rem;letter-spacing:2px}
+.wd-sky{position:relative;height:430px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#bfe6ff 0%,#e3f4ff 62%,#fdf3d8 100%);border:2px solid #9ecfec}
+.wd-ground{position:absolute;left:0;right:0;bottom:0;height:26px;background:repeating-linear-gradient(45deg,#7a4a21,#7a4a21 14px,#8a5a2b 14px,#8a5a2b 28px);border-top:4px solid #5d3a17}
+.wd-block{position:absolute;top:0;transform:translateX(-50%);background:linear-gradient(180deg,#12a866,#0a7a49);color:#fff;border-radius:12px;padding:10px 18px 8px;text-align:center;box-shadow:0 6px 0 #065f36,0 12px 22px rgba(0,0,0,.25);border:2px solid #0b8a52;min-width:110px;z-index:3}
+.wd-block .wd-chars{font-size:1.9rem;font-weight:800;line-height:1.15;letter-spacing:2px}
+.wd-block .wd-pinyin{font-size:.85rem;opacity:.92}
+.wd-block.idiom{background:linear-gradient(180deg,#e08a00,#b96e00);box-shadow:0 6px 0 #7a4a00,0 12px 22px rgba(0,0,0,.25);border-color:#c77c02}
+.wd-block.pop{animation:wdPop .45s ease forwards}
+@keyframes wdPop{40%{transform:translateX(-50%) scale(1.18) rotate(-2deg)}100%{transform:translateX(-50%) scale(.2);opacity:0}}
+.wd-block.splat{animation:wdSplat .45s ease forwards}
+@keyframes wdSplat{100%{transform:translateX(-50%) scaleY(.25) scaleX(1.25);opacity:.25}}
+.wd-star{position:absolute;z-index:4;pointer-events:none;font-size:1.4rem;animation:wdStar .8s ease-out forwards}
+@keyframes wdStar{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.3)}}
+.wd-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.wd-choice{border:2px solid #cfe6d8;background:#fff;border-radius:12px;padding:12px 14px;font-size:1rem;font-weight:600;color:#243024;text-align:left;cursor:pointer;transition:transform .08s,background .15s}
+.wd-choice:hover:not(:disabled){background:#eef7f1;transform:translateY(-1px)}
+.wd-choice.right{background:#d9f5e3;border-color:#12a866}
+.wd-choice.wrong{background:#fde3e3;border-color:#d64545;color:#8a1f1f}
+.wd-choice:disabled{opacity:.75;cursor:default}
+.wd-overlay{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(255,253,246,.93);padding:24px}
+.wd-overlay img{width:96px;height:96px;border-radius:50%}
+.wd-overlay h3{margin:12px 0 6px;color:#14532d}
+.wd-flash{position:absolute;inset:0;background:rgba(214,69,69,.28);z-index:5;pointer-events:none;opacity:0}
+.wd-flash.on{animation:wdFlash .35s ease}
+@keyframes wdFlash{0%{opacity:1}100%{opacity:0}}
+.wd-level-btn.active{box-shadow:0 0 0 3px rgba(8,145,94,.35)}
+@media (max-width:560px){.wd-sky{height:380px}.wd-choices{grid-template-columns:1fr}.wd-block .wd-chars{font-size:1.55rem}}
+</style>
+<main class="main"><section class="section" style="padding-top:110px"><div class="container wd-wrap">
+<div class="text-center mb-4"><h1>🧱 Word Drop</h1><p>Words and expressions from your level fall from the sky — tap the correct meaning before they land!</p></div>
+<div class="wd-card">
+  <div class="text-center mb-3">
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+      {% for key, label in drop_levels.items %}
+      <button type="button" class="btn btn-outline-success rounded-pill wd-level-btn{% if key == drop_level %} active{% endif %}" data-level="{{ key }}">{{ label }}</button>
+      {% endfor %}
+      <button type="button" id="wdSound" class="btn btn-outline-secondary rounded-pill">🔊 Sound On</button>
+    </div>
+  </div>
+  <div class="wd-hud">
+    <span class="wd-pill">Score: <span id="wdScore">0</span></span>
+    <span class="wd-pill">Caught: <span id="wdCaught">0</span></span>
+    <span class="wd-pill">Streak: <span id="wdStreak">0</span></span>
+    <span class="wd-hearts" id="wdHearts">❤️❤️❤️</span>
+  </div>
+  <div class="wd-sky" id="wdSky">
+    <div class="wd-flash" id="wdFlash"></div>
+    <div class="wd-ground"></div>
+    <div class="wd-overlay" id="wdStart">
+      <img src="{% static 'assets/img/panda-assistant.png' %}" alt="PandaSpeak panda">
+      <h3>Ready to play?</h3>
+      <p>A Chinese word or expression drops from the top of the sky.<br>Choose its correct meaning from the four answers <strong>before it lands</strong>.<br>Wrong answers and landed words cost a heart — you have 3. It speeds up as you catch more!</p>
+      <button type="button" class="btn btn-success btn-lg rounded-pill px-5" id="wdStartBtn">▶ Start</button>
+      <p class="small text-muted mt-2 mb-0" id="wdLoadMsg">Using your {{ drop_level_label }} materials.</p>
+    </div>
+    <div class="wd-overlay" id="wdOver" style="display:none">
+      <img src="{% static 'assets/img/panda-assistant.png' %}" alt="PandaSpeak panda">
+      <h3>Game Over!</h3>
+      <p id="wdFinal" class="mb-1"></p>
+      <p id="wdBest" class="text-muted"></p>
+      <button type="button" class="btn btn-success btn-lg rounded-pill px-5" id="wdAgainBtn">↻ Play Again</button>
+    </div>
+  </div>
+  <div class="wd-choices" id="wdChoices"></div>
+  <div class="text-center mt-3"><a href="{% url 'student_dashboard' %}" class="btn btn-outline-success rounded-pill">Back to Dashboard</a></div>
+</div>
+</div></section></main>
+<script>
+(function(){
+"use strict";
+var ITEMS_URL="{% url 'word_drop_items' %}";
+var sky=document.getElementById('wdSky'),choicesEl=document.getElementById('wdChoices'),
+scoreEl=document.getElementById('wdScore'),caughtEl=document.getElementById('wdCaught'),
+streakEl=document.getElementById('wdStreak'),heartsEl=document.getElementById('wdHearts'),
+startOverlay=document.getElementById('wdStart'),overOverlay=document.getElementById('wdOver'),
+loadMsg=document.getElementById('wdLoadMsg'),flash=document.getElementById('wdFlash');
+var level="{{ drop_level }}",bank=[],deck=[],current=null,blockEl=null,
+score=0,caught=0,streak=0,bestStreak=0,lives=3,playing=false,rafId=null,startTs=0,fallMs=7000,locked=false;
+var soundOn=localStorage.getItem('pandaspeak_worddrop_sound')!=='off',audioCtx=null,soundBtn=document.getElementById('wdSound');
+function updSound(){soundBtn.textContent=soundOn?'🔊 Sound On':'🔇 Sound Off'}
+soundBtn.addEventListener('click',function(){soundOn=!soundOn;localStorage.setItem('pandaspeak_worddrop_sound',soundOn?'on':'off');updSound();if(soundOn)blip(700,0,.08,.1)});
+updSound();
+function ac(){if(!audioCtx){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;audioCtx=new AC()}if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
+function blip(f,t0,dur,vol,type){if(!soundOn)return;var ctx=ac();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,ctx.currentTime+t0);g.gain.setValueAtTime(.0001,ctx.currentTime+t0);g.gain.exponentialRampToValueAtTime(vol||.1,ctx.currentTime+t0+.01);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+t0+dur);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+t0);o.stop(ctx.currentTime+t0+dur+.02)}
+function sndGood(){blip(740,0,.12,.14);blip(1047,.1,.2,.14,'triangle')}
+function sndBad(){blip(240,0,.16,.12,'sawtooth');blip(170,.12,.22,.1,'sawtooth')}
+function sndLand(){blip(120,0,.25,.16,'square')}
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function hud(){var l=Math.max(0,Math.min(3,lives));scoreEl.textContent=score;caughtEl.textContent=caught;streakEl.textContent=streak;heartsEl.textContent='❤️'.repeat(l)+'🖤'.repeat(3-l)}
+function loadItems(cb){
+  loadMsg.textContent='Loading your words…';
+  fetch(ITEMS_URL+'?level='+encodeURIComponent(level),{headers:{'X-Requested-With':'XMLHttpRequest'}})
+  .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+  .then(function(res){
+    if(!res.ok){loadMsg.textContent=res.j.error||'Could not load words for this level.';return}
+    bank=res.j.items;deck=shuffle(bank.slice());cb&&cb();
+  }).catch(function(){loadMsg.textContent='Could not load the game. Please try again.'});
+}
+function nextItem(){
+  if(!deck.length)deck=shuffle(bank.slice());
+  return deck.pop();
+}
+function buildChoices(item){
+  var pool=bank.filter(function(b){return b.kind===item.kind&&b.meaning!==item.meaning});
+  var seen={},ds=[];
+  shuffle(pool.slice()).forEach(function(b){if(!seen[b.meaning]){seen[b.meaning]=1;ds.push(b.meaning)}});
+  var opts=shuffle(ds.slice(0,3).concat([item.meaning]));
+  choicesEl.innerHTML='';
+  opts.forEach(function(m,idx){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='wd-choice';btn.innerHTML='<strong>'+(idx+1)+'.</strong> '+esc(m);
+    btn.addEventListener('click',function(){answer(btn,m)});
+    choicesEl.appendChild(btn);
+  });
+}
+function spawn(){
+  locked=false;
+  current=nextItem();
+  buildChoices(current);
+  blockEl=document.createElement('div');
+  blockEl.className='wd-block'+(current.kind==='idiom'?' idiom':'');
+  blockEl.innerHTML='<div class="wd-chars">'+esc(current.text)+'</div>'+(current.pinyin?'<div class="wd-pinyin">'+esc(current.pinyin)+'</div>':'');
+  var skyW=sky.clientWidth;
+  var x=70+Math.random()*Math.max(60,skyW-140);
+  blockEl.style.left=x+'px';
+  sky.appendChild(blockEl);
+  startTs=performance.now();
+  var groundY=sky.clientHeight-26-blockEl.offsetHeight;
+  cancelAnimationFrame(rafId);
+  function step(now){
+    if(!playing||locked)return;
+    var t=(now-startTs)/fallMs;
+    if(t>=1){blockEl.style.top=groundY+'px';land();return}
+    blockEl.style.top=(groundY*t)+'px';
+    rafId=requestAnimationFrame(step);
+  }
+  rafId=requestAnimationFrame(step);
+}
+function stars(x,y){
+  ['⭐','✨','🌟'].forEach(function(s,i){
+    var el=document.createElement('span');el.className='wd-star';el.textContent=s;
+    el.style.left=x+'px';el.style.top=y+'px';
+    el.style.setProperty('--x',((i-1)*46)+'px');el.style.setProperty('--y',(-40-i*22)+'px');
+    sky.appendChild(el);setTimeout(function(){el.remove()},850);
+  });
+}
+function answer(btn,meaning){
+  if(!playing||locked||!current)return;
+  if(meaning===current.meaning){
+    locked=true;cancelAnimationFrame(rafId);
+    var remain=1-Math.min(1,(performance.now()-startTs)/fallMs);
+    score+=100+Math.round(remain*50);caught++;streak++;bestStreak=Math.max(bestStreak,streak);
+    fallMs=Math.max(2800,fallMs*0.96);
+    btn.classList.add('right');sndGood();
+    var r=blockEl.getBoundingClientRect(),sr=sky.getBoundingClientRect();
+    stars(r.left-sr.left+r.width/2-10,r.top-sr.top);
+    blockEl.classList.add('pop');hud();
+    setTimeout(function(){blockEl&&blockEl.remove();playing&&spawn()},430);
+  }else{
+    btn.classList.add('wrong');btn.disabled=true;sndBad();loseLife();
+  }
+}
+function land(){
+  if(locked||!playing)return;locked=true;sndLand();
+  blockEl.classList.add('splat');
+  flash.classList.remove('on');void flash.offsetWidth;flash.classList.add('on');
+  streak=0;hud();
+  setTimeout(function(){blockEl&&blockEl.remove()},420);
+  loseLife(true);
+}
+function loseLife(alreadyLanded){
+  lives--;streak=0;hud();
+  if(lives<=0){setTimeout(gameOver,alreadyLanded?450:250)}
+  else if(!alreadyLanded){/* word keeps falling */}
+  else setTimeout(function(){playing&&spawn()},460);
+}
+function gameOver(){
+  playing=false;cancelAnimationFrame(rafId);
+  if(blockEl){blockEl.remove();blockEl=null}
+  choicesEl.innerHTML='';
+  document.getElementById('wdFinal').innerHTML='You caught <strong>'+caught+'</strong> words and scored <strong>'+score+'</strong> points!';
+  document.getElementById('wdBest').textContent='Best streak: '+bestStreak+' · Level: '+level.replace('level','Level ');
+  overOverlay.style.display='flex';
+}
+function startGame(){
+  score=0;caught=0;streak=0;bestStreak=0;lives=3;fallMs=7000;hud();
+  startOverlay.style.display='none';overOverlay.style.display='none';
+  playing=true;spawn();
+}
+document.getElementById('wdStartBtn').addEventListener('click',function(){
+  if(bank.length){startGame()}else{loadItems(startGame)}
+});
+document.getElementById('wdAgainBtn').addEventListener('click',function(){
+  deck=shuffle(bank.slice());startGame();
+});
+document.querySelectorAll('.wd-level-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.wd-level-btn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');level=b.getAttribute('data-level');
+    playing=false;cancelAnimationFrame(rafId);if(blockEl){blockEl.remove();blockEl=null}
+    choicesEl.innerHTML='';bank=[];deck=[];
+    overOverlay.style.display='none';startOverlay.style.display='flex';
+    loadMsg.textContent='Tap Start to play with '+b.textContent+' materials.';
+  });
+});
+document.addEventListener('keydown',function(e){
+  if(!playing)return;
+  var n=parseInt(e.key,10);
+  if(n>=1&&n<=4){var all=choicesEl.querySelectorAll('.wd-choice');if(all[n-1]&&!all[n-1].disabled)all[n-1].click()}
+});
+loadItems(function(){loadMsg.textContent='Ready — '+bank.length+' words and expressions loaded for this level.'});
+})();
+</script>
+{% endblock %}
