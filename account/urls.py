@@ -9,12 +9,13 @@ from . import managers
 from . import announcement_views
 from . import contact_views
 from . import email_verification_views
-from . import help_chat_views
+from . import challenge_views, help_chat_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('internal/cron/lead-followups/', internal_views.lead_followups_trigger, name='lead_followups_trigger'),
     path('help-chat/', help_chat_views.help_chat, name='help_chat'),
+    path('challenge/next/', challenge_views.challenge_next, name='challenge_next'),
     path('manager/subcategories/', views.manage_learning_subcategory, name='manage_learning_subcategory'),
     path('manager/purchase-blocklist/', purchase_manager_views.manager_purchase_blocklist, name='manager_purchase_blocklist'),
     path('manager_dashboard/surveys/renewal-responses/', manager_surveys.manager_renewal_survey_responses, name='manager_renewal_survey_responses'),

@@ -194,3 +194,18 @@ class LeadMagnetSignup(models.Model):
 
     def __str__(self):
         return f"{self.email} ({self.source})"
+
+
+class ChallengeServe(models.Model):
+    """One 60-Second Challenge question served to a visitor.
+
+    Stores a hash of the visitor's IP (never the raw address) so the
+    challenge endpoint can avoid repeating a word/idiom for the same
+    visitor until the whole bank has cycled.
+    """
+    ip_hash = models.CharField(max_length=64, db_index=True)
+    item_text = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

@@ -30,10 +30,41 @@ class ChallengeWidgetTests(TestCase):
         self.assertContains(response, 'id="ps-ch-bubble"')
         self.assertContains(response, '60-Second Challenge')
         self.assertContains(response, 'Begin the Challenge')
-        self.assertContains(response, 'ps-challenge-items')
+        self.assertContains(response, reverse('challenge_next'))
 
     def test_homepage_widget_links_to_login_and_register(self):
         response = self.client.get(reverse('home'))
         self.assertContains(response, reverse('my_login'))
         self.assertContains(response, reverse('register'))
         self.assertContains(response, 'Register an account')
+
+
+class ChallengeNextTests(TestCase):
+    def _next(self, ip='203.0.113.7'):
+        return self.client.post(reverse('challenge_next'), data='{}',
+                                content_type='application/json', REMOTE_ADDR=ip)
+
+    def test_returns_question_with_four_choices_including_answer(self):
+        response = self._next()
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data['choices']), 4)
+        self.assertIn(data['answer'], data['choices'])
+        self.assertTrue(data['text'] and data['zhuyin'] and data['pinyin'])
+
+    def test_same_ip_never_repeats_until_bank_cycles(self):
+        seen = [self._next().json()['text'] for _ in range(len(CHALLENGE_ITEMS))]
+        self.assertEqual(len(seen), len(set(seen)))
+        self.assertEqual(set(seen), {i['text'] for i in CHALLENGE_ITEMS})
+        # After the full cycle, the next question starts a fresh cycle.
+        self.assertIn(self._next().json()['text'], seen)
+
+    def test_different_ip_has_independent_cycle(self):
+        first = self._next('203.0.113.7').json()['text']
+        other = self._next('198.51.100.23').json()['text']
+        self.assertTrue(other)  # independent tracking; may or may not equal first
+        self.assertNotEqual(self._next('198.51.100.23').json()['text'], other)
+        self.assertNotEqual(self._next('203.0.113.7').json()['text'], first)
+
+    def test_get_is_not_allowed(self):
+        self.assertEqual(self.client.get(reverse('challenge_next')).status_code, 405)

@@ -27,7 +27,6 @@ from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.mail import send_mail
 from student.models import AssessmentRequest, LanguageTest, StudentTestSubmission
-from .challenge_data import CHALLENGE_ITEMS
 from teacher.models import SurveyResponse, LearningSurvey
 from django.urls import resolve, reverse
 from django.db.models import Q
@@ -78,7 +77,6 @@ def home(request):
 
 
     context = {
-        'challenge_items': CHALLENGE_ITEMS,
         'today_vocabulary': today_vocabulary,
         'today_sentence': today_sentence,
         'pronunciation': pronunciation,

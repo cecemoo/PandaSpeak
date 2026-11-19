@@ -1036,7 +1036,6 @@
   </div>
 </div>
 <canvas id="ps-ch-confetti"></canvas>
-{{ challenge_items|json_script:"ps-challenge-items" }}
 <script>
 (function(){
   var bubble=document.getElementById('ps-ch-bubble'),overlay=document.getElementById('ps-ch-overlay'),
@@ -1044,17 +1043,21 @@
       fill=document.getElementById('ps-ch-timer-fill'),secsEl=document.getElementById('ps-ch-secs'),
       kindEl=document.getElementById('ps-ch-kind'),wordEl=document.getElementById('ps-ch-word'),readEl=document.getElementById('ps-ch-reading'),
       choicesEl=document.getElementById('ps-ch-choices'),resTitle=document.getElementById('ps-ch-result-title'),resText=document.getElementById('ps-ch-result-text');
-  var items=[];try{items=JSON.parse(document.getElementById('ps-challenge-items').textContent)||[];}catch(e){}
   var timer=null,current=null,deadline=0;
   var INTRO_TEXT="Hi! I'm your PandaSpeak panda. Here's how to play the 60-Second Chinese Challenge. I'll show you a Chinese word or idiom, and you have 60 seconds to choose its correct meaning from four choices. Get it right, and we'll celebrate! Ready? Press Begin the Challenge, and let's go!";
+  function csrfToken(){var m=document.cookie.match(/csrftoken=([^;]+)/);return m?decodeURIComponent(m[1]):'';}
   function speakIntro(){
     try{
       if(!('speechSynthesis' in window))return;
       window.speechSynthesis.cancel();
       var u=new SpeechSynthesisUtterance(INTRO_TEXT);
-      u.lang='en-US';u.rate=1;
+      u.lang='en-US';u.rate=1.08;u.pitch=1.9;
       var voices=window.speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf('en')===0;});
-      if(voices.length)u.voice=voices[0];
+      var cuteNames=['samantha','zira','female','karen','moira','tessa','fiona','google us english'];
+      var pick=null;
+      for(var i=0;i<cuteNames.length&&!pick;i++){for(var j=0;j<voices.length;j++){if(voices[j].name.toLowerCase().indexOf(cuteNames[i])>=0){pick=voices[j];break;}}}
+      if(!pick&&voices.length)pick=voices[0];
+      if(pick)u.voice=pick;
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
@@ -1063,24 +1066,28 @@
   function openChallenge(){overlay.classList.add('open');show(intro);speakIntro();}
   function closeChallenge(){overlay.classList.remove('open');stopTimer();stopSpeech();}
   function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
-  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-  function begin(){
+  async function begin(){
     stopSpeech();
-    if(!items.length)return;
-    current=items[Math.floor(Math.random()*items.length)];
-    var pool=items.filter(function(it){return it.kind===current.kind&&it.answer!==current.answer;});
-    var opts=shuffle(pool.slice()).slice(0,3).map(function(it){return it.answer;});
-    opts.push(current.answer);shuffle(opts);
+    kindEl.textContent='Loading…';wordEl.textContent='🐼';readEl.textContent='';choicesEl.innerHTML='';
+    show(game);
+    try{
+      var r=await fetch('{% url "challenge_next" %}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken()},body:'{}'});
+      if(!r.ok)throw new Error('load failed');
+      current=await r.json();
+    }catch(e){
+      kindEl.textContent='Oops';wordEl.textContent='🐼';
+      readEl.textContent='Could not load a question. Please close and try again.';
+      return;
+    }
     kindEl.textContent=current.kind==='idiom'?'Idiom 成語':'Word 詞語';
     wordEl.textContent=current.text;
     readEl.textContent=current.zhuyin+' · '+current.pinyin;
     choicesEl.innerHTML='';
-    opts.forEach(function(opt){
+    current.choices.forEach(function(opt){
       var b=document.createElement('button');b.type='button';b.className='ps-ch-choice';b.textContent=opt;
       b.addEventListener('click',function(){answer(b,opt);});
       choicesEl.appendChild(b);
     });
-    show(game);
     deadline=Date.now()+60000;
     fill.style.width='100%';fill.classList.remove('low');secsEl.textContent='60';secsEl.classList.remove('low');
     stopTimer();
