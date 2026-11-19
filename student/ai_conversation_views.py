@@ -19,7 +19,52 @@ from subscription.decorators import subscription_required
 from subscription.plan_access import ai_conversation_limit, is_plus
 from .models import AIConversationUsage, AICachedSpeech
 
-SCENARIOS={"self_intro":"Self Introduction","restaurant":"Restaurant","shopping":"Shopping","directions":"Asking Directions","travel":"Hotel / Travel","plans":"Making Plans with a Friend","family":"Family Conversation","free":"Free Conversation"}
+LEVEL_SCENARIOS={
+"1":{"self_intro":"Self Introduction 自我介紹","family":"Family 我的家人","food":"Food & Tastes 喜歡的食物","restaurant":"At a Restaurant 在餐廳點餐","shopping":"Shopping 買東西","directions":"Asking Directions 問路","daily_routine":"Daily Routine 每日作息","weather":"Weather & Seasons 天氣","time_dates":"Time & Dates 時間和日期","school":"School Life 學校生活","hobbies":"Hobbies 興趣嗜好","pets_animals":"Pets & Animals 寵物和動物","free":"Free Conversation 自由對話"},
+"2":{"travel":"Travel & Hotels 旅行和飯店","plans":"Plans with Friends 跟朋友約活動","transport":"Getting Around 交通工具","appointments":"Appointments by Phone 打電話預約","health":"At the Doctor 看醫生","housing":"Housing & Neighborhood 房子和社區","work":"Work & Colleagues 工作日常","errands":"Errands: Bank & Post Office 銀行和郵局","celebrations":"Festivals & Celebrations 節日和慶祝","entertainment":"Movies & Entertainment 電影和娛樂","cooking":"Cooking & Recipes 做菜和食譜","exercise":"Exercise & Staying Healthy 運動和健康","free":"Free Conversation 自由對話"},
+"3":{"current_events":"Current Events 時事討論","culture":"Culture & Customs 文化和習俗","technology":"Technology & Life 科技和生活","environment":"Environment 環境保護","education":"Education & Learning 教育和學習","business":"Business Communication 商務溝通","storytelling":"Storytelling 說故事","opinions":"Opinions & Discussion 表達看法","careers":"Careers & Goals 職業和夢想","health_talk":"Health & Wellness 健康和養生","travel_deep":"Travel Stories 深度旅行","media":"Media & Social Media 社群媒體","free":"Free Conversation 自由對話"},
+}
+SCENARIOS={}
+for _lvl in ("3","2","1"):SCENARIOS.update(LEVEL_SCENARIOS[_lvl])
+SCENARIO_GREETINGS={
+"self_intro":"你好！很高興跟你一起練習中文。請先跟我介紹一下你自己吧！",
+"family":"我們來聊聊家人吧。你家有幾個人？",
+"food":"你好！我們來聊聊吃的。你最喜歡吃什麼？",
+"restaurant":"歡迎光臨！請問幾位？",
+"shopping":"你好！需要我幫你找什麼嗎？",
+"directions":"你好，需要問路嗎？你想去哪裡？",
+"daily_routine":"你好！你每天早上幾點起床？",
+"weather":"你好！你那邊今天天氣怎麼樣？",
+"time_dates":"你好！今天是星期幾？你這個週末有空嗎？",
+"school":"你好！你在哪裡學中文？學多久了？",
+"hobbies":"你好！你平常喜歡做什麼？",
+"pets_animals":"你好！你喜歡動物嗎？你有養寵物嗎？",
+"travel":"歡迎光臨！請問你有訂房嗎？",
+"plans":"嗨！這個週末你有空嗎？我們一起出去吧！",
+"transport":"你好！你平常都怎麼出門？坐公車、捷運，還是開車？",
+"appointments":"你好，這裡是陽光牙醫診所。請問你想預約什麼時間？",
+"health":"你好，我是林醫師。你今天哪裡不舒服？",
+"housing":"你好！你現在住的社區怎麼樣？附近方便嗎？",
+"work":"你好！你現在的工作怎麼樣？平常忙不忙？",
+"errands":"你好！你最近有去銀行或郵局辦事情嗎？辦了什麼？",
+"celebrations":"你好！你最喜歡哪一個節日？你們通常怎麼慶祝？",
+"entertainment":"你好！你最近有看什麼好看的電影或電視劇嗎？",
+"cooking":"你好！你平常自己做菜嗎？你最拿手的一道菜是什麼？",
+"exercise":"你好！你平常有運動的習慣嗎？你喜歡什麼運動？",
+"current_events":"你好！最近有什麼新聞讓你印象深刻嗎？我們來聊聊。",
+"culture":"你好！不同的文化有不同的習俗。你覺得哪個習俗最有意思？",
+"technology":"你好！科技改變了我們的生活。你覺得人工智慧會帶來什麼影響？",
+"environment":"你好！你平常會做哪些環保的事？我們來談談環境保護。",
+"education":"你好！你覺得學語言最有效的方法是什麼？",
+"business":"您好，很高興見到您。我們先談談這次合作的重點，好嗎？",
+"storytelling":"你好！說一個你難忘的故事給我聽吧，什麼時候發生的？",
+"opinions":"你好！我們來交換看法。你覺得住在大城市好，還是小城市好？為什麼？",
+"careers":"你好！你對未來的職業有什麼想法或目標嗎？",
+"health_talk":"你好！你平常怎麼保持健康？飲食和作息有特別注意嗎？",
+"travel_deep":"你好！你去過印象最深的地方是哪裡？那次旅行發生了什麼事？",
+"media":"你好！你平常都用哪些社群媒體？你覺得它們對生活有什麼影響？",
+"free":"你好！今天想聊什麼？",
+}
 LEVEL_GUIDANCE={"1":"Use short beginner-friendly sentences, common vocabulary, and one idea at a time.","2":"Use natural everyday Chinese with moderately varied vocabulary and sentence patterns.","3":"Use natural, fluent Chinese, including appropriate idiomatic or colloquial expressions when useful."}
 TRADITIONAL_CONVERTER=OpenCC('s2twp')
 MANDARIN_SPEECH_CONVERTER=OpenCC('t2s')
@@ -118,8 +163,8 @@ def _call_openai(messages,level,scenario):
 @login_required
 @subscription_required
 def ai_conversation(request):
-    limit=ai_conversation_limit(request.user);used=_monthly_used(request.user)
-    return render(request,"student/ai_conversation.html",{"scenarios":SCENARIOS,"student_level":_student_level(request.user),"conversation_limit":limit,"sessions_used":used,"remaining":max(0,limit-used),"is_plus":is_plus(request.user)})
+    limit=ai_conversation_limit(request.user);used=_monthly_used(request.user);level=_student_level(request.user)
+    return render(request,"student/ai_conversation.html",{"scenarios":LEVEL_SCENARIOS[level],"greetings":SCENARIO_GREETINGS,"student_level":level,"conversation_limit":limit,"sessions_used":used,"remaining":max(0,limit-used),"is_plus":is_plus(request.user)})
 
 
 @login_required
