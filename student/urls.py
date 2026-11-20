@@ -7,6 +7,7 @@ from . import subscription_guard_views
 from . import tone_views
 from . import challenge_views
 from . import word_drop_views
+from . import dialogue_views
 from . import ai_conversation_views
 from . import culture_views
 from . import culture_completion_views
@@ -54,6 +55,9 @@ urlpatterns = [
     path('chinese-challenge/question/', challenge_views.challenge_question, name='challenge_question'),
     path('word-drop/', subscription_required(word_drop_views.word_drop), name='word_drop'),
     path('word-drop/items/', subscription_required(word_drop_views.word_drop_items), name='word_drop_items'),
+    path('dialogues/', subscription_required(dialogue_views.dialogue_categories), name='dialogue_categories'),
+    path('dialogues/<slug:category_slug>/', subscription_required(dialogue_views.dialogue_topics), name='dialogue_topics'),
+    path('dialogues/play/<slug:topic_slug>/', subscription_required(dialogue_views.dialogue_play), name='dialogue_play'),
     path('ai-conversation/', ai_conversation_views.ai_conversation, name='ai_conversation'),
     path('ai-conversation/traditionalize/', ai_conversation_views.ai_conversation_traditionalize, name='ai_conversation_traditionalize'),
     path('ai-conversation/reply/', ai_conversation_views.ai_conversation_reply, name='ai_conversation_reply'),

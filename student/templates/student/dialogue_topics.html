@@ -1,0 +1,49 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.dlg-wrap{max-width:900px;margin:0 auto;padding:10px 12px 30px}
+.dlg-head{background:linear-gradient(145deg,rgba(8,84,104,.95),rgba(6,54,78,.97));border:1px solid rgba(56,189,248,.5);border-radius:18px;padding:24px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
+.dlg-head h2{color:#fff;margin:0 0 6px;font-size:1.7rem}
+.dlg-head p{color:#d7eefb;margin:0}
+.dlg-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(56,189,248,.22);color:#bae6fd;margin-bottom:10px}
+.dlg-back{display:inline-block;margin-bottom:14px;color:#bae6fd;font-weight:700;text-decoration:none}
+.dlg-back:hover{color:#fff}
+.dlg-topic{display:block;background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:18px 20px;color:#243024;text-decoration:none;box-shadow:0 8px 22px rgba(0,0,0,.16);margin-bottom:12px;transition:transform .12s,box-shadow .12s}
+.dlg-topic:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.22);color:#243024}
+.dlg-topic h3{margin:0 0 2px;font-size:1.15rem;color:#0b4a5e}
+.dlg-topic .dlg-zh{color:#8a6d1a;font-weight:700}
+.dlg-topic p{color:#5b6a5e;margin:6px 0 10px;font-size:.93rem}
+.dlg-meta{display:flex;flex-wrap:wrap;gap:8px}
+.dlg-chip{font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#eef7f1;border:1px solid #cfe6d8;color:#14532d}
+.dlg-chip.time{background:#e0f2fe;border-color:#bae6fd;color:#075985}
+.dlg-locked{background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:28px;color:#243024;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+</style>
+<div class="dlg-wrap">
+  <a class="dlg-back" href="{% url 'dialogue_categories' %}">← All Categories</a>
+  <div class="dlg-head">
+    <span class="dlg-badge">{{ dialogue_category.icon }} {{ dialogue_category.title_zh }}{% if dialogue_level_label %} · {{ dialogue_level_label }}{% endif %}</span>
+    <h2>{{ dialogue_category.title_en }}</h2>
+    <p>{{ dialogue_category.blurb }} Pick a dialogue to listen to.</p>
+  </div>
+  {% if dialogue_level %}
+    {% for topic in dialogue_topics %}
+    <a class="dlg-topic" href="{% url 'dialogue_play' topic.slug %}">
+      <h3>{{ topic.title_en }} <span class="dlg-zh">{{ topic.title_zh }}</span></h3>
+      <p>{{ topic.setting }}</p>
+      <div class="dlg-meta">
+        <span class="dlg-chip time">🎧 About 1 minute</span>
+        <span class="dlg-chip">❓ {{ topic.question_count }} questions</span>
+        {% for speaker in topic.speakers %}<span class="dlg-chip">🗣️ {{ speaker }}</span>{% endfor %}
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+  <div class="dlg-locked">
+    <div style="font-size:2.4rem;margin-bottom:8px">🔒</div>
+    <h3 style="color:#0b4a5e;margin-top:0">Available at Level II</h3>
+    <p style="color:#5b6a5e;margin:0">Dialogue listening practice opens when your learning level reaches Level II.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

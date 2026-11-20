@@ -1,0 +1,138 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.dlg-wrap{max-width:820px;margin:0 auto;padding:10px 12px 30px}
+.dlg-head{background:linear-gradient(145deg,rgba(8,84,104,.95),rgba(6,54,78,.97));border:1px solid rgba(56,189,248,.5);border-radius:18px;padding:24px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
+.dlg-head h2{color:#fff;margin:0 0 6px;font-size:1.6rem}
+.dlg-head p{color:#d7eefb;margin:0}
+.dlg-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(56,189,248,.22);color:#bae6fd;margin-bottom:10px}
+.dlg-back{display:inline-block;margin-bottom:14px;color:#bae6fd;font-weight:700;text-decoration:none}
+.dlg-back:hover{color:#fff}
+.dlg-card{background:#fffdf6;border:1px solid #e7e0cd;border-radius:18px;padding:22px;color:#243024;box-shadow:0 10px 30px rgba(0,0,0,.22);margin-bottom:16px}
+.dlg-card h3{color:#0b4a5e;margin-top:0}
+.dlg-player{width:100%;margin-top:6px}
+.dlg-hint{color:#5b6a5e;font-size:.92rem;margin:10px 0 0}
+.dlg-q{border:1px solid #e7e0cd;border-radius:14px;padding:16px;margin-bottom:14px;background:#fff}
+.dlg-q h4{margin:0 0 12px;font-size:1.02rem;color:#243024}
+.dlg-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dlg-opt{border:2px solid #cfe6d8;background:#fff;border-radius:12px;padding:11px 13px;font-size:.97rem;font-weight:600;color:#243024;text-align:left;cursor:pointer;transition:transform .08s,background .15s}
+.dlg-opt:hover:not(:disabled){background:#eef7f1;transform:translateY(-1px)}
+.dlg-opt.right{background:#d9f5e3;border-color:#12a866}
+.dlg-opt.wrong{background:#fde3e3;border-color:#d64545;color:#8a1f1f}
+.dlg-opt:disabled{cursor:default;opacity:.92}
+.dlg-feedback{margin-top:10px;font-weight:700;display:none}
+.dlg-feedback.ok{color:#0a7a49}
+.dlg-feedback.no{color:#b02a2a}
+.dlg-progress{font-weight:700;color:#0b4a5e;margin-bottom:12px}
+.dlg-done{display:none;text-align:center}
+.dlg-done .dlg-score{font-size:1.3rem;font-weight:800;color:#0b4a5e}
+.dlg-line{margin:0 0 8px;line-height:1.55}
+.dlg-line b{color:#0b4a5e}
+.dlg-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:14px}
+@media(max-width:640px){.dlg-opts{grid-template-columns:1fr}}
+</style>
+<div class="dlg-wrap">
+  <a class="dlg-back" href="{% url 'dialogue_topics' dialogue_category.slug %}">← {{ dialogue_category.title_en }}</a>
+  <div class="dlg-head">
+    <span class="dlg-badge">🎧 {{ dialogue_level_label }} · {{ dialogue_category.title_en }}</span>
+    <h2>{{ dialogue_topic.title_en }} <span style="color:#fde68a">{{ dialogue_topic.title_zh }}</span></h2>
+    <p>{{ dialogue_topic.setting }}</p>
+  </div>
+
+  <div class="dlg-card">
+    <h3>🎧 Listen to the dialogue</h3>
+    <audio class="dlg-player" controls preload="metadata" src="{% static dialogue_audio %}"></audio>
+    <p class="dlg-hint">Listen as many times as you like — then answer the questions below. The answer is shown as soon as you pick one.</p>
+  </div>
+
+  <div class="dlg-card">
+    <h3>❓ Listening comprehension</h3>
+    <div class="dlg-progress" id="dlg-progress"></div>
+    <div id="dlg-quiz"></div>
+    <div class="dlg-done" id="dlg-done">
+      <div style="font-size:2.2rem">🐼🎉</div>
+      <div class="dlg-score" id="dlg-score"></div>
+      <p style="color:#5b6a5e" id="dlg-done-msg"></p>
+      <div class="dlg-actions">
+        <a class="btn btn-success rounded-pill" href="{% url 'dialogue_topics' dialogue_category.slug %}">More dialogues in {{ dialogue_category.title_en }}</a>
+        <a class="btn btn-outline-secondary rounded-pill" href="{% url 'dialogue_categories' %}">All categories</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="dlg-card" id="dlg-transcript-card" style="display:none">
+    <h3>📜 Dialogue transcript</h3>
+    <p style="color:#5b6a5e;font-size:.92rem">Now that you have answered the questions, read along and listen again to catch the parts you missed.</p>
+    {% for line in dialogue_transcript %}
+    <p class="dlg-line"><b>{{ line.speaker }}:</b> {{ line.text }}</p>
+    {% endfor %}
+  </div>
+</div>
+
+{{ dialogue_questions|json_script:"dlg-questions-data" }}
+<script>
+(function(){
+  var questions = JSON.parse(document.getElementById('dlg-questions-data').textContent);
+  var quiz = document.getElementById('dlg-quiz');
+  var progress = document.getElementById('dlg-progress');
+  var answered = 0, score = 0;
+
+  function updateProgress(){
+    progress.textContent = 'Answered ' + answered + ' of ' + questions.length + (answered ? ' · Score: ' + score : '');
+  }
+
+  questions.forEach(function(item, qi){
+    var box = document.createElement('div');
+    box.className = 'dlg-q';
+    var title = document.createElement('h4');
+    title.textContent = (qi + 1) + '. ' + item.q;
+    box.appendChild(title);
+    var opts = document.createElement('div');
+    opts.className = 'dlg-opts';
+    var feedback = document.createElement('div');
+    feedback.className = 'dlg-feedback';
+    item.options.forEach(function(text, oi){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dlg-opt';
+      btn.textContent = text;
+      btn.addEventListener('click', function(){
+        var buttons = opts.querySelectorAll('.dlg-opt');
+        buttons.forEach(function(b){ b.disabled = true; });
+        buttons[item.answer].classList.add('right');
+        answered += 1;
+        if (oi === item.answer) {
+          score += 1;
+          feedback.textContent = '✓ Correct! Well done.';
+          feedback.classList.add('ok');
+        } else {
+          btn.classList.add('wrong');
+          feedback.textContent = '✗ Not quite — the correct answer is: ' + item.options[item.answer];
+          feedback.classList.add('no');
+        }
+        feedback.style.display = 'block';
+        updateProgress();
+        if (answered === questions.length) {
+          var done = document.getElementById('dlg-done');
+          document.getElementById('dlg-score').textContent = 'You scored ' + score + ' / ' + questions.length;
+          document.getElementById('dlg-done-msg').textContent =
+            score === questions.length ? 'Perfect listening! You understood everything.' :
+            score >= questions.length - 1 ? 'Great listening! Just one small miss.' :
+            'Good effort! Listen once more and read the transcript below to catch what you missed.';
+          done.style.display = 'block';
+          document.getElementById('dlg-transcript-card').style.display = 'block';
+          done.scrollIntoView({behavior:'smooth', block:'center'});
+        }
+      });
+      opts.appendChild(btn);
+    });
+    box.appendChild(opts);
+    box.appendChild(feedback);
+    quiz.appendChild(box);
+  });
+
+  updateProgress();
+})();
+</script>
+{% endblock %}

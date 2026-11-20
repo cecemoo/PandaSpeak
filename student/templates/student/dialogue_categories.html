@@ -1,0 +1,50 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.dlg-wrap{max-width:900px;margin:0 auto;padding:10px 12px 30px}
+.dlg-head{background:linear-gradient(145deg,rgba(8,84,104,.95),rgba(6,54,78,.97));border:1px solid rgba(56,189,248,.5);border-radius:18px;padding:24px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
+.dlg-head h2{color:#fff;margin:0 0 6px;font-size:1.7rem}
+.dlg-head p{color:#d7eefb;margin:0}
+.dlg-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(56,189,248,.22);color:#bae6fd;margin-bottom:10px}
+.dlg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.dlg-cat{display:block;background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:20px;color:#243024;text-decoration:none;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:transform .12s,box-shadow .12s}
+.dlg-cat:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.24);color:#243024}
+.dlg-cat .dlg-icon{font-size:2rem;display:block;margin-bottom:8px}
+.dlg-cat h3{margin:0 0 2px;font-size:1.2rem;color:#0b4a5e}
+.dlg-cat .dlg-zh{color:#8a6d1a;font-weight:700;margin-bottom:6px}
+.dlg-cat p{color:#5b6a5e;margin:0 0 10px;font-size:.93rem}
+.dlg-count{display:inline-block;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#e0f2fe;color:#075985}
+.dlg-locked{background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:28px;color:#243024;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.dlg-back{display:inline-block;margin-bottom:14px;color:#bae6fd;font-weight:700;text-decoration:none}
+.dlg-back:hover{color:#fff}
+@media(max-width:700px){.dlg-grid{grid-template-columns:1fr}}
+</style>
+<div class="dlg-wrap">
+  <a class="dlg-back" href="{% url 'student_dashboard' %}">← Back to Dashboard</a>
+  <div class="dlg-head">
+    <span class="dlg-badge">🎧 Listening Practice{% if dialogue_level_label %} · {{ dialogue_level_label }}{% endif %}</span>
+    <h2>Dialogue 對話聽力</h2>
+    <p>Listen to everyday conversations — at home, in restaurants, on the road — then answer questions to check how much you understood. Each dialogue is about one minute long.</p>
+  </div>
+  {% if dialogue_level %}
+  <div class="dlg-grid">
+    {% for category in dialogue_categories %}
+    <a class="dlg-cat" href="{% url 'dialogue_topics' category.slug %}">
+      <span class="dlg-icon">{{ category.icon }}</span>
+      <h3>{{ category.title_en }}</h3>
+      <div class="dlg-zh">{{ category.title_zh }}</div>
+      <p>{{ category.blurb }}</p>
+      <span class="dlg-count">{{ category.topic_count }} dialogue{{ category.topic_count|pluralize }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="dlg-locked">
+    <div style="font-size:2.4rem;margin-bottom:8px">🔒</div>
+    <h3 style="color:#0b4a5e;margin-top:0">Available at Level II</h3>
+    <p style="color:#5b6a5e;margin:0">Dialogue listening practice opens when your learning level reaches Level II. Keep going — you are on your way!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
