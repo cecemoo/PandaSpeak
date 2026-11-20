@@ -645,6 +645,14 @@ h6 {
   margin-bottom: 10px;
 }
 
+/* Keep the title text and breadcrumb links above the dark overlay —
+   without this they render dimmed and the links cannot be clicked. */
+.page-title .heading,
+.page-title .breadcrumbs {
+  position: relative;
+  z-index: 1;
+}
+
 .page-title .breadcrumbs ol {
   display: flex;
   flex-wrap: wrap;
