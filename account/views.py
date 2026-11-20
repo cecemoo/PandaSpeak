@@ -90,58 +90,6 @@ def home(request):
     return render(request, 'account/index.html', context)
 
 
-def register(request):
-    form = CreateUserForm()
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            return redirect('manager_dashboard')
-        elif request.user.is_teacher:
-            return redirect('teacher_dashboard')
-        else:
-            return redirect('student_dashboard')
-    if request.method == 'POST':
-        form  = CreateUserForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            user_type = "Teacher" if new_user.is_teacher else "Student"
-            send_mail(
-                subject="New PandaSpeak Account Registration",
-                message=(
-                    f"A new account has been registered on PandaSpeak.\n\n"
-                    f"Name: {new_user.first_name} {new_user.last_name}\n"
-                    f"Email: {new_user.email}\n"
-                    f"Account Type: {user_type}\n"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["pandaspeaksupport@gmail.com"],
-                fail_silently=False,
-            )
-
-            managers = CustomUser.objects.filter(
-                is_staff=True,
-                is_active=True,
-            )
-            registration_message = (
-                f"{new_user.get_full_name() or new_user.email} "
-                f"registered a new {user_type.lower()} account."
-            )
-            for manager in managers:
-                Notification.objects.create(
-                    user=manager,
-                    title="New Account Registration",
-                    message=registration_message,
-                    link=reverse('manager_dashboard'),
-                )
-                send_push_to_user(
-                    manager,
-                    "New Account Registration",
-                    registration_message,
-                    reverse('manager_dashboard'),
-                )
-                
-            return redirect('my_login')
-    context = {'RegisterForm': form}
-    return render(request, 'account/register.html', context)
 
 
 def my_login(request):

@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
@@ -10,6 +12,35 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from .forms import CreateUserForm
 from .models import CustomUser, Notification
 from .push import send_push_to_user
+
+logger = logging.getLogger(__name__)
+
+
+def _send_manager_registration_email(new_user, user_type):
+    """Email the support inbox about a new registration.
+
+    This notification lived in the old register view, which is no
+    longer wired to a URL, so signups stopped emailing the inbox when
+    the verification flow replaced it. A mail failure is logged, never
+    raised — it must not break the signup.
+    """
+    try:
+        send_mail(
+            subject='New PandaSpeak Account Registration',
+            message=(
+                'A new account has been registered on PandaSpeak.\n\n'
+                f'Name: {new_user.first_name} {new_user.last_name}\n'
+                f'Email: {new_user.email}\n'
+                f'Account Type: {user_type}\n'
+                'Status: awaiting email verification\n'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=['pandaspeaksupport@gmail.com'],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception(
+            'Registration notification email failed for %s', new_user.email)
 from subscription.referrals import REFERRAL_SESSION_KEY, attach_referral_from_code, remember_referral
 
 
@@ -110,6 +141,7 @@ def register(request):
             _send_teacher_stripe_reminder(request, new_user)
 
         user_type = 'Teacher' if new_user.is_teacher else 'Student'
+        _send_manager_registration_email(new_user, user_type)
         managers = CustomUser.objects.filter(is_staff=True, is_active=True)
         registration_message = (
             f'{new_user.get_full_name() or new_user.email} '
