@@ -83,9 +83,14 @@
   <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
-  <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/css/main.css' %}?v=20261119" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
+    /* Page titles: keep heading/breadcrumbs above the theme's dark
+       overlay (bright text, clickable links) even if a cached copy of
+       main.css is still being served. */
+    .page-title .heading,.page-title .breadcrumbs{position:relative;z-index:1}
+    .page-title:before{pointer-events:none}
     .footer-social{margin-top:16px}
     .footer-social-label{margin:0 0 9px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72)}
     .footer-social-links{display:flex;gap:10px}
