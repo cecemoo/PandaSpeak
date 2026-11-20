@@ -29,4 +29,7 @@ jobs:
             keys &= set(VisitorAction.objects.filter(date=today, action='challenge_play').values_list('visitor_key', flat=True))
             keys &= set(VisitorAction.objects.filter(date=today, action='register_view').values_list('visitor_key', flat=True))
             print('VISITORS_WITH_ALL_THREE_TODAY', len(keys))
+            for action in ('help_chat', 'challenge_play', 'register_view'):
+                ks = VisitorAction.objects.filter(date=today, action=action).values_list('visitor_key', flat=True)
+                print('KEYS', action, [k[:12] for k in ks])
             "
