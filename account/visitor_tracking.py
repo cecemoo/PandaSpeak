@@ -16,9 +16,10 @@ import hashlib
 import logging
 
 from django.core.cache import cache
+from django.urls import reverse
 from django.utils import timezone
 
-from .models import DailyVisitor
+from .models import DailyVisitor, VisitorAction
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,41 @@ def _client_ip(request):
     if forwarded:
         return forwarded.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', 'unknown')
+
+
+def visitor_key_for(request):
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    return hashlib.sha256(
+        ('%s|%s' % (_client_ip(request), user_agent)).encode('utf-8')
+    ).hexdigest()
+
+
+def _is_countable(request):
+    """Staff/superuser browsing and obvious bots are not visitor traffic."""
+    user = getattr(request, 'user', None)
+    if user is not None and user.is_authenticated and (
+            user.is_staff or user.is_superuser):
+        return False
+    lowered = request.META.get('HTTP_USER_AGENT', '').lower()
+    return not any(marker in lowered for marker in _BOT_MARKERS)
+
+
+def record_action(request, action):
+    """Record that this visitor performed `action` today (once per day).
+
+    Used by the Panda assistant and 60-Second Challenge endpoints; the
+    register page view is recorded by the middleware below. Never raises.
+    """
+    try:
+        if not _is_countable(request):
+            return
+        VisitorAction.objects.get_or_create(
+            visitor_key=visitor_key_for(request),
+            action=action,
+            date=timezone.localdate(),
+        )
+    except Exception:
+        logger.exception('Visitor action tracking failed')
 
 
 class VisitorTrackingMiddleware:
@@ -58,18 +94,13 @@ class VisitorTrackingMiddleware:
             return
         if 'text/html' not in response.get('Content-Type', ''):
             return
-        user = getattr(request, 'user', None)
-        if user is not None and user.is_authenticated and (
-                user.is_staff or user.is_superuser):
+        if not _is_countable(request):
             return
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        lowered = user_agent.lower()
-        if any(marker in lowered for marker in _BOT_MARKERS):
-            return
-        visitor_key = hashlib.sha256(
-            ('%s|%s' % (_client_ip(request), user_agent)).encode('utf-8')
-        ).hexdigest()
+        visitor_key = visitor_key_for(request)
         today = timezone.localdate()
+        if request.path == reverse('register'):
+            VisitorAction.objects.get_or_create(
+                visitor_key=visitor_key, action='register_view', date=today)
         cache_key = 'visitor_counted:%s:%s' % (visitor_key, today.isoformat())
         if cache.get(cache_key):
             return

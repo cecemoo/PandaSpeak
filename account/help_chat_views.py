@@ -16,6 +16,8 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
+from .visitor_tracking import record_action
+
 logger = logging.getLogger(__name__)
 
 TRADITIONAL_CONVERTER = OpenCC('s2twp')
@@ -130,6 +132,8 @@ def help_chat(request):
         return JsonResponse({'reply': "You've asked a lot of questions in the last hour — "
                                         'please try again a little later, or email us at '
                                         'pandaspeaksupport@gmail.com and a person will help you.'})
+
+    record_action(request, 'help_chat')
 
     messages = []
     history = body.get('history')

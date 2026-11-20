@@ -224,3 +224,20 @@ class DailyVisitor(models.Model):
     class Meta:
         unique_together = ('visitor_key', 'date')
         ordering = ['-date']
+
+
+class VisitorAction(models.Model):
+    """One visitor performing one tracked action on one day.
+
+    Powers the engagement numbers on the manager dashboard's Website
+    Visitors card: talking to the Panda assistant ('help_chat'), playing
+    the 60-Second Challenge ('challenge_play'), and viewing the register
+    page ('register_view'). Visitor keys match DailyVisitor's hashing.
+    """
+    visitor_key = models.CharField(max_length=64, db_index=True)
+    action = models.CharField(max_length=30, db_index=True)
+    date = models.DateField(db_index=True)
+
+    class Meta:
+        unique_together = ('visitor_key', 'action', 'date')
+        ordering = ['-date']

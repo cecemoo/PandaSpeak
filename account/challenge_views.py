@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 
 from .challenge_data import CHALLENGE_ITEMS
 from .models import ChallengeServe
+from .visitor_tracking import record_action
 
 
 def _ip_hash(request):
@@ -37,6 +38,7 @@ def challenge_next(request):
         candidates = [item for item in CHALLENGE_ITEMS if item['text'] != last] or list(CHALLENGE_ITEMS)
     item = random.choice(candidates)
     ChallengeServe.objects.create(ip_hash=ip_hash, item_text=item['text'])
+    record_action(request, 'challenge_play')
     pool = [other['answer'] for other in CHALLENGE_ITEMS
             if other['kind'] == item['kind'] and other['answer'] != item['answer']]
     choices = random.sample(pool, 3) + [item['answer']]

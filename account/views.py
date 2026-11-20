@@ -18,6 +18,7 @@ from .models import (
     CustomUser,
     PlacementTestAttempt,
     DailyVisitor,
+    VisitorAction,
 )
 from datetime import date, timedelta
 from course.forms import CourseForm
@@ -228,6 +229,17 @@ def manager_dashboard(request):
     ).values('visitor_key').distinct().count()
     visitors_total = DailyVisitor.objects.values('visitor_key').distinct().count()
 
+    def _action_counts(action):
+        rows = VisitorAction.objects.filter(action=action)
+        return (
+            rows.filter(date=visitor_today).count(),
+            rows.values('visitor_key').distinct().count(),
+        )
+
+    assistant_today, assistant_total = _action_counts('help_chat')
+    challenge_players_today, challenge_players_total = _action_counts('challenge_play')
+    register_views_today, register_views_total = _action_counts('register_view')
+
     query = request.GET.get('q', '').strip()
 
     vocabulary_results = Vocabulary.objects.none()
@@ -316,6 +328,18 @@ def manager_dashboard(request):
         'visitors_30d': visitors_30d,
 
         'visitors_total': visitors_total,
+
+        'assistant_today': assistant_today,
+
+        'assistant_total': assistant_total,
+
+        'challenge_players_today': challenge_players_today,
+
+        'challenge_players_total': challenge_players_total,
+
+        'register_views_today': register_views_today,
+
+        'register_views_total': register_views_total,
 
         'query': query,
 
