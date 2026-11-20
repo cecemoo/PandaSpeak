@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -181,3 +182,37 @@ def verify_email(request, uidb64, token):
         return redirect('my_login')
 
     return render(request, 'account/verification_invalid.html', status=400)
+
+
+RESEND_PER_EMAIL_LIMIT = 3  # new links per address per hour
+RESEND_PER_IP_LIMIT = 10  # resend requests per IP per hour
+
+
+def resend_verification(request):
+    """Send a fresh verification link to an unverified account.
+
+    The response is identical whether the address is unknown, already
+    verified, or rate-limited, so the form cannot be used to check
+    which emails are registered.
+    """
+    sent = False
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip().lower()
+        if email:
+            forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+            ip = forwarded.split(',')[0].strip() if forwarded else request.META.get('REMOTE_ADDR', '')
+            email_key = f'resend_verify_email:{email}'
+            ip_key = f'resend_verify_ip:{ip}'
+            email_count = cache.get(email_key, 0)
+            ip_count = cache.get(ip_key, 0)
+            if email_count < RESEND_PER_EMAIL_LIMIT and ip_count < RESEND_PER_IP_LIMIT:
+                cache.set(email_key, email_count + 1, 3600)
+                cache.set(ip_key, ip_count + 1, 3600)
+                user = CustomUser.objects.filter(email__iexact=email, is_active=False).first()
+                if user is not None:
+                    try:
+                        _send_verification_email(request, user)
+                    except Exception:
+                        logger.exception('Resend verification email failed for %s', email)
+            sent = True
+    return render(request, 'account/resend_verification.html', {'sent': sent})

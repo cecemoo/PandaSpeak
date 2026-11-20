@@ -7,6 +7,7 @@
       <p>This email verification link is invalid or has already been used.</p>
       <p>If your email has already been verified, you can sign in normally.</p>
       <a class="btn btn-primary rounded-pill" href="{% url 'my_login' %}">Go to Login</a>
+      <p style="margin-top:16px;">If your link has expired, you can <a href="{% url 'resend_verification' %}">request a new verification email</a>.</p>
     </div>
   </section>
 </main>

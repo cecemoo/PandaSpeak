@@ -7,6 +7,7 @@
       <p>We sent a verification link to <strong>{{ email }}</strong>.</p>
       <p>Please open the email and click the verification link before signing in to PandaSpeak.</p>
       <p>If you do not see the message, please check your spam or junk folder.</p>
+      <p>Didn't get the email? <a href="{% url 'resend_verification' %}">Resend the verification email</a></p>
     </div>
   </section>
 </main>
