@@ -91,6 +91,20 @@ class HistoryLessonCompletion(models.Model):
         return f'{self.student} - {self.lesson_slug}'
 
 
+class DialogueFreePlay(models.Model):
+    """The one free Dialogue listening practice a non-Plus student may claim.
+
+    Dialogue listening is a Plus feature; each student without Plus gets a
+    single free dialogue — the first topic they open — which stays replayable.
+    """
+    student = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='dialogue_free_play')
+    topic_slug = models.SlugField(max_length=100)
+    claimed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.student} - free dialogue {self.topic_slug}'
+
+
 class AIConversationUsage(models.Model):
     KIND_CHOICES = [('reply', 'AI Reply'), ('speech', 'AI Speech')]
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_conversation_usage')

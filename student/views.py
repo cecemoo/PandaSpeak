@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from subscription.models import Subscription, RenewalSurveyInvite
 from subscription.renewal_survey import notify_managers_renewal_survey_response
 from subscription.decorators import subscription_required
+from subscription.plan_access import is_plus
 from teacher.models import Vocabulary, Sentence, Pronunciation, Idiom, Tone, VocabularyCategory, SentenceCategory, IdiomCategory, LearningSurvey, SurveyResponse, LearningSubcategory
 from datetime import date
 from django.http import JsonResponse
@@ -160,6 +161,7 @@ def student_dashboard(request):
 
     context = {
         'has_subscription': sub is not None,
+        'dialogue_plus_active': is_plus(request.user),
         'SubPlan': sub.subscription_plan if sub else 'No Active Subscription',
         'available_surveys': available_surveys,
         'VAPID_PUBLIC_KEY': settings.VAPID_PUBLIC_KEY,

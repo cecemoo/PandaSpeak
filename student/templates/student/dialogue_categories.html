@@ -3,20 +3,21 @@
 {% block content %}
 <style>
 .dlg-wrap{max-width:900px;margin:0 auto;padding:10px 12px 30px}
-.dlg-head{background:linear-gradient(145deg,rgba(8,84,104,.95),rgba(6,54,78,.97));border:1px solid rgba(56,189,248,.5);border-radius:18px;padding:24px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
+.dlg-head{background:linear-gradient(145deg,rgba(219,39,119,.95),rgba(157,23,77,.97));border:1px solid rgba(249,168,212,.55);border-radius:18px;padding:24px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
 .dlg-head h2{color:#fff;margin:0 0 6px;font-size:1.7rem}
-.dlg-head p{color:#d7eefb;margin:0}
-.dlg-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(56,189,248,.22);color:#bae6fd;margin-bottom:10px}
+.dlg-head p{color:#ffe3f1;margin:0}
+.dlg-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.22);color:#ffe4f1;margin-bottom:10px}
 .dlg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .dlg-cat{display:block;background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:20px;color:#243024;text-decoration:none;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:transform .12s,box-shadow .12s}
 .dlg-cat:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.24);color:#243024}
 .dlg-cat .dlg-icon{font-size:2rem;display:block;margin-bottom:8px}
-.dlg-cat h3{margin:0 0 2px;font-size:1.2rem;color:#0b4a5e}
+.dlg-cat h3{margin:0 0 2px;font-size:1.2rem;color:#9d174d}
 .dlg-cat .dlg-zh{color:#8a6d1a;font-weight:700;margin-bottom:6px}
 .dlg-cat p{color:#5b6a5e;margin:0 0 10px;font-size:.93rem}
-.dlg-count{display:inline-block;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#e0f2fe;color:#075985}
+.dlg-count{display:inline-block;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#fce7f3;color:#9d174d}
+.dlg-banner{background:#fdf2f8;border:1px solid #f9a8d4;border-radius:14px;padding:14px 18px;color:#831843;margin-bottom:16px;font-size:.95rem}.dlg-banner a{color:#be185d;font-weight:700}
 .dlg-locked{background:#fffdf6;border:1px solid #e7e0cd;border-radius:16px;padding:28px;color:#243024;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.18)}
-.dlg-back{display:inline-block;margin-bottom:14px;color:#bae6fd;font-weight:700;text-decoration:none}
+.dlg-back{display:inline-block;margin-bottom:14px;color:#f9a8d4;font-weight:700;text-decoration:none}
 .dlg-back:hover{color:#fff}
 @media(max-width:700px){.dlg-grid{grid-template-columns:1fr}}
 </style>
@@ -27,6 +28,15 @@
     <h2>Dialogue 對話聽力</h2>
     <p>Listen to everyday conversations — at home, in restaurants, on the road — then answer questions to check how much you understood. Each dialogue is about one minute long.</p>
   </div>
+  {% if dialogue_level and not dialogue_plus %}
+  <div class="dlg-banner">
+    {% if dialogue_free_topic %}
+    👑 Dialogue listening is a <b>Plus</b> feature. Your free dialogue is <b>{{ dialogue_free_topic.title_en }} {{ dialogue_free_topic.title_zh }}</b> — you can replay it any time. <a href="{% url 'plus_upgrade' %}">Upgrade to Plus</a> to unlock every dialogue.
+    {% else %}
+    🎁 <b>One free dialogue:</b> Dialogue listening is a Plus feature, but your first dialogue is free — open any topic to claim it. <a href="{% url 'plus_upgrade' %}">Upgrade to Plus</a> to unlock every dialogue.
+    {% endif %}
+  </div>
+  {% endif %}
   {% if dialogue_level %}
   <div class="dlg-grid">
     {% for category in dialogue_categories %}
@@ -42,7 +52,7 @@
   {% else %}
   <div class="dlg-locked">
     <div style="font-size:2.4rem;margin-bottom:8px">🔒</div>
-    <h3 style="color:#0b4a5e;margin-top:0">Available at Level II</h3>
+    <h3 style="color:#9d174d;margin-top:0">Available at Level II</h3>
     <p style="color:#5b6a5e;margin:0">Dialogue listening practice opens when your learning level reaches Level II. Keep going — you are on your way!</p>
   </div>
   {% endif %}
