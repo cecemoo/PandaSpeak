@@ -107,8 +107,17 @@ def my_login(request):
             password = request.POST.get('password')
             user = authenticate(request, username=username, password=password)
             if user is not None:
+                previous_login = user.last_login
                 login_throttle.record_success(request, username)
                 login(request, user)
+                if not (user.is_staff or user.is_superuser):
+                    try:
+                        from student.study_reminder import (
+                            maybe_create_study_reminder,
+                        )
+                        maybe_create_study_reminder(user, previous_login)
+                    except Exception:
+                        pass
                 if user.is_staff or user.is_superuser:
                     return redirect('manager_dashboard')
                 elif user.is_teacher:
