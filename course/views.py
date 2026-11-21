@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import stripe
+from subscription.checkout_consent import record_tutoring_consent, tutoring_consent_given
 from subscription.purchase_blocklist import purchase_blocked_response
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -575,6 +576,10 @@ def cart_checkout(request):
     if request.method != "POST":
         return redirect("course:view_cart")
 
+    if not tutoring_consent_given(request):
+        messages.error(request, "Please review and acknowledge the Terms of Service and FAQ before checkout.")
+        return redirect("course:view_cart")
+
     if not cart:
         messages.error(request, "Your cart is empty.")
         return redirect("course:view_cart")
@@ -623,6 +628,9 @@ def cart_checkout(request):
             }
         )
     domain = request.build_absolute_uri("/").rstrip("/")
+    # Record the Terms/FAQ acknowledgement before handing off to Stripe,
+    # so the manager Acknowledgements page shows the tutoring record.
+    record_tutoring_consent(request)
     try:
         order_reference = uuid.uuid4().hex
         checkout_session = stripe.checkout.Session.create(

@@ -31,3 +31,28 @@ def require_checkout_consent(request, redirect_to="subscribe"):
         user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:1000],
     )
     return None
+
+
+def tutoring_consent_given(request):
+    """True when a tutoring checkout POST carries both acknowledgements."""
+    return (request.POST.get("accept_subscription_terms") == "yes"
+            and request.POST.get("accept_subscription_faq") == "yes")
+
+
+def record_tutoring_consent(request):
+    """Audit-log a tutoring checkout acknowledgement.
+
+    Recorded as a SubscriptionConsentEvent with provider "tutoring" so it
+    shows on the manager Acknowledgements page alongside subscription
+    checkout records. Unlike the subscription flow this does not stamp a
+    Subscription row — tutoring buyers are recorded by event only.
+    """
+    SubscriptionConsentEvent.objects.create(
+        user=request.user,
+        terms_version=TERMS_VERSION,
+        terms_accepted=True,
+        faq_accepted=True,
+        payment_provider="tutoring",
+        ip_address=request.META.get("REMOTE_ADDR") or None,
+        user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:1000],
+    )

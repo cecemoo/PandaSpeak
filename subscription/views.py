@@ -428,6 +428,11 @@ def create_tutoring_checkout_session(request, payment_id):
     blocked = purchase_blocked_response(request)
     if blocked is not None:
         return blocked
+    from .checkout_consent import record_tutoring_consent, tutoring_consent_given
+    if request.method != "POST" or not tutoring_consent_given(request):
+        messages.error(request, "Please review and acknowledge the Terms of Service and FAQ before checkout.")
+        return redirect("course:view_cart")
+    record_tutoring_consent(request)
     payment = TutoringPayment.objects.get(id=payment_id, student_name=request.user)
     unit_amount = int(payment.amount * 100)
     checkout_data = {
