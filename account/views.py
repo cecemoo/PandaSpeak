@@ -187,6 +187,9 @@ def manager_dashboard(request):
     assistant_today, assistant_total = _action_counts('help_chat')
     challenge_players_today, challenge_players_total = _action_counts('challenge_play')
     register_views_today, register_views_total = _action_counts('register_view')
+    tutoring_views_today, tutoring_views_total = _action_counts('tutoring_view')
+    course_detail_views_today, course_detail_views_total = _action_counts('course_detail_view')
+    about_views_today, about_views_total = _action_counts('about_view')
 
     query = request.GET.get('q', '').strip()
 
@@ -288,6 +291,18 @@ def manager_dashboard(request):
         'register_views_today': register_views_today,
 
         'register_views_total': register_views_total,
+
+        'tutoring_views_today': tutoring_views_today,
+
+        'tutoring_views_total': tutoring_views_total,
+
+        'course_detail_views_today': course_detail_views_today,
+
+        'course_detail_views_total': course_detail_views_total,
+
+        'about_views_today': about_views_today,
+
+        'about_views_total': about_views_total,
 
         'query': query,
 

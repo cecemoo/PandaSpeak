@@ -130,6 +130,9 @@ class DashboardActionCardTests(TestCase):
         VisitorAction.objects.create(visitor_key='a' * 64, action='challenge_play', date=today)
         VisitorAction.objects.create(visitor_key='a' * 64, action='challenge_play', date=today - timedelta(days=5))
         VisitorAction.objects.create(visitor_key='c' * 64, action='register_view', date=today)
+        VisitorAction.objects.create(visitor_key='d' * 64, action='tutoring_view', date=today)
+        VisitorAction.objects.create(visitor_key='d' * 64, action='course_detail_view', date=today)
+        VisitorAction.objects.create(visitor_key='e' * 64, action='about_view', date=today)
         manager = CustomUser.objects.create_user(
             email='manager2@example.com', password='Str0ng!Passw0rd',
             first_name='Man', last_name='Ager', is_staff=True, is_superuser=True)
@@ -147,6 +150,50 @@ class DashboardActionCardTests(TestCase):
         self.assertEqual(response.context['challenge_players_total'], 1)
         self.assertEqual(response.context['register_views_today'], 1)
         self.assertEqual(response.context['register_views_total'], 1)
+        self.assertEqual(response.context['tutoring_views_today'], 1)
+        self.assertEqual(response.context['tutoring_views_total'], 1)
+        self.assertEqual(response.context['course_detail_views_today'], 1)
+        self.assertEqual(response.context['course_detail_views_total'], 1)
+        self.assertEqual(response.context['about_views_today'], 1)
+        self.assertEqual(response.context['about_views_total'], 1)
         self.assertContains(response, 'Panda assistant chats')
         self.assertContains(response, '60-sec challenge players')
         self.assertContains(response, 'Register page visits')
+        self.assertContains(response, 'Tutoring page visits')
+        self.assertContains(response, 'Course page visits')
+        self.assertContains(response, 'About us visits')
+
+
+class PageViewTrackingTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_tutoring_page_view_recorded_once_per_day(self):
+        self.client.get(reverse('course:course_list'), HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(reverse('course:course_list'), HTTP_USER_AGENT=BROWSER_UA)
+        self.assertEqual(
+            VisitorAction.objects.filter(action='tutoring_view').count(), 1)
+
+    def test_about_page_view_recorded_once_per_day(self):
+        self.client.get(reverse('about'), HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(reverse('about'), HTTP_USER_AGENT=BROWSER_UA)
+        self.assertEqual(
+            VisitorAction.objects.filter(action='about_view').count(), 1)
+
+    def test_course_detail_view_recorded_once_per_day(self):
+        from course.models import Course
+        teacher = CustomUser.objects.create_user(
+            email='tutor@example.com', password='<redacted>',
+            first_name='Tess', last_name='Teacher', is_teacher=True)
+        course = Course.objects.create(
+            teacher=teacher, title='Conversation course', description='d',
+            price=2000, duration_minutes=60, session_type='private',
+            max_students=1)
+        url = reverse('course:course_detail', args=[course.pk])
+        self.client.get(url, HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(url, HTTP_USER_AGENT=BROWSER_UA)
+        self.assertEqual(
+            VisitorAction.objects.filter(action='course_detail_view').count(), 1)

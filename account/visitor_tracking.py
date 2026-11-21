@@ -101,6 +101,18 @@ class VisitorTrackingMiddleware:
         if request.path == reverse('register'):
             VisitorAction.objects.get_or_create(
                 visitor_key=visitor_key, action='register_view', date=today)
+        if request.path == reverse('about'):
+            VisitorAction.objects.get_or_create(
+                visitor_key=visitor_key, action='about_view', date=today)
+        if request.path == reverse('course:course_list'):
+            VisitorAction.objects.get_or_create(
+                visitor_key=visitor_key, action='tutoring_view', date=today)
+        match = getattr(request, 'resolver_match', None)
+        if (match is not None and match.namespace == 'course'
+                and match.url_name == 'course_detail'):
+            VisitorAction.objects.get_or_create(
+                visitor_key=visitor_key, action='course_detail_view',
+                date=today)
         cache_key = 'visitor_counted:%s:%s' % (visitor_key, today.isoformat())
         if cache.get(cache_key):
             return

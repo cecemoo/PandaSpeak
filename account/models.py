@@ -231,8 +231,11 @@ class VisitorAction(models.Model):
 
     Powers the engagement numbers on the manager dashboard's Website
     Visitors card: talking to the Panda assistant ('help_chat'), playing
-    the 60-Second Challenge ('challenge_play'), and viewing the register
-    page ('register_view'). Visitor keys match DailyVisitor's hashing.
+    the 60-Second Challenge ('challenge_play'), viewing the register
+    page ('register_view'), the tutoring page ('tutoring_view', the
+    course list), a course detail page ('course_detail_view'), and the
+    About Us page ('about_view'). Visitor keys match DailyVisitor's
+    hashing.
     """
     visitor_key = models.CharField(max_length=64, db_index=True)
     action = models.CharField(max_length=30, db_index=True)
