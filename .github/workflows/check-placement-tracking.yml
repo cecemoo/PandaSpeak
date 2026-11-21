@@ -1,0 +1,16 @@
+name: Check placement tracking (one-off)
+on: workflow_dispatch
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Grep deployed placement tracking on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/PandaSpeak
+            echo "record_call: $(grep -c "record_action(request, 'placement_test')" account/views.py)"
+            echo "card_line: $(grep -c placement_takers_total account/templates/account/sidebar.html)"
