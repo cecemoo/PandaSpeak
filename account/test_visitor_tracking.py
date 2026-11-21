@@ -133,6 +133,7 @@ class DashboardActionCardTests(TestCase):
         VisitorAction.objects.create(visitor_key='d' * 64, action='tutoring_view', date=today)
         VisitorAction.objects.create(visitor_key='d' * 64, action='course_detail_view', date=today)
         VisitorAction.objects.create(visitor_key='e' * 64, action='about_view', date=today)
+        VisitorAction.objects.create(visitor_key='f' * 64, action='placement_test', date=today)
         manager = CustomUser.objects.create_user(
             email='manager2@example.com', password='Str0ng!Passw0rd',
             first_name='Man', last_name='Ager', is_staff=True, is_superuser=True)
@@ -156,12 +157,15 @@ class DashboardActionCardTests(TestCase):
         self.assertEqual(response.context['course_detail_views_total'], 1)
         self.assertEqual(response.context['about_views_today'], 1)
         self.assertEqual(response.context['about_views_total'], 1)
+        self.assertEqual(response.context['placement_takers_today'], 1)
+        self.assertEqual(response.context['placement_takers_total'], 1)
         self.assertContains(response, 'Panda assistant chats')
         self.assertContains(response, '60-sec challenge players')
         self.assertContains(response, 'Register page visits')
         self.assertContains(response, 'Tutoring page visits')
         self.assertContains(response, 'Course page visits')
         self.assertContains(response, 'About us visits')
+        self.assertContains(response, 'Free placement test takers')
 
 
 class PageViewTrackingTests(TestCase):
@@ -197,3 +201,30 @@ class PageViewTrackingTests(TestCase):
         self.client.get(url, HTTP_USER_AGENT=BROWSER_UA)
         self.assertEqual(
             VisitorAction.objects.filter(action='course_detail_view').count(), 1)
+
+
+class PlacementTestTrackingTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        from account.models import PlacementQuestion
+        self.question = PlacementQuestion.objects.create(
+            level='level1', prompt='What is this?',
+            choice_a='Apple', choice_b='Banana', choice_c='Cat',
+            choice_d='Dog', correct_answer='A', order=1)
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_viewing_the_test_page_does_not_count_as_taking_it(self):
+        self.client.get(reverse('placement_test'), HTTP_USER_AGENT=BROWSER_UA)
+        self.assertEqual(
+            VisitorAction.objects.filter(action='placement_test').count(), 0)
+
+    def test_completing_the_test_records_the_taker(self):
+        response = self.client.post(
+            reverse('placement_test'),
+            {f'question_{self.question.id}': 'A'},
+            HTTP_USER_AGENT=BROWSER_UA)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            VisitorAction.objects.filter(action='placement_test').count(), 1)

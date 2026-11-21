@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from . forms import CreateUserForm, AddVocabCategoryForm, AddSentenceCategoryForm, AddIdiomCategoryForm, PlacementQuestionForm, PlacementResultEmailForm
 from django.contrib.auth.forms import AuthenticationForm
 from . import login_throttle
+from .visitor_tracking import record_action
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
@@ -190,6 +191,7 @@ def manager_dashboard(request):
     tutoring_views_today, tutoring_views_total = _action_counts('tutoring_view')
     course_detail_views_today, course_detail_views_total = _action_counts('course_detail_view')
     about_views_today, about_views_total = _action_counts('about_view')
+    placement_takers_today, placement_takers_total = _action_counts('placement_test')
 
     query = request.GET.get('q', '').strip()
 
@@ -303,6 +305,10 @@ def manager_dashboard(request):
         'about_views_today': about_views_today,
 
         'about_views_total': about_views_total,
+
+        'placement_takers_today': placement_takers_today,
+
+        'placement_takers_total': placement_takers_total,
 
         'query': query,
 
@@ -916,6 +922,7 @@ def placement_test(request):
             overall_percentage=overall_percentage,
             recommended_level=recommended_level,
         )
+        record_action(request, 'placement_test')
         request.session['placement_test_attempt_id'] = attempt.pk
 
         return render(

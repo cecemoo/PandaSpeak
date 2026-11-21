@@ -234,8 +234,8 @@ class VisitorAction(models.Model):
     the 60-Second Challenge ('challenge_play'), viewing the register
     page ('register_view'), the tutoring page ('tutoring_view', the
     course list), a course detail page ('course_detail_view'), and the
-    About Us page ('about_view'). Visitor keys match DailyVisitor's
-    hashing.
+    About Us page ('about_view'), and completing the free placement
+    test ('placement_test'). Visitor keys match DailyVisitor's hashing.
     """
     visitor_key = models.CharField(max_length=64, db_index=True)
     action = models.CharField(max_length=30, db_index=True)
