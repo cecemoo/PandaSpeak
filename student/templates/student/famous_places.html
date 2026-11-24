@@ -1,0 +1,201 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.fp-wrap{max-width:1060px;margin:0 auto}
+.fp-head{background:linear-gradient(135deg,#0f766e,#115e59);border-radius:18px;padding:26px 28px;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:18px}
+.fp-head h2{margin:0 0 6px;font-size:1.9rem}
+.fp-head h2 .zh{font-size:1.6rem;opacity:.92}
+.fp-head p{margin:0;color:#ccfbf1;max-width:640px}
+.fp-map{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(160deg,#d9ecd2 0%,#bfe3d8 45%,#a8d8e8 100%);border:2px solid #7fb69e;box-shadow:0 10px 26px rgba(0,0,0,.22);aspect-ratio:16/10;margin-bottom:18px}
+.fp-map:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.35) 1.5px,transparent 1.6px);background-size:26px 26px}
+.fp-sea{position:absolute;right:2%;top:8%;color:rgba(8,80,110,.45);font-weight:700;letter-spacing:6px;font-size:.85rem;writing-mode:vertical-rl}
+.fp-region{position:absolute;color:rgba(30,80,60,.5);font-weight:700;font-size:.8rem;letter-spacing:2px}
+.fp-pin{position:absolute;transform:translate(-50%,-100%);background:none;border:0;cursor:pointer;text-align:center;padding:0;z-index:3}
+.fp-pin .dot{font-size:1.55rem;line-height:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));display:block;transition:transform .15s}
+.fp-pin .lbl{display:block;margin-top:1px;background:rgba(255,255,255,.92);border:1.5px solid #0f766e;color:#134e4a;font-weight:800;font-size:.78rem;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.fp-pin:hover .dot{transform:scale(1.25)}
+.fp-pin.active .lbl{background:#f59e0b;border-color:#b45309;color:#451a03}
+.fp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.fp-card{border:2px solid #d8e6dd;border-radius:14px;overflow:hidden;background:#fffdf6;cursor:pointer;padding:0;text-align:left;transition:transform .12s,border-color .12s}
+.fp-card:hover{transform:translateY(-2px)}
+.fp-card.active{border-color:#f59e0b;box-shadow:0 6px 18px rgba(245,158,11,.35)}
+.fp-card img{width:100%;height:86px;object-fit:cover;display:block}
+.fp-card .fp-card-body{padding:8px 11px}
+.fp-card .fp-card-city{font-weight:800;color:#134e4a;font-size:1rem}
+.fp-card .fp-card-sub{font-size:.74rem;color:#5b6b60}
+.fp-detail{background:#fffdf6;border:1px solid #e7e0cd;border-radius:18px;padding:24px;color:#243024;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.fp-detail h3{margin:0 0 2px;font-size:1.65rem;color:#134e4a}
+.fp-detail .fp-sub{color:#5b6b60;margin-bottom:12px}
+.fp-photos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.fp-photo{margin:0}
+.fp-photo img{width:100%;height:250px;object-fit:cover;border-radius:14px;display:block}
+.fp-photo figcaption{font-size:.8rem;color:#5b6b60;margin-top:5px}
+.fp-photo figcaption .cap-zh{font-weight:700;color:#134e4a}
+.fp-intro{font-size:1.02rem;line-height:1.65;margin-bottom:16px}
+.fp-vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+.fp-vocab-box{background:#f2f8f3;border:1px solid #d8e6dd;border-radius:14px;padding:14px 16px}
+.fp-vocab-box.food{background:#fdf6ec;border-color:#f0dfc2}
+.fp-vocab-box h5{margin:0 0 10px;font-size:.95rem;color:#134e4a}
+.fp-vocab-box.food h5{color:#92400e}
+.fp-word{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(0,0,0,.12)}
+.fp-word:last-child{border-bottom:0}
+.fp-word .w-zh{font-size:1.25rem;font-weight:800;color:#1f2937;white-space:nowrap}
+.fp-word .w-meta{text-align:right}
+.fp-word .w-py{font-weight:700;color:#0f766e}
+.fp-word .w-bpmf{color:#6b7280;font-size:.85rem;margin-left:6px}
+.fp-word .w-en{display:block;color:#4b5563;font-size:.86rem}
+.fp-food-note{color:#4b5563;font-size:.94rem;margin:2px 0 14px}
+.fp-quiz{background:#eef6ff;border:1px solid #c9def5;border-radius:14px;padding:16px 18px;margin-top:14px}
+.fp-quiz h5{margin:0 0 4px;color:#1e3a5f}
+.fp-q{margin-top:12px}
+.fp-q p{font-weight:700;margin:0 0 8px;color:#1f2937}
+.fp-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fp-choice{border:2px solid #b6cfe8;background:#fff;border-radius:10px;padding:9px 12px;font-size:.95rem;cursor:pointer;text-align:left;color:#1f2937}
+.fp-choice:hover{border-color:#2563eb}
+.fp-choice.correct{background:#dcfce7;border-color:#16a34a;font-weight:700}
+.fp-choice.wrong{background:#fee2e2;border-color:#dc2626}
+.fp-choice:disabled{cursor:default;opacity:.92}
+.fp-score{display:none;margin-top:14px;background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:10px 14px;font-weight:700;color:#713f12}
+.fp-reset{margin-top:12px;background:none;border:1.5px solid #2563eb;color:#2563eb;border-radius:999px;padding:5px 16px;font-weight:700;cursor:pointer}
+.fp-credits{margin-top:16px;font-size:.72rem;color:#9db3a8;line-height:1.6}
+@media(max-width:768px){.fp-photos,.fp-vocab-grid,.fp-choices{grid-template-columns:1fr}.fp-photo img{height:200px}.fp-pin .lbl{font-size:.66rem;padding:0 6px}.fp-pin .dot{font-size:1.2rem}}
+</style>
+<main class="main">
+<div class="page-title dark-background"><div class="container position-relative">
+<h1>Famous Spots &amp; Food Map</h1>
+<nav class="breadcrumbs"><ol><li><a href="{% url 'home' %}">Home</a></li><li><a href="{% url 'student_dashboard' %}">Student Dashboard</a></li><li class="current">Famous Spots &amp; Food</li></ol></nav>
+</div></div>
+<section class="section"><div class="container fp-wrap">
+<div class="fp-head">
+<h2>🗺️ Famous Spots &amp; Food <span class="zh">景點美食地圖</span></h2>
+<p>Travel around China, Hong Kong, Taiwan and Macau! Tap a pin to visit a famous place, learn its words, taste its most famous food — then try the quiz.</p>
+</div>
+
+<div class="fp-map" id="fpMap">
+<span class="fp-sea">太平洋</span>
+<span class="fp-region" style="left:6%;top:8%">華北 · NORTH</span>
+<span class="fp-region" style="left:5%;top:52%">西南 · SOUTHWEST</span>
+<span class="fp-region" style="left:38%;top:88%">華南 · SOUTH</span>
+{% for spot in spots %}
+<button type="button" class="fp-pin{% if forloop.first %} active{% endif %}" data-spot="{{ spot.slug }}" style="left:{{ spot.pin.0 }}%;top:{{ spot.pin.1 }}%" aria-label="{{ spot.city.english }}">
+<span class="dot">📍</span><span class="lbl">{{ spot.city.chars }} {{ spot.landmark.chars }}</span>
+</button>
+{% endfor %}
+</div>
+
+<div class="fp-cards">
+{% for spot in spots %}
+<button type="button" class="fp-card{% if forloop.first %} active{% endif %}" data-spot="{{ spot.slug }}">
+<img src="{% static 'student/places/' %}{{ spot.photo }}" alt="{{ spot.landmark.english }} in {{ spot.city.english }}">
+<span class="fp-card-body"><span class="fp-card-city">{{ spot.city.chars }} {{ spot.city.english }}</span><br>
+<span class="fp-card-sub">{{ spot.landmark.english }} · {{ spot.region }}</span></span>
+</button>
+{% endfor %}
+</div>
+
+{% for spot in spots %}
+<article class="fp-detail" id="detail-{{ spot.slug }}" {% if not forloop.first %}style="display:none"{% endif %}>
+<h3>{{ spot.city.chars }} {{ spot.city.english }} · {{ spot.landmark.chars }}</h3>
+<p class="fp-sub">{{ spot.region }} {{ spot.region_zh }} — {{ spot.landmark.pinyin }} · {{ spot.landmark.bopomofo }} · {{ spot.landmark.english }}</p>
+<div class="fp-photos">
+<figure class="fp-photo">
+<img src="{% static 'student/places/' %}{{ spot.photo }}" alt="{{ spot.landmark.english }}">
+<figcaption><span class="cap-zh">{{ spot.landmark.chars }}</span> {{ spot.landmark.english }}</figcaption>
+</figure>
+<figure class="fp-photo">
+<img src="{% static 'student/places/' %}{{ spot.food_photo }}" alt="{{ spot.food.english }}">
+<figcaption><span class="cap-zh">{{ spot.food.chars }}</span> {{ spot.food.english }}</figcaption>
+</figure>
+</div>
+<p class="fp-intro">{{ spot.intro }}</p>
+<div class="fp-vocab-grid">
+<div class="fp-vocab-box">
+<h5>📍 Place Words</h5>
+{% for w in spot.place_vocab %}
+<div class="fp-word"><span class="w-zh">{{ w.chars }}</span><span class="w-meta"><span class="w-py">{{ w.pinyin }}</span><span class="w-bpmf">{{ w.bopomofo }}</span><span class="w-en">{{ w.english }}</span></span></div>
+{% endfor %}
+</div>
+<div class="fp-vocab-box food">
+<h5>🍜 Famous Food: {{ spot.food.chars }} {{ spot.food.pinyin }}</h5>
+{% for w in spot.food_vocab %}
+<div class="fp-word"><span class="w-zh">{{ w.chars }}</span><span class="w-meta"><span class="w-py">{{ w.pinyin }}</span><span class="w-bpmf">{{ w.bopomofo }}</span><span class="w-en">{{ w.english }}</span></span></div>
+{% endfor %}
+</div>
+</div>
+<p class="fp-food-note">{{ spot.food_note }}</p>
+<div class="fp-quiz" data-quiz="{{ spot.slug }}">
+<h5>❓ Quick Quiz — {{ spot.city.english }}</h5>
+{% for q in spot.quiz %}
+<div class="fp-q" data-answer="{{ q.answer }}">
+<p>{{ forloop.counter }}. {{ q.question }}</p>
+<div class="fp-choices">
+{% for choice in q.choices %}
+<button type="button" class="fp-choice" data-idx="{{ forloop.counter0 }}">{{ choice }}</button>
+{% endfor %}
+</div>
+</div>
+{% endfor %}
+<div class="fp-score"></div>
+<button type="button" class="fp-reset">↺ Try the quiz again</button>
+</div>
+</article>
+{% endfor %}
+
+<p class="fp-credits">Photos via Wikimedia Commons: {% for file, credit in photo_credits.items %}{{ file }} — {{ credit }}{% if not forloop.last %}; {% endif %}{% endfor %}.</p>
+</div></section>
+</main>
+<script>
+(function(){
+  function selectSpot(slug){
+    document.querySelectorAll('.fp-detail').forEach(function(d){ d.style.display = (d.id === 'detail-' + slug) ? '' : 'none'; });
+    document.querySelectorAll('.fp-pin,.fp-card').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-spot') === slug); });
+    var detail = document.getElementById('detail-' + slug);
+    if (detail) { detail.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+  document.querySelectorAll('.fp-pin,.fp-card').forEach(function(el){
+    el.addEventListener('click', function(){ selectSpot(el.getAttribute('data-spot')); });
+  });
+  document.querySelectorAll('.fp-quiz').forEach(function(quiz){
+    var questions = quiz.querySelectorAll('.fp-q');
+    function refreshScore(){
+      var answered = 0, correct = 0;
+      questions.forEach(function(q){
+        if (q.getAttribute('data-done')) { answered++; if (q.getAttribute('data-won')) correct++; }
+      });
+      var box = quiz.querySelector('.fp-score');
+      if (answered === questions.length) {
+        box.style.display = '';
+        box.textContent = correct === questions.length
+          ? '🎉 Perfect! You got ' + correct + ' of ' + questions.length + '. You know ' + 'this place well!'
+          : '🐼 You got ' + correct + ' of ' + questions.length + '. Read the words once more and try again!';
+      } else { box.style.display = 'none'; }
+    }
+    questions.forEach(function(q){
+      var answer = parseInt(q.getAttribute('data-answer'), 10);
+      q.querySelectorAll('.fp-choice').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.getAttribute('data-done')) return;
+          var idx = parseInt(btn.getAttribute('data-idx'), 10);
+          q.setAttribute('data-done', '1');
+          q.querySelectorAll('.fp-choice').forEach(function(b){
+            b.disabled = true;
+            if (parseInt(b.getAttribute('data-idx'), 10) === answer) b.classList.add('correct');
+          });
+          if (idx === answer) { q.setAttribute('data-won', '1'); }
+          else { btn.classList.add('wrong'); }
+          refreshScore();
+        });
+      });
+    });
+    quiz.querySelector('.fp-reset').addEventListener('click', function(){
+      questions.forEach(function(q){
+        q.removeAttribute('data-done'); q.removeAttribute('data-won');
+        q.querySelectorAll('.fp-choice').forEach(function(b){ b.disabled = false; b.classList.remove('correct','wrong'); });
+      });
+      refreshScore();
+    });
+  });
+})();
+</script>
+{% endblock %}
