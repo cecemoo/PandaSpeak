@@ -53,4 +53,4 @@ jobs:
                     print('  sub check err', e)
             print('DONE')
             PYEOF
-            venv/bin/python /tmp/check_users.py
+            PYTHONPATH=$HOME/PandaSpeak venv/bin/python /tmp/check_users.py
