@@ -1,0 +1,56 @@
+name: One-off user check
+
+on:
+  workflow_dispatch
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect two flagged accounts on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/PandaSpeak
+            cat > /tmp/check_users.py <<'PYEOF'
+            import os, django
+            os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChineseRun.settings')
+            django.setup()
+            from account.models import CustomUser
+            emails = ['amberlloyd179150@aol.com', 'icecozubuke683@gmail.com']
+            for em in emails:
+                try:
+                    u = CustomUser.objects.get(email=em)
+                except CustomUser.DoesNotExist:
+                    print(em, 'NOT FOUND')
+                    continue
+                print('=== ' + em)
+                for f in ('first_name', 'last_name', 'date_joined', 'last_login',
+                          'is_active', 'is_staff', 'is_superuser', 'is_teacher',
+                          'learning_level'):
+                    print('  %s = %r' % (f, getattr(u, f, '<n/a>')))
+                for f in u._meta.fields:
+                    if 'verif' in f.name or 'source' in f.name or 'ip' in f.name:
+                        print('  %s = %r' % (f.name, getattr(u, f.name)))
+                for rel in u._meta.related_objects:
+                    try:
+                        mgr = getattr(u, rel.get_accessor_name())
+                        c = mgr.count()
+                        if c:
+                            print('  related %s: %d' % (rel.related_model.__name__, c))
+                    except Exception:
+                        pass
+                try:
+                    for s in u.subscription_set.all():
+                        print('  SUB: plan=%r active=%r cost=%r' % (
+                            s.subscription_plan, s.is_active,
+                            getattr(s, 'subscription_cost', None)))
+                except Exception as e:
+                    print('  sub check err', e)
+            print('DONE')
+            PYEOF
+            venv/bin/python /tmp/check_users.py
