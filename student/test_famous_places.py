@@ -48,8 +48,8 @@ class FamousPlacesPageTests(TestCase):
 
 
 class FamousPlacesDataTests(TestCase):
-    def test_ten_spots_covering_china_hk_taiwan_macau(self):
-        self.assertEqual(len(SPOTS), 10)
+    def test_twenty_spots_covering_china_hk_taiwan_macau(self):
+        self.assertEqual(len(SPOTS), 20)
         regions = {spot['region'] for spot in SPOTS}
         self.assertIn('Hong Kong', regions)
         self.assertIn('Macau', regions)
